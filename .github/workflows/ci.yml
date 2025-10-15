@@ -31,6 +31,10 @@ jobs:
         working-directory: chart
         run: |
           helm dependency update
+          # Extract tgz dependencies for lint
+          for tgz in charts/*.tgz; do
+            [ -f "$tgz" ] && tar -xzf "$tgz" -C charts/
+          done
           helm lint . --strict
 
       - name: Template chart
