@@ -130,6 +130,12 @@
     "nodeSelector": {
       "type": "object"
     },
+    "nameOverride": {
+      "type": "string"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
     "oauth2-proxy": {
       "type": "object",
       "properties": {
@@ -296,6 +302,9 @@
         },
         "size": {
           "type": "string"
+        },
+        "storageClass": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -397,6 +406,9 @@
           "type": "integer"
         },
         "type": {
+          "type": "string"
+        },
+        "loadBalancerIP": {
           "type": "string"
         }
       },
