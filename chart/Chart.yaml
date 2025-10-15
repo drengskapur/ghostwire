@@ -7,10 +7,6 @@ appVersion: "1.18.0"
 annotations:
   org.opencontainers.image.tags: "0.4.0-dev,develop"
 dependencies:
-- name: cloudflared
-  version: "2.2.2"
-  repository: "https://community-charts.github.io/helm-charts"
-  condition: tunnel.enabled
 - name: oauth2-proxy
   version: "7.7.28"
   repository: "https://oauth2-proxy.github.io/manifests"
