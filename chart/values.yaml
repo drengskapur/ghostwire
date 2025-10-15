@@ -156,7 +156,7 @@ env:
   ## ⚠️  SECURITY: Change VNC password for production!
   ##
   - name: VNC_PW
-    value: "password"
+    value: "alphabravocharlie1"
   ## VNC screen resolution
   ##
   - name: VNC_RESOLUTION
@@ -287,7 +287,7 @@ oauth2-proxy:
     cookieName: "_oauth2_proxy_signal"
     cookieExpire: "8h"
     cookieRefresh: "1h"
-    cookieSecure: false  # ⚠️  Set true when using HTTPS
+    cookieSecure: true  # HTTPS enabled for production
     cookieHttpOnly: true
 
     ## Authentication provider configuration
@@ -351,7 +351,7 @@ oauth2-proxy:
   ##
   service:
     type: LoadBalancer
-    portNumber: 80
+    portNumber: 443
     ## Session affinity ensures VNC connections stay on same pod
     ##
     sessionAffinity: ClientIP
