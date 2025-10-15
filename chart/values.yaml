@@ -299,10 +299,6 @@ oauth2-proxy:
     ## - htpasswd provider for simple username/password authentication
     ##
     configFile: |-
-      provider = "htpasswd"
-      htpasswd_file = "/etc/oauth2_proxy/htpasswd/users"
-      email_domains = [ "*" ]
-
       # Upstream to Signal VNC service
       upstreams = [ "http://{{ include "ghostwire.fullname" . }}:6901/" ]
 
