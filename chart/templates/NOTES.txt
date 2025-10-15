@@ -2,6 +2,14 @@ Thank you for installing {{ .Chart.Name }}!
 
 Your Signal desktop application has been deployed as a StatefulSet.
 
+{{- if .Values.auth.enabled }}
+
+🔒 AUTHENTICATION ENABLED
+=======================
+OAuth2 Proxy is protecting your Signal VNC session.
+
+{{- end }}
+
 To access Signal:
 
 {{- if .Values.ingress.enabled }}
@@ -38,14 +46,30 @@ To access Signal:
 {{- end }}
 
 3. Login credentials:
+{{- if .Values.auth.enabled }}
+   First, authenticate with OAuth2 Proxy:
+     Users: {{ len .Values.auth.users }} configured
+     Session duration: {{ .Values.auth.cookieExpire }}
+
+   Then, VNC credentials:
+{{- end }}
    Username: kasm_user
    Password: {{ range .Values.env }}{{ if eq .name "VNC_PW" }}{{ .value }}{{ end }}{{ end }}
 
 IMPORTANT NOTES:
+{{- if .Values.auth.enabled }}
+- ⚠️  Change auth.cookieSecret in values.yaml (generate with: openssl rand -base64 32)
+- ⚠️  Update auth.users with your own htpasswd entries
+- Use chart/scripts/generate-htpasswd.sh to create new user entries
+{{- end }}
 - Change the VNC password in values.yaml before deploying to production
 - Signal will persist data to a PersistentVolume
 - First time setup will require linking to your phone number
 - The StatefulSet ensures your Signal data persists across pod restarts
+{{- if .Values.auth.enabled }}
+- OAuth2 Proxy provides WebSocket-compatible authentication for VNC
+- Sessions last {{ .Values.auth.cookieExpire }} with {{ .Values.auth.cookieRefresh }} refresh
+{{- end }}
 
 To view logs:
   kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "signal.name" . }} -f

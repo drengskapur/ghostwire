@@ -5,10 +5,20 @@ metadata:
   name: {{ include "signal.fullname" . }}
   labels:
     {{- include "signal.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
+    {{- if .Values.auth.enabled }}
+    # WebSocket and VNC-specific annotations
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "4k"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/websocket-services: "{{ .Release.Name }}-oauth2-proxy"
+    nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "600"
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   {{- if .Values.ingress.className }}
   ingressClassName: {{ .Values.ingress.className }}
@@ -33,9 +43,15 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
+                {{- if $.Values.auth.enabled }}
+                name: {{ $.Release.Name }}-oauth2-proxy
+                port:
+                  number: 80
+                {{- else }}
                 name: {{ include "signal.fullname" $ }}
                 port:
                   number: {{ $.Values.service.port }}
+                {{- end }}
           {{- end }}
     {{- end }}
 {{- end }}

@@ -123,3 +123,86 @@ readinessProbe:
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 3
+
+# OAuth2 Proxy configuration (subchart)
+# Enable authentication for KasmWeb VNC
+auth:
+  enabled: true
+
+# OAuth2 Proxy subchart values
+# Full configuration: https://github.com/oauth2-proxy/manifests/tree/main/helm/oauth2-proxy
+oauth2-proxy:
+  config:
+    # Cookie configuration for VNC sessions
+    cookieName: "_oauth2_proxy_signal"
+    cookieExpire: "8h"
+    cookieRefresh: "1h"
+    cookieSecure: false  # Set true when using HTTPS
+    cookieHttpOnly: true
+
+    # Authentication provider
+    configFile: |-
+      provider = "htpasswd"
+      htpasswd_file = "/etc/oauth2_proxy/htpasswd/users"
+      email_domains = [ "*" ]
+
+      # Upstream to Signal VNC
+      upstreams = [ "http://{{ include "signal.fullname" . }}:6901/" ]
+
+      # WebSocket support (critical for VNC)
+      proxy_websockets = true
+      pass_host_header = true
+      pass_access_token = false
+      pass_user_headers = true
+      set_xauthrequest = true
+
+      # Display htpasswd login form
+      display_htpasswd_form = true
+
+      # Logging
+      standard_logging = true
+      auth_logging = true
+      request_logging = true
+
+  # Users (htpasswd format)
+  # Generate with: htpasswd -nbB username password
+  htpasswdFile:
+    enabled: true
+    existingSecret: ""
+    entries:
+      - admin:$2y$05$6pLmHJVVs.kRz8cT/Ki5xuHPCWLLjCCC8qBKm.xM3nK1P/xhDZMCa  # admin:password
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 80
+    portNumber: 4180
+    sessionAffinity: ClientIP
+    sessionAffinityConfig:
+      clientIP:
+        timeoutSeconds: 3600
+
+  # Resources
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  # Probes
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    timeoutSeconds: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    timeoutSeconds: 1
+
+  # Generate cookie secret automatically if not provided
+  # Or set explicitly: --set oauth2-proxy.config.cookieSecret=<value>
+  alphaConfig:
+    enabled: false
