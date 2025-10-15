@@ -1,0 +1,57 @@
+name: Helm Chart CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'chart/**'
+      - '.github/workflows/ci.yml'
+
+env:
+  REGISTRY: ghcr.io
+  NAMESPACE: drengskapur/ghostwire
+
+jobs:
+  lint-test-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'latest'
+
+      - name: Lint chart (strict)
+        run: |
+          cd chart
+          helm dependency update
+          helm lint . --strict
+
+      - name: Template chart
+        run: |
+          cd chart
+          helm template test . > /dev/null
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package and push chart
+        run: |
+          cd chart
+          VERSION=$(grep '^version:' Chart.yaml | awk '{print $2}')
+          CHART_NAME=$(grep '^name:' Chart.yaml | awk '{print $2}')
+
+          helm package . --destination /tmp
+          helm push "/tmp/${CHART_NAME}-${VERSION}.tgz" "oci://${{ env.REGISTRY }}/${{ env.NAMESPACE }}/chart"
+
+          echo "✅ Pushed ${CHART_NAME}:${VERSION} to oci://${{ env.REGISTRY }}/${{ env.NAMESPACE }}/chart"
