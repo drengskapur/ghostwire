@@ -1,26 +1,32 @@
 #!/usr/bin/env bash
 set -e
 
-KEY_DIR="${HOME}/.ssh/flux-ghostwire"
+# Required environment variables
+: "${FLUX_GITHUB_REPO:?Environment variable FLUX_GITHUB_REPO is required}"
+: "${FLUX_CLUSTER_CONTEXT:?Environment variable FLUX_CLUSTER_CONTEXT is required}"
+: "${FLUX_DEPLOY_KEY_TITLE:?Environment variable FLUX_DEPLOY_KEY_TITLE is required}"
+: "${FLUX_SSH_KEY_DIR:=${HOME}/.ssh/flux-${FLUX_CLUSTER_NAME:-default}}"
+
+KEY_DIR="${FLUX_SSH_KEY_DIR}"
 KEY_FILE="${KEY_DIR}/identity-dev"
 
 # Prerequisites
 command -v gh &> /dev/null || { echo "❌ gh CLI required"; exit 1; }
 gh auth status &> /dev/null || { echo "❌ Run: gh auth login"; exit 1; }
-kubectl config use-context k3d-ghostwire 2>/dev/null || true
+kubectl config use-context "${FLUX_CLUSTER_CONTEXT}" 2>/dev/null || true
 
 # SSH key
 if [[ ! -f "${KEY_FILE}" ]]; then
   mkdir -p "${KEY_DIR}"
-  ssh-keygen -t ed25519 -C "flux-k3d-ghostwire" -f "${KEY_FILE}" -N ""
+  ssh-keygen -t ed25519 -C "${FLUX_DEPLOY_KEY_TITLE}" -f "${KEY_FILE}" -N ""
   chmod 600 "${KEY_FILE}"
 fi
 
 # GitHub deploy key
-KEY_ID=$(gh api repos/drengskapur/ghostwire/keys --jq '.[] | select(.title == "flux-k3d-ghostwire") | .id' 2>/dev/null || echo "")
+KEY_ID=$(gh api "repos/${FLUX_GITHUB_REPO}/keys" --jq ".[] | select(.title == \"${FLUX_DEPLOY_KEY_TITLE}\") | .id" 2>/dev/null || echo "")
 if [[ -z "${KEY_ID}" ]]; then
-  gh api -X POST repos/drengskapur/ghostwire/keys \
-    -f "title=flux-k3d-ghostwire" \
+  gh api -X POST "repos/${FLUX_GITHUB_REPO}/keys" \
+    -f "title=${FLUX_DEPLOY_KEY_TITLE}" \
     -f "key=$(cat ${KEY_FILE}.pub)" \
     -F "read_only=true" > /dev/null
 fi
