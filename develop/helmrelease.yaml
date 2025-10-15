@@ -87,7 +87,6 @@ spec:
 
       service:
         type: NodePort
-        port: 80
         portNumber: 4180
         sessionAffinity: ClientIP
         sessionAffinityConfig:
