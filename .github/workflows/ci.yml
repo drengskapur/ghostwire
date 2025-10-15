@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  NAMESPACE: drengskapur/ghostwire
+  NAMESPACE: drengskapur
 
 jobs:
   lint-test-push:
