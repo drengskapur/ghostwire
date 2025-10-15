@@ -1,52 +1,126 @@
-# Default values for signal chart
+# yaml-language-server: $schema=values.schema.json
+#
+# ┌─────────────────────────────────────────────────────────────────────────────────┐
+# │ Signal Desktop Helm Chart - Production-Ready Default Values                     │
+# │                                                                                 │
+# │ 🔴 IMPORTANT: This chart includes default values for initial testing.           │
+# │    For production deployments, you MUST:                                        │
+# │                                                                                 │
+# │    1. Change ALL default passwords (VNC_PW, cookie secret, htpasswd entries)    │
+# │    2. Use external secret management for credentials                            │
+# │    3. Enable TLS/HTTPS with proper certificates                                 │
+# │    4. Review and adjust resource limits based on your workload                  │
+# │    5. Configure proper storage classes for your environment                     │
+# │                                                                                 │
+# │ 📖 See README.md for detailed configuration instructions                        │
+# └─────────────────────────────────────────────────────────────────────────────────┘
 
-# Image configuration
+## @section Global parameters
+##
+## @section Image Configuration
+## Signal Desktop container image configuration
+##
+## @param image.repository Signal Desktop image repository
+## @param image.tag Signal Desktop image tag (immutable tags are recommended)
+## @param image.pullPolicy Image pull policy (Always, IfNotPresent, Never)
+##
 image:
   repository: kasmweb/signal
   tag: "1.18.0"
   pullPolicy: IfNotPresent
 
-# Image pull secrets for private registries
+## @param imagePullSecrets Docker registry secret names as an array
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+##
 imagePullSecrets: []
 
-# Number of replicas (should be 1 for single-user Signal)
+## @section Deployment Configuration
+##
+## @param replicaCount Number of Signal Desktop replicas (should be 1 for single-user)
+## Signal Desktop is tied to a phone number, so only 1 replica is supported
+##
 replicaCount: 1
 
-# Service configuration
+## @section Service Configuration
+## Kubernetes Service configuration
+##
+## @param service.type Kubernetes Service type (ClusterIP, NodePort, LoadBalancer)
+## @param service.port Service port for VNC access
+## @param service.targetPort Container target port for VNC
+## @param service.loadBalancerIP LoadBalancer IP address (for type: LoadBalancer with reserved IP)
+##
 service:
   type: ClusterIP
   port: 6901
   targetPort: 6901
-  # For LoadBalancer type on DigitalOcean with reserved IP
+  ## For LoadBalancer type on DigitalOcean with reserved IP
+  ## Example: loadBalancerIP: "209.38.63.45"
+  ##
   # loadBalancerIP: "209.38.63.45"
 
-# Ingress configuration
+## @section Ingress Configuration
+## Ingress configuration for external access
+##
+## @param ingress.enabled Enable ingress controller resource
+## @param ingress.className Ingress class name (e.g., nginx)
+## @param ingress.annotations Ingress annotations
+## @param ingress.hosts Ingress host configuration
+## @param ingress.tls Ingress TLS configuration
+##
 ingress:
   enabled: false
   className: ""
+  ## Additional annotations for the Ingress resource
+  ## Example: Enable TLS with cert-manager
+  ##   cert-manager.io/cluster-issuer: letsencrypt-prod
+  ##   nginx.ingress.kubernetes.io/proxy-body-size: "0"
+  ##
   annotations: {}
-    # cert-manager.io/cluster-issuer: letsencrypt-prod
-    # nginx.ingress.kubernetes.io/proxy-body-size: "0"
+  ## Ingress host configuration
+  ##
   hosts:
     - host: signal.example.com
       paths:
         - path: /
           pathType: Prefix
+  ## TLS configuration for HTTPS
+  ## Example:
+  ##   tls:
+  ##     - secretName: signal-tls
+  ##       hosts:
+  ##         - signal.example.com
+  ##
   tls: []
-  #  - secretName: signal-tls
-  #    hosts:
-  #      - signal.example.com
 
-# Persistent storage configuration
+## @section Persistent Storage Configuration
+## Persistent storage for Signal Desktop data
+##
+## @param persistence.enabled Enable persistent storage for Signal data
+## @param persistence.storageClass PVC Storage Class (use default if empty)
+## @param persistence.accessMode PVC Access Mode (ReadWriteOnce recommended)
+## @param persistence.size PVC Storage Request size
+## @param persistence.mountPath Container mount path for Signal data
+##
 persistence:
   enabled: true
-  # storageClass: ""  # Use default storage class
+  ## Storage class for PVC
+  ## If undefined (default) or set to null, uses default provisioner
+  ##
+  # storageClass: ""
   accessMode: ReadWriteOnce
   size: 10Gi
-  # Path where Signal stores data in the container
+  ## Path where Signal stores data in the KasmVNC container
+  ##
   mountPath: /home/kasm-user
 
-# Resource limits and requests
+## @section Resource Configuration
+## Resource limits and requests for Signal Desktop container
+##
+## @param resources.limits.cpu CPU limit
+## @param resources.limits.memory Memory limit
+## @param resources.requests.cpu CPU request
+## @param resources.requests.memory Memory request
+##
 resources:
   limits:
     cpu: 2000m
@@ -55,54 +129,97 @@ resources:
     cpu: 500m
     memory: 1Gi
 
-# Security context
+## @section Security Configuration
+## Pod and container security context
+##
+## @param securityContext.runAsUser User ID to run the container
+## @param securityContext.runAsGroup Group ID to run the container
+## @param securityContext.fsGroup Filesystem group ID for volumes
+##
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
   fsGroup: 1000
+  ## Additional security options (uncomment to enable):
+  ##
   # capabilities:
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
 
-# Environment variables
+## @section Environment Variables
+## Environment configuration for KasmVNC and Signal
+##
+## @param env Array of environment variables
+##
 env:
-  # VNC password (change this!)
+  ## ⚠️  SECURITY: Change VNC password for production!
+  ##
   - name: VNC_PW
     value: "password"
-  # Screen resolution
+  ## VNC screen resolution
+  ##
   - name: VNC_RESOLUTION
     value: "1280x720"
 
-# Additional environment variables from secrets/configmaps
+## @param envFrom Additional environment variables from secrets/configmaps
+## Example:
+##   envFrom:
+##     - secretRef:
+##         name: signal-secrets
+##     - configMapRef:
+##         name: signal-config
+##
 envFrom: []
-  # - secretRef:
-  #     name: signal-secrets
-  # - configMapRef:
-  #     name: signal-config
 
-# Pod annotations
+## @section Pod Configuration
+##
+## @param podAnnotations Annotations for Signal Desktop pods
+##
 podAnnotations: {}
 
-# Pod labels
+## @param podLabels Extra labels for Signal Desktop pods
+##
 podLabels: {}
 
-# Node selector
+## @param nodeSelector Node labels for pod assignment
+## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+##
 nodeSelector: {}
 
-# Tolerations
+## @param tolerations Tolerations for pod assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+##
 tolerations: []
 
-# Affinity rules
+## @param affinity Affinity rules for pod assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+##
 affinity: {}
 
-# Service account
+## @section Service Account
+## Service account configuration
+##
+## @param serviceAccount.create Create service account
+## @param serviceAccount.annotations Service account annotations
+## @param serviceAccount.name Service account name (generated if not set)
+##
 serviceAccount:
   create: false
   annotations: {}
   name: ""
 
-# Liveness probe
+## @section Health Probes
+## Liveness and readiness probe configuration
+##
+## @param livenessProbe.enabled Enable liveness probe
+## @param livenessProbe.httpGet.path HTTP probe path
+## @param livenessProbe.httpGet.port HTTP probe port
+## @param livenessProbe.initialDelaySeconds Initial delay seconds
+## @param livenessProbe.periodSeconds Period seconds
+## @param livenessProbe.timeoutSeconds Timeout seconds
+## @param livenessProbe.failureThreshold Failure threshold
+##
 livenessProbe:
   enabled: true
   httpGet:
@@ -113,7 +230,14 @@ livenessProbe:
   timeoutSeconds: 5
   failureThreshold: 3
 
-# Readiness probe
+## @param readinessProbe.enabled Enable readiness probe
+## @param readinessProbe.httpGet.path HTTP probe path
+## @param readinessProbe.httpGet.port HTTP probe port
+## @param readinessProbe.initialDelaySeconds Initial delay seconds
+## @param readinessProbe.periodSeconds Period seconds
+## @param readinessProbe.timeoutSeconds Timeout seconds
+## @param readinessProbe.failureThreshold Failure threshold
+##
 readinessProbe:
   enabled: true
   httpGet:
@@ -124,38 +248,65 @@ readinessProbe:
   timeoutSeconds: 5
   failureThreshold: 3
 
-# OAuth2 Proxy configuration (subchart)
-# Enable authentication for KasmWeb VNC
+## @section Authentication Configuration
+## OAuth2 Proxy configuration for WebSocket-compatible VNC authentication
+##
+## @param auth.enabled Enable OAuth2 Proxy authentication
+##
 auth:
   enabled: true
 
-# OAuth2 Proxy subchart values
-# Full configuration: https://github.com/oauth2-proxy/manifests/tree/main/helm/oauth2-proxy
+## @section OAuth2 Proxy Subchart Configuration
+## Full configuration: https://github.com/oauth2-proxy/manifests/tree/main/helm/oauth2-proxy
+##
+## OAuth2 Proxy handles authentication with proper WebSocket support for VNC
+##
 oauth2-proxy:
-  # Image configuration
+  ## OAuth2 Proxy image configuration
+  ##
+  ## @param oauth2-proxy.image.repository OAuth2 Proxy image repository
+  ## @param oauth2-proxy.image.tag OAuth2 Proxy image tag
+  ## @param oauth2-proxy.image.pullPolicy OAuth2 Proxy image pull policy
+  ##
   image:
     repository: "quay.io/oauth2-proxy/oauth2-proxy"
     tag: "v7.12.0"
     pullPolicy: IfNotPresent
 
+  ## OAuth2 Proxy main configuration
+  ##
   config:
-    # Cookie configuration for VNC sessions
+    ## Cookie configuration for VNC session management
+    ##
+    ## @param oauth2-proxy.config.cookieName Cookie name for authentication
+    ## @param oauth2-proxy.config.cookieExpire Session expiration time
+    ## @param oauth2-proxy.config.cookieRefresh Session refresh interval
+    ## @param oauth2-proxy.config.cookieSecure Enable secure cookie (set true for HTTPS)
+    ## @param oauth2-proxy.config.cookieHttpOnly Enable HTTP-only cookie
+    ##
     cookieName: "_oauth2_proxy_signal"
     cookieExpire: "8h"
     cookieRefresh: "1h"
-    cookieSecure: false  # Set true when using HTTPS
+    cookieSecure: false  # ⚠️  Set true when using HTTPS
     cookieHttpOnly: true
 
-    # Authentication provider
+    ## Authentication provider configuration
+    ##
+    ## @param oauth2-proxy.config.configFile OAuth2 Proxy configuration file
+    ##
+    ## IMPORTANT: WebSocket support is critical for VNC functionality
+    ## - proxy_websockets = true enables WebSocket passthrough
+    ## - htpasswd provider for simple username/password authentication
+    ##
     configFile: |-
       provider = "htpasswd"
       htpasswd_file = "/etc/oauth2_proxy/htpasswd/users"
       email_domains = [ "*" ]
 
-      # Upstream to Signal VNC
+      # Upstream to Signal VNC service
       upstreams = [ "http://{{ include "signal.fullname" . }}:6901/" ]
 
-      # WebSocket support (critical for VNC)
+      # WebSocket support (CRITICAL for VNC streaming)
       proxy_websockets = true
       pass_host_header = true
       pass_access_token = false
@@ -165,30 +316,53 @@ oauth2-proxy:
       # Display htpasswd login form
       display_htpasswd_form = true
 
-      # Logging
+      # Logging configuration
       standard_logging = true
       auth_logging = true
       request_logging = true
 
-  # Users (htpasswd format)
-  # Generate with: htpasswd -nbB username password
+  ## htpasswd user configuration
+  ##
+  ## @param oauth2-proxy.htpasswdFile.enabled Enable htpasswd authentication
+  ## @param oauth2-proxy.htpasswdFile.existingSecret Use existing secret for htpasswd
+  ## @param oauth2-proxy.htpasswdFile.entries htpasswd user entries (bcrypt format)
+  ##
+  ## Generate new entries with: htpasswd -nbB username password
+  ## Or use: ./chart/scripts/generate-htpasswd.sh username password
+  ##
+  ## ⚠️  SECURITY: Change default password for production!
+  ##    Default: admin / password
+  ##
   htpasswdFile:
     enabled: true
     existingSecret: ""
     entries:
       - admin:$2y$05$6pLmHJVVs.kRz8cT/Ki5xuHPCWLLjCCC8qBKm.xM3nK1P/xhDZMCa  # admin:password
 
-  # Service configuration
+  ## OAuth2 Proxy service configuration
+  ##
+  ## @param oauth2-proxy.service.type Service type
+  ## @param oauth2-proxy.service.port Service port
+  ## @param oauth2-proxy.service.portNumber Service port number
+  ## @param oauth2-proxy.service.sessionAffinity Enable session affinity
+  ## @param oauth2-proxy.service.sessionAffinityConfig Session affinity configuration
+  ##
   service:
     type: ClusterIP
     port: 80
     portNumber: 4180
+    ## Session affinity ensures VNC connections stay on same pod
+    ##
     sessionAffinity: ClientIP
     sessionAffinityConfig:
       clientIP:
-        timeoutSeconds: 3600
+        timeoutSeconds: 3600  # 1 hour sticky sessions
 
-  # Resources
+  ## OAuth2 Proxy resource configuration
+  ##
+  ## @param oauth2-proxy.resources.limits Resource limits
+  ## @param oauth2-proxy.resources.requests Resource requests
+  ##
   resources:
     limits:
       cpu: 200m
@@ -197,18 +371,31 @@ oauth2-proxy:
       cpu: 100m
       memory: 128Mi
 
-  # Probes
+  ## OAuth2 Proxy health probes
+  ##
+  ## @param oauth2-proxy.livenessProbe.enabled Enable liveness probe
+  ## @param oauth2-proxy.livenessProbe.initialDelaySeconds Initial delay seconds
+  ## @param oauth2-proxy.livenessProbe.timeoutSeconds Timeout seconds
+  ##
   livenessProbe:
     enabled: true
     initialDelaySeconds: 10
     timeoutSeconds: 1
 
+  ## @param oauth2-proxy.readinessProbe.enabled Enable readiness probe
+  ## @param oauth2-proxy.readinessProbe.initialDelaySeconds Initial delay seconds
+  ## @param oauth2-proxy.readinessProbe.timeoutSeconds Timeout seconds
+  ##
   readinessProbe:
     enabled: true
     initialDelaySeconds: 5
     timeoutSeconds: 1
 
-  # Generate cookie secret automatically if not provided
-  # Or set explicitly: --set oauth2-proxy.config.cookieSecret=<value>
+  ## @param oauth2-proxy.alphaConfig.enabled Enable alpha config (experimental features)
+  ##
+  ## Cookie secret is generated automatically if not provided
+  ## For production, generate with: openssl rand -base64 32
+  ## Then set: --set oauth2-proxy.config.cookieSecret=<value>
+  ##
   alphaConfig:
     enabled: false

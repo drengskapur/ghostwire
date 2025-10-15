@@ -1,18 +1,9 @@
 apiVersion: v2
 name: signal-system
-description: Signal messenger desktop application using KasmVNC
+description: Signal Web Application System
 type: application
 version: 0.1.0
 appVersion: "1.18.0"
-keywords:
-  - signal
-  - messaging
-  - kasmvnc
-home: https://github.com/drengskapur/signal-system
-sources:
-  - https://github.com/kasmtech/workspaces-images
-maintainers:
-  - name: drengskapur
 dependencies:
   - name: oauth2-proxy
     version: "8.3.1"
