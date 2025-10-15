@@ -23,13 +23,16 @@ This directory contains k3s configuration for local development, suitable for:
 ### Quick Start
 
 ```bash
-# Create k3d cluster with config
+# Create k3d cluster with config file
+k3d cluster create --config k3d-config.yaml
+
+# Or create manually with:
 k3d cluster create ghostwire \
   --k3s-arg "--disable=traefik@server:*" \
   --k3s-arg "--disable=servicelb@server:*" \
-  --port "80:80@loadbalancer" \
-  --port "443:443@loadbalancer" \
-  --port "6901:30901@loadbalancer"
+  --port "8080:80@loadbalancer" \
+  --port "8443:443@loadbalancer" \
+  --port "6902:30901@loadbalancer"
 
 # Verify cluster is running
 kubectl cluster-info
@@ -98,9 +101,9 @@ This matches the production droplet configuration for consistency.
 
 When using k3d, ports are mapped from host to cluster:
 
-- **80** → HTTP ingress (LoadBalancer)
-- **443** → HTTPS ingress (LoadBalancer)
-- **6901** → Signal VNC (mapped to NodePort 30901)
+- **8080** → HTTP ingress (LoadBalancer)
+- **8443** → HTTPS ingress (LoadBalancer)
+- **6902** → Ghostwire VNC (mapped to NodePort 30901)
 
 ### k3s (VM) Ports
 
@@ -127,7 +130,7 @@ helm install ghostwire . \
   --set service.nodePort=30901
 
 # Access Ghostwire VNC
-open http://localhost:6901
+open http://localhost:6902
 ```
 
 ### 2. Test with Flux (GitOps)
@@ -163,10 +166,10 @@ flux reconcile kustomization flux-system
 
 ```bash
 # Port-forward to Ghostwire service
-kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
+kubectl port-forward -n ghostwire svc/ghostwire 6902:6901
 
 # Open browser
-open http://localhost:6901
+open http://localhost:6902
 ```
 
 ### With Ingress
@@ -228,11 +231,13 @@ docker logs k3d-ghostwire-server-0
 
 ### Port Already in Use
 
-If port 6901 is already in use, edit `k3d-config.yaml` and change:
+If any ports are already in use, edit `k3d-config.yaml` and change the host port:
 
 ```yaml
 ports:
-  - port: 6902:30901  # Changed from 6901
+  - port: 8080:80      # Change 8080 to another port if needed
+  - port: 8443:443     # Change 8443 to another port if needed
+  - port: 6902:30901   # Change 6902 to another port if needed
 ```
 
 ### Out of Resources
