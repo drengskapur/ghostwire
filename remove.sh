@@ -26,7 +26,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 BACKUP_BRANCH="backup-before-claude-removal-$(date +%Y%m%d-%H%M%S)"
-ATTRIBUTION_PATTERN='🤖 Generated with \[Claude Code\]\(https://claude\.ai/code\)\n\nCo-Authored-By: Claude <noreply@anthropic\.com>\n?'
+ATTRIBUTION_PATTERN='🤖 Generated with \[Claude Code\]\(https://(claude\.ai/code|claude\.com/claude-code)\)\n\nCo-Authored-By: Claude <noreply@anthropic\.com>\n?'
+NON_INTERACTIVE=false
 
 # Function to print colored output
 print_status() {
@@ -83,7 +84,7 @@ show_impact() {
     
     local current_branch=$(git branch --show-current)
     local total_commits=$(git rev-list --count HEAD)
-    local affected_commits=$(git log --grep="Generated with \[Claude Code\]" --oneline 2>/dev/null | wc -l)
+    local affected_commits=$(git log --grep="Generated with" --grep="Claude Code" --all-match --oneline 2>/dev/null | wc -l)
     local repo_path=$(git rev-parse --show-toplevel)
     
     echo
@@ -180,7 +181,7 @@ cleanup_repository() {
 verify_results() {
     print_status "Verifying results..."
     
-    local remaining_attributions=$(git log --grep="Generated with \[Claude Code\]" --oneline 2>/dev/null | wc -l)
+    local remaining_attributions=$(git log --grep="Generated with" --grep="Claude Code" --all-match --oneline 2>/dev/null | wc -l)
     local total_commits_after=$(git rev-list --count HEAD)
     
     if [ "$remaining_attributions" -eq 0 ]; then
@@ -213,10 +214,14 @@ handle_remote() {
         echo "  2. Skip pushing (you can push manually later)"
         echo "  3. Create a new repository with the cleaned history"
         echo
-        
-        read -p "Do you want to force-push the changes to ALL remotes? (y/N): " -n 1 -r
-        echo
-        
+
+        if [ "$NON_INTERACTIVE" = true ]; then
+            REPLY="N"
+        else
+            read -p "Do you want to force-push the changes to ALL remotes? (y/N): " -n 1 -r
+            echo
+        fi
+
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             print_status "Force-pushing to all remotes..."
             
@@ -254,9 +259,15 @@ handle_remote() {
 # Function to offer cleanup options
 offer_cleanup() {
     echo
-    read -p "Do you want to delete the local backup branch '$BACKUP_BRANCH'? (y/N): " -n 1 -r
-    echo
-    
+
+    if [ "$NON_INTERACTIVE" = true ]; then
+        REPLY="Y"
+        print_status "Deleting backup branch in non-interactive mode"
+    else
+        read -p "Do you want to delete the local backup branch '$BACKUP_BRANCH'? (y/N): " -n 1 -r
+        echo
+    fi
+
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         git branch -D "$BACKUP_BRANCH"
         print_success "Backup branch deleted"
@@ -298,7 +309,7 @@ show_summary() {
     echo "  • The backup branch is available for recovery if needed"
     echo
     
-    if [ ! -z "$remotes" ] && git log --grep="Generated with \[Claude Code\]" --oneline >/dev/null 2>&1; then
+    if [ ! -z "$remotes" ] && git log --grep="Generated with" --grep="Claude Code" --all-match --oneline >/dev/null 2>&1; then
         print_warning "If you didn't force-push and want to update remotes later:"
         echo "  git push --force --all"
         echo "  git push --force --tags"
@@ -321,12 +332,17 @@ main() {
     
     echo
     print_warning "This operation will permanently modify git history!"
-    read -p "Do you want to proceed with removing Claude Code attributions? (y/N): " -n 1 -r
-    echo
-    
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_status "Operation cancelled by user"
-        exit 0
+
+    if [ "$NON_INTERACTIVE" = false ]; then
+        read -p "Do you want to proceed with removing Claude Code attributions? (y/N): " -n 1 -r
+        echo
+
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_status "Operation cancelled by user"
+            exit 0
+        fi
+    else
+        print_status "Running in non-interactive mode, proceeding..."
     fi
     
     echo
@@ -341,6 +357,10 @@ main() {
 
 # Handle script arguments
 case "${1:-}" in
+    --yes|-y)
+        NON_INTERACTIVE=true
+        main
+        ;;
     --help|-h)
         echo "Claude Code Attribution Removal Script"
         echo
@@ -351,6 +371,7 @@ case "${1:-}" in
         echo "OPTIONS:"
         echo "  --help, -h     Show this help message"
         echo "  --dry-run      Show what would be affected without making changes"
+        echo "  --yes, -y      Run non-interactively (assume yes to all prompts)"
         echo
         echo "This script will:"
         echo "  1. Check prerequisites (git-filter-repo, clean working directory)"
@@ -380,7 +401,8 @@ case "${1:-}" in
         echo
         echo "EXAMPLES:"
         echo "  $0 --dry-run    # See what would be changed"
-        echo "  $0              # Perform the removal"
+        echo "  $0              # Perform the removal (interactive)"
+        echo "  $0 --yes        # Perform the removal (non-interactive)"
         exit 0
         ;;
     --dry-run)
