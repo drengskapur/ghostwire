@@ -7,7 +7,7 @@ tests:
     asserts:
       - equal:
           path: metadata.labels["helm.sh/chart"]
-          value: signal-system-0.1.0
+          value: ghostwire-0.1.0
 
   - it: should generate correct fullname
     template: service.yaml
@@ -16,7 +16,7 @@ tests:
     asserts:
       - equal:
           path: metadata.name
-          value: my-release-signal-system
+          value: my-release-ghostwire
 
   - it: should use fullnameOverride when specified
     template: service.yaml
@@ -41,7 +41,7 @@ tests:
     asserts:
       - equal:
           path: metadata.labels["app.kubernetes.io/name"]
-          value: signal-system
+          value: ghostwire
 
   - it: should use nameOverride when specified
     template: service.yaml
@@ -80,11 +80,11 @@ tests:
   - it: should use release name when it contains chart name
     template: service.yaml
     release:
-      name: signal-system
+      name: ghostwire
     asserts:
       - equal:
           path: metadata.name
-          value: signal-system
+          value: ghostwire
 
   - it: should include selector labels
     template: service.yaml
@@ -93,7 +93,7 @@ tests:
     asserts:
       - equal:
           path: spec.selector["app.kubernetes.io/name"]
-          value: signal-system
+          value: ghostwire
       - equal:
           path: spec.selector["app.kubernetes.io/instance"]
           value: my-release

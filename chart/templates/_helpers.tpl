@@ -1,14 +1,14 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "signal.name" -}}
+{{- define "ghostwire.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 */}}
-{{- define "signal.fullname" -}}
+{{- define "ghostwire.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -24,16 +24,16 @@ Create a default fully qualified app name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "signal.chart" -}}
+{{- define "ghostwire.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "signal.labels" -}}
-helm.sh/chart: {{ include "signal.chart" . }}
-{{ include "signal.selectorLabels" . }}
+{{- define "ghostwire.labels" -}}
+helm.sh/chart: {{ include "ghostwire.chart" . }}
+{{ include "ghostwire.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -43,17 +43,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "signal.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "signal.name" . }}
+{{- define "ghostwire.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "ghostwire.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "signal.serviceAccountName" -}}
+{{- define "ghostwire.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "signal.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "ghostwire.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

@@ -17,7 +17,7 @@ tests:
           of: Ingress
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-signal-system
+          value: RELEASE-NAME-ghostwire
 
   - it: should set ingress className when specified
     set:
@@ -87,7 +87,7 @@ tests:
     asserts:
       - equal:
           path: spec.rules[0].http.paths[0].backend.service.name
-          value: RELEASE-NAME-signal-system
+          value: RELEASE-NAME-ghostwire
       - equal:
           path: spec.rules[0].http.paths[0].backend.service.port.number
           value: 6901
@@ -215,7 +215,7 @@ tests:
     asserts:
       - equal:
           path: metadata.labels["app.kubernetes.io/name"]
-          value: signal-system
+          value: ghostwire
       - equal:
           path: metadata.labels["app.kubernetes.io/instance"]
           value: RELEASE-NAME

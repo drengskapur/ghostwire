@@ -8,7 +8,7 @@ tests:
           of: Service
       - equal:
           path: metadata.name
-          value: RELEASE-NAME-signal-system
+          value: RELEASE-NAME-ghostwire
       - equal:
           path: spec.type
           value: ClusterIP
@@ -88,7 +88,7 @@ tests:
     asserts:
       - equal:
           path: metadata.labels["app.kubernetes.io/name"]
-          value: signal-system
+          value: ghostwire
       - equal:
           path: metadata.labels["app.kubernetes.io/instance"]
           value: RELEASE-NAME
@@ -100,7 +100,7 @@ tests:
     asserts:
       - equal:
           path: spec.selector["app.kubernetes.io/name"]
-          value: signal-system
+          value: ghostwire
       - equal:
           path: spec.selector["app.kubernetes.io/instance"]
           value: RELEASE-NAME

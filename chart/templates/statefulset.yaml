@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "signal.fullname" . }}
+  name: {{ include "ghostwire.fullname" . }}
   labels:
-    {{- include "signal.labels" . | nindent 4 }}
+    {{- include "ghostwire.labels" . | nindent 4 }}
 spec:
-  serviceName: {{ include "signal.fullname" . }}
+  serviceName: {{ include "ghostwire.fullname" . }}
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "signal.selectorLabels" . | nindent 6 }}
+      {{- include "ghostwire.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -17,7 +17,7 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "signal.selectorLabels" . | nindent 8 }}
+        {{- include "ghostwire.selectorLabels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -27,7 +27,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- if .Values.serviceAccount.create }}
-      serviceAccountName: {{ include "signal.serviceAccountName" . }}
+      serviceAccountName: {{ include "ghostwire.serviceAccountName" . }}
       {{- end }}
       securityContext:
         {{- toYaml .Values.securityContext | nindent 8 }}

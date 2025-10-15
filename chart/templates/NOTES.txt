@@ -21,7 +21,7 @@ To access Signal:
 {{- else if eq .Values.service.type "LoadBalancer" }}
 
 1. Get the LoadBalancer IP:
-   kubectl get svc {{ include "signal.fullname" . }} -n {{ .Release.Namespace }}
+   kubectl get svc {{ include "ghostwire.fullname" . }} -n {{ .Release.Namespace }}
 
 2. Access Signal VNC interface at:
    http://<EXTERNAL-IP>:{{ .Values.service.port }}
@@ -29,7 +29,7 @@ To access Signal:
 {{- else if eq .Values.service.type "NodePort" }}
 
 1. Get the Node IP and Port:
-   export NODE_PORT=$(kubectl get svc {{ include "signal.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath='{.spec.ports[0].nodePort}')
+   export NODE_PORT=$(kubectl get svc {{ include "ghostwire.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath='{.spec.ports[0].nodePort}')
    export NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}')
 
 2. Access Signal VNC interface at:
@@ -38,7 +38,7 @@ To access Signal:
 {{- else }}
 
 1. Port forward to access locally:
-   kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "signal.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+   kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "ghostwire.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
 
 2. Access Signal VNC interface at:
    http://localhost:{{ .Values.service.port }}
@@ -71,10 +71,10 @@ IMPORTANT NOTES:
 {{- end }}
 
 To view logs:
-  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "signal.name" . }} -f
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "ghostwire.name" . }} -f
 
 To view the StatefulSet:
-  kubectl get statefulset {{ include "signal.fullname" . }} -n {{ .Release.Namespace }}
+  kubectl get statefulset {{ include "ghostwire.fullname" . }} -n {{ .Release.Namespace }}
 
 To view the PVC:
-  kubectl get pvc -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "signal.name" . }}
+  kubectl get pvc -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "ghostwire.name" . }}

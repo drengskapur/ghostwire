@@ -2,9 +2,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "signal.fullname" . }}
+  name: {{ include "ghostwire.fullname" . }}
   labels:
-    {{- include "signal.labels" . | nindent 4 }}
+    {{- include "ghostwire.labels" . | nindent 4 }}
   annotations:
     {{- if .Values.auth.enabled }}
     # WebSocket and VNC-specific annotations
@@ -48,7 +48,7 @@ spec:
                 port:
                   number: 80
                 {{- else }}
-                name: {{ include "signal.fullname" $ }}
+                name: {{ include "ghostwire.fullname" $ }}
                 port:
                   number: {{ $.Values.service.port }}
                 {{- end }}

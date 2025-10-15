@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "signal.fullname" . }}
+  name: {{ include "ghostwire.fullname" . }}
   labels:
-    {{- include "signal.labels" . | nindent 4 }}
+    {{- include "ghostwire.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   {{- if and (eq .Values.service.type "LoadBalancer") .Values.service.loadBalancerIP }}
@@ -15,4 +15,4 @@ spec:
       protocol: TCP
       name: vnc
   selector:
-    {{- include "signal.selectorLabels" . | nindent 4 }}
+    {{- include "ghostwire.selectorLabels" . | nindent 4 }}

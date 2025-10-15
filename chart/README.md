@@ -1,6 +1,6 @@
-# Signal Desktop Helm Chart
+# Ghostwire - Signal Desktop Helm Chart
 
-Helm chart for deploying Signal Desktop using KasmWeb VNC with OAuth2 Proxy authentication.
+Secure deployment system for Signal Desktop using KasmWeb VNC with OAuth2 Proxy authentication.
 
 ## Features
 
@@ -374,7 +374,7 @@ openssl rand -base64 32
 
 ## Support
 
-- **Chart Repository:** https://github.com/drengskapur/signal-system
+- **Chart Repository:** https://github.com/drengskapur/ghostwire
 - **KasmWeb Documentation:** https://www.kasmweb.com/docs
 - **OAuth2 Proxy:** https://oauth2-proxy.github.io/oauth2-proxy/
 

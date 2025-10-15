@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=values.schema.json
 #
 # ┌─────────────────────────────────────────────────────────────────────────────────┐
-# │ Signal Desktop Helm Chart - Production-Ready Default Values                     │
+# │ Ghostwire - Signal Desktop Helm Chart - Production-Ready Default Values         │
 # │                                                                                 │
 # │ 🔴 IMPORTANT: This chart includes default values for initial testing.           │
 # │    For production deployments, you MUST:                                        │
