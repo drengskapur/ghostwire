@@ -7,6 +7,6 @@ metadata:
 spec:
   type: oci
   interval: 5m
-  url: oci://ghcr.io/drengskapur/ghostwire/chart
+  url: oci://ghcr.io/drengskapur/chart
   secretRef:
     name: github-credentials
