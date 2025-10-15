@@ -16,3 +16,4 @@ spec:
       name: vnc
   selector:
     {{- include "ghostwire.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: app
