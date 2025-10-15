@@ -290,8 +290,7 @@
           },
           "additionalProperties": false
         }
-      },
-      "additionalProperties": false
+      }
     },
     "persistence": {
       "type": "object",
