@@ -401,6 +401,18 @@
       "required": ["enabled"],
       "additionalProperties": false
     },
+    "tunnel": {
+      "type": "object",
+      "description": "Cloudflare Tunnel configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable Cloudflare Tunnel for external access"
+        }
+      },
+      "required": ["enabled"],
+      "additionalProperties": false
+    },
     "auth": {
       "type": "object",
       "description": "Authentication configuration",
@@ -605,6 +617,94 @@
             "enabled": {
               "type": "boolean",
               "description": "Enable alpha config (experimental features)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "cloudflared": {
+      "type": "object",
+      "description": "Cloudflared subchart configuration for Cloudflare Tunnel",
+      "properties": {
+        "replicaCount": {
+          "type": "integer",
+          "description": "Number of cloudflared replicas",
+          "minimum": 1
+        },
+        "cloudflare": {
+          "type": "object",
+          "properties": {
+            "account": {
+              "type": "string",
+              "description": "Cloudflare account ID or email"
+            },
+            "tunnel": {
+              "type": "string",
+              "description": "Tunnel UUID or name"
+            },
+            "secret": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Existing secret name containing tunnel credentials"
+                },
+                "key": {
+                  "type": "string",
+                  "description": "Key in the secret containing the tunnel token or credentials"
+                }
+              },
+              "additionalProperties": false
+            },
+            "ingress": {
+              "type": "array",
+              "description": "Tunnel ingress rules for routing traffic",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "hostname": {
+                    "type": "string"
+                  },
+                  "service": {
+                    "type": "string"
+                  },
+                  "originRequest": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
