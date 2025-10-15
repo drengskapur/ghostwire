@@ -3,8 +3,7 @@
   "type": "object",
   "properties": {
     "affinity": {
-      "type": "object",
-      "additionalProperties": false
+      "type": "object"
     },
     "auth": {
       "type": "object",
@@ -26,8 +25,7 @@
           "value": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       }
     },
     "envFrom": {
@@ -55,8 +53,7 @@
       "type": "object",
       "properties": {
         "annotations": {
-          "type": "object",
-          "additionalProperties": false
+          "type": "object"
         },
         "className": {
           "type": "string"
@@ -128,8 +125,7 @@
       "additionalProperties": false
     },
     "nodeSelector": {
-      "type": "object",
-      "additionalProperties": false
+      "type": "object"
     },
     "oauth2-proxy": {
       "type": "object",
@@ -140,8 +136,7 @@
             "enabled": {
               "type": "boolean"
             }
-          },
-          "additionalProperties": false
+          }
         },
         "config": {
           "type": "object",
@@ -164,8 +159,7 @@
             "cookieSecure": {
               "type": "boolean"
             }
-          },
-          "additionalProperties": false
+          }
         },
         "htpasswdFile": {
           "type": "object",
@@ -182,8 +176,7 @@
             "existingSecret": {
               "type": "string"
             }
-          },
-          "additionalProperties": false
+          }
         },
         "image": {
           "type": "object",
@@ -197,8 +190,7 @@
             "tag": {
               "type": "string"
             }
-          },
-          "additionalProperties": false
+          }
         },
         "livenessProbe": {
           "type": "object",
@@ -212,8 +204,7 @@
             "timeoutSeconds": {
               "type": "integer"
             }
-          },
-          "additionalProperties": false
+          }
         },
         "readinessProbe": {
           "type": "object",
@@ -227,8 +218,7 @@
             "timeoutSeconds": {
               "type": "integer"
             }
-          },
-          "additionalProperties": false
+          }
         },
         "resources": {
           "type": "object",
@@ -242,8 +232,7 @@
                 "memory": {
                   "type": "string"
                 }
-              },
-              "additionalProperties": false
+              }
             },
             "requests": {
               "type": "object",
@@ -254,11 +243,9 @@
                 "memory": {
                   "type": "string"
                 }
-              },
-              "additionalProperties": false
+              }
             }
-          },
-          "additionalProperties": false
+          }
         },
         "service": {
           "type": "object",
@@ -278,17 +265,14 @@
                     "timeoutSeconds": {
                       "type": "integer"
                     }
-                  },
-                  "additionalProperties": false
+                  }
                 }
-              },
-              "additionalProperties": false
+              }
             },
             "type": {
               "type": "string"
             }
-          },
-          "additionalProperties": false
+          }
         }
       }
     },
@@ -311,12 +295,10 @@
       "additionalProperties": false
     },
     "podAnnotations": {
-      "type": "object",
-      "additionalProperties": false
+      "type": "object"
     },
     "podLabels": {
-      "type": "object",
-      "additionalProperties": false
+      "type": "object"
     },
     "readinessProbe": {
       "type": "object",
@@ -415,8 +397,7 @@
       "type": "object",
       "properties": {
         "annotations": {
-          "type": "object",
-          "additionalProperties": false
+          "type": "object"
         },
         "create": {
           "type": "boolean"
