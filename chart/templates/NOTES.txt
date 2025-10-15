@@ -48,7 +48,7 @@ To access Signal:
 3. Login credentials:
 {{- if .Values.auth.enabled }}
    First, authenticate with OAuth2 Proxy:
-     Users: {{ len .Values."oauth2-proxy".htpasswdFile.entries }} configured
+     Users: {{ len (index .Values "oauth2-proxy" "htpasswdFile" "entries") }} configured
      Session duration: {{ index .Values "oauth2-proxy" "config" "cookieExpire" }}
 
    Then, VNC credentials:
