@@ -8,7 +8,7 @@ env:
   CHART_NAME:
     sh: grep '^name:' chart/Chart.yaml | awk '{print $2}'
   REGISTRY: '{{.REGISTRY | default "ghcr.io"}}'
-  NAMESPACE: '{{.NAMESPACE | default "drengskapur/signal-system"}}'
+  NAMESPACE: '{{.NAMESPACE | default "drengskapur/ghostwire"}}'
 
 tasks:
   default:
@@ -219,3 +219,38 @@ tasks:
         echo "   2. Commit: git add chart/Chart.yaml && git commit -m 'release: bump chart version to ${NEW_VERSION}'"
         echo "   3. Tag: git tag v${NEW_VERSION} && git push --tags"
         echo "   4. Push chart: task helm:push"
+
+  changelog:
+    desc: Generate CHANGELOG.md from git history
+    silent: true
+    cmds:
+      - |
+        if ! command -v git-chglog &> /dev/null; then
+          echo "⚠️  git-chglog not found. Installing..."
+
+          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+          ARCH=$(uname -m)
+
+          if [ "$ARCH" = "x86_64" ]; then
+            ARCH="amd64"
+          elif [ "$ARCH" = "aarch64" ]; then
+            ARCH="arm64"
+          fi
+
+          VERSION="0.15.4"
+          URL="https://github.com/git-chglog/git-chglog/releases/download/v${VERSION}/git-chglog_${VERSION}_${OS}_${ARCH}.tar.gz"
+
+          echo "📥 Downloading git-chglog ${VERSION}..."
+          mkdir -p ~/.local/bin
+          curl -sL "$URL" | tar xz
+          mv git-chglog ~/.local/bin/
+          rm -f LICENSE README.md
+
+          echo "✅ git-chglog installed"
+        fi
+
+        echo "📝 Generating CHANGELOG.md..."
+        ~/.local/bin/git-chglog --output CHANGELOG.md
+        echo "✅ CHANGELOG.md generated"
+        echo ""
+        echo "💡 Review: cat CHANGELOG.md"
