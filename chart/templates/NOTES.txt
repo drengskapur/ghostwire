@@ -2,27 +2,6 @@ Thank you for installing {{ .Chart.Name }}!
 
 Your Signal desktop application has been deployed as a StatefulSet.
 
-{{- if .Values.auth.enabled }}
-
-🔒 KEYCLOAK IAM DEPLOYED
-========================
-Keycloak is running and available for identity management.
-
-To access Keycloak Admin Console:
-  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ .Release.Name }}-keycloak 8080:8080
-
-  Then visit: http://localhost:8080
-
-  Admin credentials:
-    Username: {{ .Values.keycloak.auth.adminUser }}
-    Password: {{ .Values.keycloak.auth.adminPassword }}
-
-NOTE: Keycloak is NOT currently protecting VNC access.
-      VNC is accessible without authentication.
-      To add authentication: Deploy oauth2-proxy or similar OIDC proxy.
-
-{{- end }}
-
 To access Signal:
 
 {{- if .Values.ingress.enabled }}
@@ -63,13 +42,7 @@ To access Signal:
    Password: {{ range .Values.env }}{{ if eq .name "VNC_PW" }}{{ .value }}{{ end }}{{ end }}
 
 IMPORTANT NOTES:
-{{- if .Values.auth.enabled }}
-- ⚠️  Keycloak admin password should be changed for production
-- ⚠️  PostgreSQL password should be changed for production
-- Keycloak realm 'ghostwire' must be created manually or via automation
-- VNC is currently NOT protected by Keycloak - add oauth2-proxy for OIDC authentication
-{{- end }}
-- Change the VNC password in values.yaml before deploying to production
+- ⚠️  Change the VNC password in values.yaml before deploying to production
 - Signal will persist data to a PersistentVolume
 - First time setup will require linking to your phone number
 - The StatefulSet ensures your Signal data persists across pod restarts

@@ -252,100 +252,12 @@ readinessProbe:
   failureThreshold: 5
 
 ## @section Authentication Configuration
-## Keycloak configuration for identity and access management
+## Authentication relies on built-in KasmVNC basic auth
 ##
-## @param auth.enabled Enable Keycloak authentication
+## @param auth.enabled Enable external authentication (Keycloak)
 ##
 auth:
-  enabled: true
-
-## @section Keycloak IAM Configuration
-## Keycloak provides identity and access management with OIDC/SAML support
-##
-keycloak:
-  ## @param keycloak.auth.adminUser Keycloak admin username
-  ## @param keycloak.auth.adminPassword Keycloak admin password
-  ##
-  ## ⚠️  SECURITY: Change admin password for production!
-  ##
-  auth:
-    adminUser: admin
-    adminPassword: "password"
-
-  ## @param keycloak.production Enable production mode (requires proper database and TLS)
-  production: false
-
-  ## @param keycloak.proxy Proxy mode (edge, reencrypt, passthrough, none)
-  ## Use 'edge' when behind Cloudflare Tunnel or reverse proxy with TLS termination
-  proxy: edge
-
-  ## @param keycloak.httpRelativePath Keycloak HTTP relative path
-  ## Leave empty for root path, or set to /auth for legacy compatibility
-  httpRelativePath: ""
-
-  ## PostgreSQL database configuration (included as Keycloak subchart dependency)
-  ##
-  ## @param keycloak.postgresql.enabled Enable PostgreSQL subchart
-  ## @param keycloak.postgresql.auth.username PostgreSQL username
-  ## @param keycloak.postgresql.auth.password PostgreSQL password
-  ## @param keycloak.postgresql.auth.database PostgreSQL database name
-  ##
-  postgresql:
-    enabled: true
-    auth:
-      username: keycloak
-      password: "keycloak123"
-      database: keycloak
-    ## Reduced resources for development
-    primary:
-      resources:
-        limits:
-          cpu: 500m
-          memory: 512Mi
-        requests:
-          cpu: 100m
-          memory: 128Mi
-      persistence:
-        enabled: true
-        size: 2Gi
-
-  ## Keycloak resource configuration
-  ##
-  ## @param keycloak.resources.limits Resource limits
-  ## @param keycloak.resources.requests Resource requests
-  ##
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1Gi
-    requests:
-      cpu: 250m
-      memory: 512Mi
-
-  ## Keycloak service configuration
-  ##
-  ## @param keycloak.service.type Service type (ClusterIP recommended)
-  ## @param keycloak.service.ports.http HTTP port
-  ##
-  service:
-    type: ClusterIP
-    ports:
-      http: 8080
-
-  ## Keycloak ingress configuration
-  ##
-  ## @param keycloak.ingress.enabled Enable ingress for Keycloak
-  ##
-  ingress:
-    enabled: false
-
-  ## Initial realm and client configuration via extraEnvVars
-  ## This will be configured through Keycloak admin console or API
-  ##
-  ## Realm: ghostwire
-  ## Client: ghostwire-vnc
-  ## Redirect URIs: https://ghostwire-dev.adhoc-solutions.com/oauth2/callback
-  ##
+  enabled: false
 
 ## @section Cloudflare Tunnel Configuration
 ## Cloudflared provides secure Cloudflare Tunnel access without exposing ports
