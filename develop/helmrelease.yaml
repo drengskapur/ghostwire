@@ -61,6 +61,8 @@ spec:
         value: "password"
       - name: VNC_RESOLUTION
         value: "1280x720"
+      - name: VNCOPTIONS
+        value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -disableBasicAuth"
 
     # Cloudflare Tunnel configuration
     tunnel:
