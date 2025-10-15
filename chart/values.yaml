@@ -348,7 +348,6 @@ oauth2-proxy:
   ##
   service:
     type: ClusterIP
-    port: 80
     portNumber: 4180
     ## Session affinity ensures VNC connections stay on same pod
     ##
