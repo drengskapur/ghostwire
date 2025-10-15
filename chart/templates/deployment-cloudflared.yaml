@@ -25,7 +25,7 @@ spec:
       {{- end }}
       containers:
       - name: cloudflared
-        image: "{{ .Values.tunnel.image.repository }}:{{ .Values.tunnel.image.tag }}"
+        image: "{{ include "ghostwire.tunnelImage" . }}"
         imagePullPolicy: {{ .Values.tunnel.image.pullPolicy | default "IfNotPresent" }}
         args:
           - tunnel
