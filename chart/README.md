@@ -44,7 +44,7 @@ helm install signal ./chart \
 1. Generate htpasswd entries:
 
 ```bash
-./chart/scripts/generate-htpasswd.sh admin MySecurePassword
+htpasswd -nbB admin MySecurePassword
 ```
 
 2. Generate cookie secret:
@@ -221,7 +221,7 @@ service:
 
 ```bash
 # Generate entry
-./chart/scripts/generate-htpasswd.sh newuser password
+htpasswd -nbB newuser password
 
 # Update values and upgrade
 helm upgrade signal ./chart -f custom-values.yaml
@@ -365,11 +365,10 @@ helm install signal ./chart --dry-run --debug
 ### Generate Password
 
 ```bash
-# Using script
-./chart/scripts/generate-htpasswd.sh
-
-# Manual
+# Generate htpasswd entry
 htpasswd -nbB username password
+
+# Generate cookie secret
 openssl rand -base64 32
 ```
 

@@ -328,7 +328,6 @@ oauth2-proxy:
   ## @param oauth2-proxy.htpasswdFile.entries htpasswd user entries (bcrypt format)
   ##
   ## Generate new entries with: htpasswd -nbB username password
-  ## Or use: ./chart/scripts/generate-htpasswd.sh username password
   ##
   ## ⚠️  SECURITY: Change default password for production!
   ##    Default: admin / password

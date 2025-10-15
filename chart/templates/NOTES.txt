@@ -59,8 +59,7 @@ To access Signal:
 IMPORTANT NOTES:
 {{- if .Values.auth.enabled }}
 - ⚠️  Change auth.cookieSecret in values.yaml (generate with: openssl rand -base64 32)
-- ⚠️  Update auth.users with your own htpasswd entries
-- Use chart/scripts/generate-htpasswd.sh to create new user entries
+- ⚠️  Update auth.users with your own htpasswd entries (htpasswd -nbB username password)
 {{- end }}
 - Change the VNC password in values.yaml before deploying to production
 - Signal will persist data to a PersistentVolume
