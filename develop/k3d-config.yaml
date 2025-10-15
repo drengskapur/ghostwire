@@ -15,13 +15,13 @@ agents: 0
 
 # Expose ports from cluster to host
 ports:
-  - port: 80:80
+  - port: 8080:80
     nodeFilters:
       - loadbalancer
-  - port: 443:443
+  - port: 8443:443
     nodeFilters:
       - loadbalancer
-  - port: 6901:30901
+  - port: 6902:30901
     nodeFilters:
       - loadbalancer
 
@@ -48,12 +48,3 @@ options:
   kubeconfig:
     updateDefaultKubeconfig: true
     switchCurrentContext: true
-
-  # Runtime configuration
-  runtime:
-    # Resource limits (optional)
-    # gpuRequest: all
-    # labels:
-    #   - label: foo=bar
-    #     nodeFilters:
-    #       - server:*
