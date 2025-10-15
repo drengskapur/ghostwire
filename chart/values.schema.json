@@ -3,7 +3,8 @@
   "type": "object",
   "properties": {
     "affinity": {
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "auth": {
       "type": "object",
@@ -25,7 +26,8 @@
           "value": {
             "type": "string"
           }
-        }
+        },
+        "additionalProperties": false
       }
     },
     "envFrom": {
@@ -53,7 +55,8 @@
       "type": "object",
       "properties": {
         "annotations": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         },
         "className": {
           "type": "string"
@@ -103,23 +106,20 @@
         "failureThreshold": {
           "type": "integer"
         },
-        "httpGet": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string"
-            },
-            "port": {
-              "type": "integer"
-            }
-          },
-          "additionalProperties": false
-        },
         "initialDelaySeconds": {
           "type": "integer"
         },
         "periodSeconds": {
           "type": "integer"
+        },
+        "tcpSocket": {
+          "type": "object",
+          "properties": {
+            "port": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
         },
         "timeoutSeconds": {
           "type": "integer"
@@ -128,13 +128,8 @@
       "additionalProperties": false
     },
     "nodeSelector": {
-      "type": "object"
-    },
-    "nameOverride": {
-      "type": "string"
-    },
-    "fullnameOverride": {
-      "type": "string"
+      "type": "object",
+      "additionalProperties": false
     },
     "oauth2-proxy": {
       "type": "object",
@@ -145,7 +140,8 @@
             "enabled": {
               "type": "boolean"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "config": {
           "type": "object",
@@ -168,7 +164,8 @@
             "cookieSecure": {
               "type": "boolean"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "htpasswdFile": {
           "type": "object",
@@ -185,7 +182,8 @@
             "existingSecret": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "image": {
           "type": "object",
@@ -199,7 +197,8 @@
             "tag": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "livenessProbe": {
           "type": "object",
@@ -213,7 +212,8 @@
             "timeoutSeconds": {
               "type": "integer"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "readinessProbe": {
           "type": "object",
@@ -227,7 +227,8 @@
             "timeoutSeconds": {
               "type": "integer"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "resources": {
           "type": "object",
@@ -241,7 +242,8 @@
                 "memory": {
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             },
             "requests": {
               "type": "object",
@@ -252,16 +254,15 @@
                 "memory": {
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
-          }
+          },
+          "additionalProperties": false
         },
         "service": {
           "type": "object",
           "properties": {
-            "port": {
-              "type": "integer"
-            },
             "portNumber": {
               "type": "integer"
             },
@@ -277,16 +278,20 @@
                     "timeoutSeconds": {
                       "type": "integer"
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 }
-              }
+              },
+              "additionalProperties": false
             },
             "type": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
-      }
+      },
+      "additionalProperties": false
     },
     "persistence": {
       "type": "object",
@@ -302,18 +307,17 @@
         },
         "size": {
           "type": "string"
-        },
-        "storageClass": {
-          "type": "string"
         }
       },
       "additionalProperties": false
     },
     "podAnnotations": {
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "podLabels": {
-      "type": "object"
+      "type": "object",
+      "additionalProperties": false
     },
     "readinessProbe": {
       "type": "object",
@@ -324,23 +328,20 @@
         "failureThreshold": {
           "type": "integer"
         },
-        "httpGet": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string"
-            },
-            "port": {
-              "type": "integer"
-            }
-          },
-          "additionalProperties": false
-        },
         "initialDelaySeconds": {
           "type": "integer"
         },
         "periodSeconds": {
           "type": "integer"
+        },
+        "tcpSocket": {
+          "type": "object",
+          "properties": {
+            "port": {
+              "type": "integer"
+            }
+          },
+          "additionalProperties": false
         },
         "timeoutSeconds": {
           "type": "integer"
@@ -407,9 +408,6 @@
         },
         "type": {
           "type": "string"
-        },
-        "loadBalancerIP": {
-          "type": "string"
         }
       },
       "additionalProperties": false
@@ -418,7 +416,8 @@
       "type": "object",
       "properties": {
         "annotations": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         },
         "create": {
           "type": "boolean"
@@ -428,6 +427,9 @@
         }
       },
       "additionalProperties": false
+    },
+    "shmSize": {
+      "type": "integer"
     },
     "tolerations": {
       "type": "array"
