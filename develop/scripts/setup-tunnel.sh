@@ -158,13 +158,17 @@ echo -e "${GREEN}✓ Kubernetes secret created: ${K8S_SECRET_NAME}${NC}"
 echo -e "${YELLOW}[6/6] Configuring tunnel ingress routes...${NC}"
 
 # Update tunnel configuration with ingress rules
+# Route directly to ghostwire VNC service (no authentication proxy)
 CONFIG_RESPONSE=$(cf_api "PUT" "/accounts/${CF_ACCOUNT_ID}/cfd_tunnel/${TUNNEL_ID}/configurations" \
     "{
         \"config\": {
             \"ingress\": [
                 {
                     \"hostname\": \"${HOSTNAME}\",
-                    \"service\": \"http://ghostwire-oauth2-proxy.${K8S_NAMESPACE}.svc.cluster.local:4180\"
+                    \"service\": \"https://ghostwire.${K8S_NAMESPACE}.svc.cluster.local:6901\",
+                    \"originRequest\": {
+                        \"noTLSVerify\": true
+                    }
                 },
                 {
                     \"service\": \"http_status:404\"
