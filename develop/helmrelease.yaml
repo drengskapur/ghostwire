@@ -1,0 +1,103 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ghostwire
+  namespace: flux-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: ghostwire
+      version: '0.1.0'
+      sourceRef:
+        kind: HelmRepository
+        name: ghcr
+        namespace: flux-system
+  releaseName: ghostwire
+  targetNamespace: ghostwire
+  install:
+    createNamespace: true
+    timeout: 15m
+  upgrade:
+    timeout: 15m
+    force: true
+    cleanupOnFail: true
+  values:
+    # Local k3d environment - optimized for development
+    image:
+      repository: kasmweb/signal
+      tag: "1.18.0"
+      pullPolicy: IfNotPresent
+
+    # Service configuration for k3d
+    service:
+      type: NodePort
+      port: 6901
+      targetPort: 6901
+
+    # Disable ingress (using NodePort instead)
+    ingress:
+      enabled: false
+
+    # Persistent storage for Signal data
+    persistence:
+      enabled: true
+      accessMode: ReadWriteOnce
+      size: 5Gi  # Smaller size for dev environment
+
+    # Reduced resources for local development
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+
+    # Environment configuration
+    env:
+      - name: VNC_PW
+        value: "password"
+      - name: VNC_RESOLUTION
+        value: "1280x720"
+
+    # Authentication with OAuth2 Proxy
+    auth:
+      enabled: true
+
+    # OAuth2 Proxy configuration
+    oauth2-proxy:
+      image:
+        repository: "quay.io/oauth2-proxy/oauth2-proxy"
+        tag: "v7.12.0"
+        pullPolicy: IfNotPresent
+
+      config:
+        cookieName: "_oauth2_proxy_ghostwire"
+        cookieExpire: "8h"
+        cookieRefresh: "1h"
+        cookieSecure: false  # HTTP for local dev
+        cookieHttpOnly: true
+
+      htpasswdFile:
+        enabled: true
+        entries:
+          - admin:$2y$05$6pLmHJVVs.kRz8cT/Ki5xuHPCWLLjCCC8qBKm.xM3nK1P/xhDZMCa  # admin:password
+
+      service:
+        type: NodePort
+        port: 80
+        portNumber: 4180
+        sessionAffinity: ClientIP
+        sessionAffinityConfig:
+          clientIP:
+            timeoutSeconds: 3600
+
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 50m
+          memory: 64Mi
