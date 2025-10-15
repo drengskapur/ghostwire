@@ -38,8 +38,8 @@ jq '
   # Ensure imagePullSecrets are strings (secret names)
   (.properties.imagePullSecrets.items | select(. != null)) = { "type": "string" } |
 
-  # Allow oauth2-proxy subchart to have its own schema - recursively remove additionalProperties
-  (.properties."oauth2-proxy" | select(. != null)) |= walk(if type == "object" and has("additionalProperties") then del(.additionalProperties) else . end)
+  # Allow keycloak subchart to have its own schema - recursively remove additionalProperties
+  (.properties."keycloak" | select(. != null)) |= walk(if type == "object" and has("additionalProperties") then del(.additionalProperties) else . end)
 ' values.schema.json > values.schema.json.tmp && mv values.schema.json.tmp values.schema.json
 
 echo "✅ Schema generated: values.schema.json"

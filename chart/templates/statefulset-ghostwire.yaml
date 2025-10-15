@@ -42,6 +42,10 @@ spec:
           protocol: TCP
         env:
         {{- toYaml .Values.env | nindent 8 }}
+        {{- if .Values.auth.enabled }}
+        - name: VNCOPTIONS
+          value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -disableBasicAuth"
+        {{- end }}
         {{- with .Values.envFrom }}
         envFrom:
         {{- toYaml . | nindent 8 }}

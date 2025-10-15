@@ -159,7 +159,7 @@ env:
   ## ⚠️  SECURITY: Change VNC password for production!
   ##
   - name: VNC_PW
-    value: "alphabravocharlie1"
+    value: "password"
   ## VNC screen resolution
   ##
   - name: VNC_RESOLUTION
@@ -252,161 +252,107 @@ readinessProbe:
   failureThreshold: 5
 
 ## @section Authentication Configuration
-## OAuth2 Proxy configuration for WebSocket-compatible VNC authentication
+## Keycloak configuration for identity and access management
 ##
-## @param auth.enabled Enable OAuth2 Proxy authentication
+## @param auth.enabled Enable Keycloak authentication
 ##
 auth:
-  enabled: false
+  enabled: true
 
-## @section OAuth2 Proxy Subchart Configuration
-## Full configuration: https://github.com/oauth2-proxy/manifests/tree/main/helm/oauth2-proxy
+## @section Keycloak IAM Configuration
+## Keycloak provides identity and access management with OIDC/SAML support
 ##
-## OAuth2 Proxy handles authentication with proper WebSocket support for VNC
-##
-oauth2-proxy:
-  ## OAuth2 Proxy image configuration
+keycloak:
+  ## @param keycloak.auth.adminUser Keycloak admin username
+  ## @param keycloak.auth.adminPassword Keycloak admin password
   ##
-  ## @param oauth2-proxy.image.repository OAuth2 Proxy image repository
-  ## @param oauth2-proxy.image.tag OAuth2 Proxy image tag (defaults to chart appVersion)
-  ## @param oauth2-proxy.image.pullPolicy OAuth2 Proxy image pull policy
+  ## ⚠️  SECURITY: Change admin password for production!
   ##
-  image:
-    repository: "quay.io/oauth2-proxy/oauth2-proxy"
-    # Use chart default version (v7.7.1 for chart 7.7.28)
-    tag: ""
-    pullPolicy: IfNotPresent
+  auth:
+    adminUser: admin
+    adminPassword: "password"
 
-  ## OAuth2 Proxy main configuration
+  ## @param keycloak.production Enable production mode (requires proper database and TLS)
+  production: false
+
+  ## @param keycloak.proxy Proxy mode (edge, reencrypt, passthrough, none)
+  ## Use 'edge' when behind Cloudflare Tunnel or reverse proxy with TLS termination
+  proxy: edge
+
+  ## @param keycloak.httpRelativePath Keycloak HTTP relative path
+  ## Leave empty for root path, or set to /auth for legacy compatibility
+  httpRelativePath: ""
+
+  ## PostgreSQL database configuration (included as Keycloak subchart dependency)
   ##
-  ## @param oauth2-proxy.config.clientID OAuth client ID
-  ## @param oauth2-proxy.config.clientSecret OAuth client secret
-  ## @param oauth2-proxy.config.cookieSecret Cookie encryption secret (base64)
-  ## @param oauth2-proxy.config.cookieName Cookie name for authentication
+  ## @param keycloak.postgresql.enabled Enable PostgreSQL subchart
+  ## @param keycloak.postgresql.auth.username PostgreSQL username
+  ## @param keycloak.postgresql.auth.password PostgreSQL password
+  ## @param keycloak.postgresql.auth.database PostgreSQL database name
   ##
-  config:
-    ## Required fields for oauth2-proxy
-    ## For htpasswd auth, these can be dummy values
-    ##
-    clientID: "htpasswd"
-    clientSecret: "htpasswd"
-    ## Generate with: openssl rand -base64 32 | head -c 32 | base64
-    ## ⚠️  SECURITY: Change for production!
-    ## Must be 16, 24, or 32 bytes when base64 decoded
-    ##
-    cookieSecret: "NlREUUVYVlV0Q2UzdmNjZ1ppRGN2dz09"
-    cookieName: "_oauth2_proxy_signal"
-
-    ## Authentication provider configuration
-    ##
-    ## @param oauth2-proxy.config.configFile OAuth2 Proxy configuration file
-    ##
-    ## IMPORTANT: WebSocket support is critical for VNC functionality
-    ## - proxy_websockets = true enables WebSocket passthrough
-    ## - htpasswd provider for simple username/password authentication
-    ##
-    configFile: |-
-      # Upstream to Signal VNC service (HTTPS with self-signed cert)
-      upstreams = [ "https://{{ .Release.Name }}-ghostwire:6901/" ]
-
-      # Skip SSL verification for self-signed certs
-      ssl_insecure_skip_verify = true
-
-      # WebSocket support (CRITICAL for VNC streaming)
-      proxy_websockets = true
-      pass_host_header = true
-      pass_access_token = false
-      pass_user_headers = false
-      pass_authorization_header = false
-      set_xauthrequest = false
-      set_authorization_header = false
-
-      # Display htpasswd login form (disables OAuth providers)
-      display_htpasswd_form = true
-      skip_provider_button = true
-
-      # Cookie configuration
-      cookie_expire = "8h0m0s"
-      cookie_refresh = "1h0m0s"
-      cookie_secure = true
-      cookie_httponly = true
-
-      # Email domain configuration
-      email_domains = [ "*" ]
-
-      # Logging configuration
-      standard_logging = true
-      auth_logging = true
-      request_logging = true
-      silence_ping_logging = true
-
-  ## htpasswd user configuration
-  ##
-  ## @param oauth2-proxy.htpasswdFile.enabled Enable htpasswd authentication
-  ## @param oauth2-proxy.htpasswdFile.existingSecret Use existing secret for htpasswd
-  ## @param oauth2-proxy.htpasswdFile.entries htpasswd user entries (bcrypt format)
-  ##
-  ## Generate new entries with: htpasswd -nbB username password
-  ##
-  ## ⚠️  SECURITY: Change default password for production!
-  ##    Default: operator / alphabravocharlie1
-  ##
-  htpasswdFile:
+  postgresql:
     enabled: true
-    existingSecret: ""
-    entries:
-      - operator:$2y$05$75AwOQmztZn2EyIjTFmjQ.4CH4WZoUFZZHLKdtLkbW38Gdi4dkJYi  # operator:alphabravocharlie1
+    auth:
+      username: keycloak
+      password: "keycloak123"
+      database: keycloak
+    ## Reduced resources for development
+    primary:
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      persistence:
+        enabled: true
+        size: 2Gi
 
-  ## OAuth2 Proxy service configuration
+  ## Keycloak resource configuration
   ##
-  ## @param oauth2-proxy.service.type Service type (ClusterIP recommended when using Cloudflare Tunnel)
-  ## @param oauth2-proxy.service.portNumber Service port number
-  ##
-  service:
-    type: ClusterIP
-    portNumber: 4180
-
-  ## OAuth2 Proxy resource configuration
-  ##
-  ## @param oauth2-proxy.resources.limits Resource limits
-  ## @param oauth2-proxy.resources.requests Resource requests
+  ## @param keycloak.resources.limits Resource limits
+  ## @param keycloak.resources.requests Resource requests
   ##
   resources:
     limits:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 1000m
+      memory: 1Gi
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 250m
+      memory: 512Mi
 
-  ## OAuth2 Proxy health probes
+  ## Keycloak service configuration
   ##
-  ## @param oauth2-proxy.livenessProbe.enabled Enable liveness probe
-  ## @param oauth2-proxy.livenessProbe.initialDelaySeconds Initial delay seconds
-  ## @param oauth2-proxy.livenessProbe.timeoutSeconds Timeout seconds
+  ## @param keycloak.service.type Service type (ClusterIP recommended)
+  ## @param keycloak.service.ports.http HTTP port
   ##
-  livenessProbe:
-    enabled: true
-    initialDelaySeconds: 10
-    timeoutSeconds: 1
+  service:
+    type: ClusterIP
+    ports:
+      http: 8080
 
-  ## @param oauth2-proxy.readinessProbe.enabled Enable readiness probe
-  ## @param oauth2-proxy.readinessProbe.initialDelaySeconds Initial delay seconds
-  ## @param oauth2-proxy.readinessProbe.timeoutSeconds Timeout seconds
+  ## Keycloak ingress configuration
   ##
-  readinessProbe:
-    enabled: true
-    initialDelaySeconds: 5
-    timeoutSeconds: 5
-    periodSeconds: 10
-    successThreshold: 1
+  ## @param keycloak.ingress.enabled Enable ingress for Keycloak
+  ##
+  ingress:
+    enabled: false
+
+  ## Initial realm and client configuration via extraEnvVars
+  ## This will be configured through Keycloak admin console or API
+  ##
+  ## Realm: ghostwire
+  ## Client: ghostwire-vnc
+  ## Redirect URIs: https://ghostwire-dev.adhoc-solutions.com/oauth2/callback
+  ##
 
 ## @section Cloudflare Tunnel Configuration
 ## Cloudflared provides secure Cloudflare Tunnel access without exposing ports
 ##
 tunnel:
   ## @param tunnel.enabled Enable Cloudflare Tunnel
-  enabled: false
+  enabled: true
 
   ## @param tunnel.replicaCount Number of cloudflared replicas
   replicaCount: 1
@@ -443,7 +389,7 @@ tunnel:
 ##
 haproxy:
   ## @param haproxy.enabled Enable HAProxy for VNC/WebSocket proxying
-  enabled: false
+  enabled: true
 
   ## @param haproxy.replicaCount Number of HAProxy replicas
   replicaCount: 1

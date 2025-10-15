@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: ghostwire
-      version: '0.5.2'
+      version: '0.6.0'
       sourceRef:
         kind: HelmRepository
         name: ghcr
@@ -61,86 +61,12 @@ spec:
         value: "password"
       - name: VNC_RESOLUTION
         value: "1280x720"
-      - name: VNCOPTIONS
-        value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -disableBasicAuth"
 
-    # Authentication with OAuth2 Proxy
+    # Authentication with Keycloak
+    # Keycloak provides full IAM with proper web UI for user management
+    # NOTE: Keycloak is NOT protecting VNC access - for future OAuth integration
     auth:
-      enabled: false
-
-    # OAuth2 Proxy configuration
-    oauth2-proxy:
-      image:
-        repository: "quay.io/oauth2-proxy/oauth2-proxy"
-        tag: "v7.12.0"
-        pullPolicy: IfNotPresent
-
-      config:
-        clientID: "htpasswd"
-        clientSecret: "htpasswd"
-        # Generate with: openssl rand -base64 32 | head -c 32 | base64
-        cookieSecret: "NlREUUVYVlV0Q2UzdmNjZ1ppRGN2dz09"
-        cookieName: "_oauth2_proxy_ghostwire"
-        cookieExpire: "8h"
-        cookieRefresh: "1h"
-        cookieSecure: false  # HTTP for local dev
-        cookieHttpOnly: true
-        # Configuration file for htpasswd authentication
-        configFile: |-
-          # Upstream to HAProxy which handles VNC/WebSocket efficiently
-          upstreams = [ "http://ghostwire-haproxy.ghostwire.svc.cluster.local:6901/" ]
-
-          # WebSocket support (CRITICAL for VNC streaming)
-          proxy_websockets = true
-          pass_host_header = true
-          pass_access_token = false
-          pass_user_headers = false
-          pass_authorization_header = false
-          set_xauthrequest = false
-          set_authorization_header = false
-
-          # Display htpasswd login form (disables OAuth providers)
-          display_htpasswd_form = true
-          skip_provider_button = true
-
-          # Cookie configuration
-          cookie_expire = "8h0m0s"
-          cookie_refresh = "1h0m0s"
-          cookie_secure = false
-          cookie_httponly = true
-
-          # Email domain configuration
-          email_domains = [ "*" ]
-
-          # Logging configuration
-          standard_logging = true
-          auth_logging = true
-          request_logging = true
-          silence_ping_logging = true
-
-      # Extra command-line arguments for htpasswd mode
-      extraArgs:
-        provider: google
-        htpasswd-user-group: ""
-        display-htpasswd-form: true
-        skip-provider-button: true
-
-      htpasswdFile:
-        enabled: true
-        entries:
-          - admin:$2y$05$6pLmHJVVs.kRz8cT/Ki5xuHPCWLLjCCC8qBKm.xM3nK1P/xhDZMCa  # admin:password
-
-      service:
-        type: ClusterIP
-        portNumber: 4180
-
-      resources:
-        limits:
-          cpu: 100m
-          memory: 128Mi
-        requests:
-          cpu: 50m
-          memory: 64Mi
+      enabled: true
 
     # Cloudflare Tunnel configuration
     tunnel:

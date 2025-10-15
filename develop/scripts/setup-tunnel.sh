@@ -158,7 +158,9 @@ echo -e "${GREEN}✓ Kubernetes secret created: ${K8S_SECRET_NAME}${NC}"
 echo -e "${YELLOW}[6/6] Configuring tunnel ingress routes...${NC}"
 
 # Update tunnel configuration with ingress rules
-# Route directly to HAProxy for VNC/WebSocket handling (no authentication)
+# Route directly to HAProxy (no authentication currently)
+# Cloudflare Tunnel → HAProxy → ghostwire VNC
+# NOTE: Keycloak is deployed for future authentication integration
 CONFIG_RESPONSE=$(cf_api "PUT" "/accounts/${CF_ACCOUNT_ID}/cfd_tunnel/${TUNNEL_ID}/configurations" \
     "{
         \"config\": {
