@@ -350,8 +350,8 @@ oauth2-proxy:
   ## @param oauth2-proxy.service.sessionAffinityConfig Session affinity configuration
   ##
   service:
-    type: ClusterIP
-    portNumber: 4180
+    type: LoadBalancer
+    portNumber: 80
     ## Session affinity ensures VNC connections stay on same pod
     ##
     sessionAffinity: ClientIP
