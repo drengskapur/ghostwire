@@ -304,7 +304,7 @@ oauth2-proxy:
       email_domains = [ "*" ]
 
       # Upstream to Signal VNC service
-      upstreams = [ "http://{{ include "signal.fullname" . }}:6901/" ]
+      upstreams = [ "http://{{ include "ghostwire.fullname" . }}:6901/" ]
 
       # WebSocket support (CRITICAL for VNC streaming)
       proxy_websockets = true
