@@ -28,15 +28,14 @@ jobs:
           version: 'latest'
 
       - name: Lint chart (strict)
+        working-directory: chart
         run: |
-          cd chart
           helm dependency update
           helm lint . --strict
 
       - name: Template chart
-        run: |
-          cd chart
-          helm template test . > /dev/null
+        working-directory: chart
+        run: helm template test . > /dev/null
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -46,12 +45,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Package and push chart
+        working-directory: chart
         run: |
-          cd chart
           VERSION=$(grep '^version:' Chart.yaml | awk '{print $2}')
           CHART_NAME=$(grep '^name:' Chart.yaml | awk '{print $2}')
-
           helm package . --destination /tmp
           helm push "/tmp/${CHART_NAME}-${VERSION}.tgz" "oci://${{ env.REGISTRY }}/${{ env.NAMESPACE }}/chart"
-
           echo "✅ Pushed ${CHART_NAME}:${VERSION} to oci://${{ env.REGISTRY }}/${{ env.NAMESPACE }}/chart"
