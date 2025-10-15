@@ -132,6 +132,12 @@ auth:
 # OAuth2 Proxy subchart values
 # Full configuration: https://github.com/oauth2-proxy/manifests/tree/main/helm/oauth2-proxy
 oauth2-proxy:
+  # Image configuration
+  image:
+    repository: "quay.io/oauth2-proxy/oauth2-proxy"
+    tag: "v7.12.0"
+    pullPolicy: IfNotPresent
+
   config:
     # Cookie configuration for VNC sessions
     cookieName: "_oauth2_proxy_signal"
