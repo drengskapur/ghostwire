@@ -254,3 +254,173 @@ tasks:
         echo "✅ CHANGELOG.md generated"
         echo ""
         echo "💡 Review: cat CHANGELOG.md"
+
+  dev:
+    desc: Setup FluxCD GitOps for k3d-ghostwire development cluster
+    cmds:
+      - |
+        set -e
+
+        REPO_OWNER="drengskapur"
+        REPO_NAME="ghostwire"
+        REPO_URL="ssh://git@github.com/${REPO_OWNER}/${REPO_NAME}"
+        KEY_DIR="${HOME}/.ssh/flux-${REPO_NAME}"
+        KEY_FILE="${KEY_DIR}/identity-dev"
+        PUB_KEY_FILE="${KEY_FILE}.pub"
+        FLUX_NAMESPACE="flux-system"
+        SECRET_NAME="flux-system"
+        CLUSTER_NAME="k3d-ghostwire"
+
+        echo "🚀 Setting up FluxCD GitOps for ${CLUSTER_NAME}"
+        echo ""
+
+        # Check if gh CLI is available
+        if ! command -v gh &> /dev/null; then
+          echo "❌ gh CLI not found. Please install: https://cli.github.com/"
+          exit 1
+        fi
+
+        # Check if authenticated
+        if ! gh auth status &> /dev/null; then
+          echo "❌ Not authenticated with GitHub. Run: gh auth login"
+          exit 1
+        fi
+
+        # Check kubectl context
+        CURRENT_CONTEXT=$(kubectl config current-context)
+        if [ "$CURRENT_CONTEXT" != "$CLUSTER_NAME" ]; then
+          echo "⚠️  Current context is '${CURRENT_CONTEXT}', switching to '${CLUSTER_NAME}'..."
+          kubectl config use-context ${CLUSTER_NAME}
+        fi
+
+        # Step 1: Create SSH key pair if it doesn't exist
+        if [[ -f "${KEY_FILE}" ]]; then
+          echo "✓ SSH key pair already exists at ${KEY_FILE}"
+        else
+          echo "📝 Creating SSH key pair..."
+          mkdir -p "${KEY_DIR}"
+          ssh-keygen -t ed25519 -C "flux-${CLUSTER_NAME}" -f "${KEY_FILE}" -N ""
+          chmod 600 "${KEY_FILE}"
+          chmod 644 "${PUB_KEY_FILE}"
+          echo "✅ Created SSH key pair at ${KEY_FILE}"
+        fi
+        echo ""
+
+        # Step 2: Add deploy key to GitHub if not already present
+        DEPLOY_KEY_TITLE="flux-${CLUSTER_NAME}"
+        PUB_KEY_CONTENT=$(cat "${PUB_KEY_FILE}")
+
+        echo "🔑 Checking GitHub deploy key..."
+        EXISTING_KEY=$(gh api \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          "/repos/${REPO_OWNER}/${REPO_NAME}/keys" \
+          --jq ".[] | select(.title == \"${DEPLOY_KEY_TITLE}\") | .id" 2>/dev/null || echo "")
+
+        if [[ -n "${EXISTING_KEY}" ]]; then
+          echo "✓ Deploy key '${DEPLOY_KEY_TITLE}' already exists (ID: ${EXISTING_KEY})"
+        else
+          echo "📝 Adding deploy key to GitHub..."
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${REPO_OWNER}/${REPO_NAME}/keys" \
+            -f "title=${DEPLOY_KEY_TITLE}" \
+            -f "key=${PUB_KEY_CONTENT}" \
+            -F "read_only=true" \
+            > /dev/null
+          echo "✅ Added deploy key '${DEPLOY_KEY_TITLE}' to GitHub"
+        fi
+        echo ""
+
+        # Step 3: Create Kubernetes secret for Flux
+        echo "🔐 Setting up Kubernetes secret..."
+
+        # Check if namespace exists
+        if ! kubectl get namespace "${FLUX_NAMESPACE}" &> /dev/null; then
+          echo "📝 Creating namespace ${FLUX_NAMESPACE}..."
+          kubectl create namespace "${FLUX_NAMESPACE}"
+        fi
+
+        # Create known_hosts entry for GitHub
+        KNOWN_HOSTS=$(ssh-keyscan github.com 2>/dev/null)
+
+        # Check if secret already exists
+        if kubectl get secret "${SECRET_NAME}" -n "${FLUX_NAMESPACE}" &> /dev/null; then
+          echo "✓ Secret '${SECRET_NAME}' already exists"
+          echo "  Updating secret with current SSH key..."
+          kubectl delete secret "${SECRET_NAME}" -n "${FLUX_NAMESPACE}"
+        fi
+
+        # Create secret
+        kubectl create secret generic "${SECRET_NAME}" \
+          --namespace="${FLUX_NAMESPACE}" \
+          --from-file=identity="${KEY_FILE}" \
+          --from-file=identity.pub="${PUB_KEY_FILE}" \
+          --from-literal=known_hosts="${KNOWN_HOSTS}"
+
+        echo "✅ Created/updated secret '${SECRET_NAME}' in namespace '${FLUX_NAMESPACE}'"
+        echo ""
+
+        # Step 4: Create image pull secret for GHCR
+        echo "🔐 Checking image pull secret..."
+
+        if [[ -n "${DOCKER_USERNAME:-}" && -n "${DOCKER_PASSWORD:-}" ]]; then
+          echo "📝 Creating image pull secret for ghcr.io..."
+
+          # Create flux-system image pull secret
+          kubectl delete secret github-credentials -n flux-system &> /dev/null || true
+          kubectl create secret docker-registry github-credentials \
+            --namespace=flux-system \
+            --docker-server=ghcr.io \
+            --docker-username="${DOCKER_USERNAME}" \
+            --docker-password="${DOCKER_PASSWORD}"
+
+          echo "✅ Created image pull secret 'github-credentials' in namespace 'flux-system'"
+        else
+          echo "⚠️  Skipping image pull secret creation (DOCKER_USERNAME and DOCKER_PASSWORD not set)"
+          echo "   To create it later, set DOCKER_USERNAME and DOCKER_PASSWORD in .env.local"
+        fi
+        echo ""
+
+        # Step 5: Install Flux
+        echo "⚙️  Setting up Flux installation..."
+
+        # Check if Flux is already installed
+        if flux check &> /dev/null; then
+          echo "✓ Flux is already installed"
+        else
+          echo "📝 Installing Flux..."
+          flux install
+          echo "✅ Installed Flux components"
+        fi
+        echo ""
+
+        # Step 6: Apply Flux configuration from develop/flux-system
+        echo "📦 Applying Flux configuration..."
+        kubectl apply -f develop/flux-system/
+        echo "✅ Applied Flux configuration"
+        echo ""
+
+        # Step 7: Apply Helm repository and release
+        echo "📦 Applying HelmRepository and HelmRelease..."
+        kubectl apply -f develop/ghcr-helmrepo.yaml
+        kubectl apply -f develop/helmrelease.yaml
+        echo "✅ Applied Ghostwire configuration"
+        echo ""
+
+        echo "✅ FluxCD GitOps setup complete!"
+        echo ""
+        echo "📊 Current status:"
+        flux get sources git
+        echo ""
+        flux get kustomizations
+        echo ""
+        flux get helmreleases -A
+        echo ""
+        echo "💡 Useful commands:"
+        echo "  - Watch Flux reconciliation: flux logs --follow"
+        echo "  - Force reconciliation: flux reconcile kustomization flux-system"
+        echo "  - Check Flux status: flux check"
+        echo "  - Watch pods: kubectl get pods -n ghostwire --watch"
