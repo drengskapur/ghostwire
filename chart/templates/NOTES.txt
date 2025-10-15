@@ -1,0 +1,57 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your Signal desktop application has been deployed as a StatefulSet.
+
+To access Signal:
+
+{{- if .Values.ingress.enabled }}
+
+1. Via Ingress:
+{{- range .Values.ingress.hosts }}
+   http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else if eq .Values.service.type "LoadBalancer" }}
+
+1. Get the LoadBalancer IP:
+   kubectl get svc {{ include "signal.fullname" . }} -n {{ .Release.Namespace }}
+
+2. Access Signal VNC interface at:
+   http://<EXTERNAL-IP>:{{ .Values.service.port }}
+
+{{- else if eq .Values.service.type "NodePort" }}
+
+1. Get the Node IP and Port:
+   export NODE_PORT=$(kubectl get svc {{ include "signal.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath='{.spec.ports[0].nodePort}')
+   export NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}')
+
+2. Access Signal VNC interface at:
+   http://$NODE_IP:$NODE_PORT
+
+{{- else }}
+
+1. Port forward to access locally:
+   kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "signal.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+
+2. Access Signal VNC interface at:
+   http://localhost:{{ .Values.service.port }}
+
+{{- end }}
+
+3. Login credentials:
+   Username: kasm_user
+   Password: {{ range .Values.env }}{{ if eq .name "VNC_PW" }}{{ .value }}{{ end }}{{ end }}
+
+IMPORTANT NOTES:
+- Change the VNC password in values.yaml before deploying to production
+- Signal will persist data to a PersistentVolume
+- First time setup will require linking to your phone number
+- The StatefulSet ensures your Signal data persists across pod restarts
+
+To view logs:
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "signal.name" . }} -f
+
+To view the StatefulSet:
+  kubectl get statefulset {{ include "signal.fullname" . }} -n {{ .Release.Namespace }}
+
+To view the PVC:
+  kubectl get pvc -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "signal.name" . }}

@@ -1,0 +1,125 @@
+# Default values for signal chart
+
+# Image configuration
+image:
+  repository: kasmweb/signal
+  tag: "1.18.0"
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries
+imagePullSecrets: []
+
+# Number of replicas (should be 1 for single-user Signal)
+replicaCount: 1
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 6901
+  targetPort: 6901
+  # For LoadBalancer type on DigitalOcean with reserved IP
+  # loadBalancerIP: "209.38.63.45"
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # nginx.ingress.kubernetes.io/proxy-body-size: "0"
+  hosts:
+    - host: signal.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: signal-tls
+  #    hosts:
+  #      - signal.example.com
+
+# Persistent storage configuration
+persistence:
+  enabled: true
+  # storageClass: ""  # Use default storage class
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  # Path where Signal stores data in the container
+  mountPath: /home/kasm-user
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# Security context
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+
+# Environment variables
+env:
+  # VNC password (change this!)
+  - name: VNC_PW
+    value: "password"
+  # Screen resolution
+  - name: VNC_RESOLUTION
+    value: "1280x720"
+
+# Additional environment variables from secrets/configmaps
+envFrom: []
+  # - secretRef:
+  #     name: signal-secrets
+  # - configMapRef:
+  #     name: signal-config
+
+# Pod annotations
+podAnnotations: {}
+
+# Pod labels
+podLabels: {}
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity rules
+affinity: {}
+
+# Service account
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+# Liveness probe
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: 6901
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Readiness probe
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /
+    port: 6901
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3

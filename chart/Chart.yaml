@@ -1,0 +1,15 @@
+apiVersion: v2
+name: signal
+description: Signal messenger desktop application using KasmVNC
+type: application
+version: 0.1.0
+appVersion: "1.18.0"
+keywords:
+  - signal
+  - messaging
+  - kasmvnc
+home: https://github.com/drengskapur/signal-system
+sources:
+  - https://github.com/kasmtech/workspaces-images
+maintainers:
+  - name: drengskapur
