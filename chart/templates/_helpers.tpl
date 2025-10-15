@@ -58,3 +58,25 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Return the proper image name (supports both tag and digest)
+*/}}
+{{- define "ghostwire.image" -}}
+{{- if .Values.image.digest }}
+{{- printf "%s@%s" .Values.image.repository .Values.image.digest }}
+{{- else }}
+{{- printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) }}
+{{- end }}
+{{- end }}
+
+{{/*
+Return the proper tunnel image name (supports both tag and digest)
+*/}}
+{{- define "ghostwire.tunnelImage" -}}
+{{- if .Values.tunnel.image.digest }}
+{{- printf "%s@%s" .Values.tunnel.image.repository .Values.tunnel.image.digest }}
+{{- else }}
+{{- printf "%s:%s" .Values.tunnel.image.repository .Values.tunnel.image.tag }}
+{{- end }}
+{{- end }}
