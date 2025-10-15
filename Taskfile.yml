@@ -20,13 +20,13 @@ tasks:
     desc: Run Claude Code
     silent: true
     cmds:
-      - claude --dangerously-skip-permissions
+      - claude --dangerously-skip-permissions --continue || claude --dangerously-skip-permissions
 
   resume:
     desc: Resume Claude Code session
     silent: true
     cmds:
-      - claude --dangerously-skip-permissions --resume
+      - claude --dangerously-skip-permissions --resume || claude --dangerously-skip-permissions
 
   test:
     desc: Run Helm tests (lint, template, unit tests)
