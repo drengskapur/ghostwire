@@ -254,7 +254,7 @@ readinessProbe:
 ## @param auth.enabled Enable OAuth2 Proxy authentication
 ##
 auth:
-  enabled: true
+  enabled: false
 
 ## @section OAuth2 Proxy Subchart Configuration
 ## Full configuration: https://github.com/oauth2-proxy/manifests/tree/main/helm/oauth2-proxy
