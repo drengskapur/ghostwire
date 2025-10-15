@@ -248,6 +248,14 @@ readinessProbe:
   timeoutSeconds: 3
   failureThreshold: 5
 
+## @section Cloudflare Tunnel Configuration
+## Cloudflare Tunnel (cloudflared) for secure external access
+##
+## @param tunnel.enabled Enable Cloudflare Tunnel for external access
+##
+tunnel:
+  enabled: false
+
 ## @section Authentication Configuration
 ## OAuth2 Proxy configuration for WebSocket-compatible VNC authentication
 ##
@@ -400,3 +408,59 @@ oauth2-proxy:
   ##
   alphaConfig:
     enabled: false
+
+## @section Cloudflared Subchart Configuration
+## Full configuration: https://community-charts.github.io/docs/cloudflared/
+##
+## Cloudflared provides secure Cloudflare Tunnel access without exposing ports
+##
+cloudflared:
+  ## @param cloudflared.replicaCount Number of cloudflared replicas
+  ##
+  replicaCount: 2
+
+  ## Cloudflare Tunnel configuration
+  ##
+  ## @param cloudflared.cloudflare.account Cloudflare account ID or email
+  ## @param cloudflare.tunnel Tunnel UUID or name
+  ##
+  cloudflare:
+    ## IMPORTANT: Set your tunnel token as a secret
+    ## Create tunnel at: https://one.dash.cloudflare.com/
+    ##
+    ## Option 1: Use tunnel token (recommended for simplicity)
+    ##   kubectl create secret generic cloudflared-token \
+    ##     --namespace signal \
+    ##     --from-literal=token=YOUR_TUNNEL_TOKEN
+    ##
+    ## Option 2: Use credentials file
+    ##   kubectl create secret generic cloudflared-credentials \
+    ##     --namespace signal \
+    ##     --from-file=credentials.json
+    ##
+    secret:
+      ## Use existing secret containing tunnel token or credentials
+      ##
+      name: ""
+      key: "token"
+
+    ## Tunnel ingress rules
+    ## Routes traffic from your tunnel to internal services
+    ##
+    ingress:
+      - hostname: signal.example.com
+        service: "https://{{ include \"ghostwire.fullname\" . }}:6901"
+        originRequest:
+          noTLSVerify: true
+      ## Catch-all rule (required)
+      - service: http_status:404
+
+  ## @param cloudflared.resources Resource limits for cloudflared
+  ##
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
