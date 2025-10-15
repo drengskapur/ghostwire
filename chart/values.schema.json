@@ -14,87 +14,6 @@
       },
       "additionalProperties": false
     },
-    "cloudflared": {
-      "type": "object",
-      "properties": {
-        "cloudflare": {
-          "type": "object",
-          "properties": {
-            "ingress": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "hostname": {
-                    "type": "string"
-                  },
-                  "originRequest": {
-                    "type": "object",
-                    "properties": {
-                      "noTLSVerify": {
-                        "type": "boolean"
-                      }
-                    },
-                    "additionalProperties": false
-                  },
-                  "service": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "secret": {
-              "type": "object",
-              "properties": {
-                "key": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        "replicaCount": {
-          "type": "integer"
-        },
-        "resources": {
-          "type": "object",
-          "properties": {
-            "limits": {
-              "type": "object",
-              "properties": {
-                "cpu": {
-                  "type": "string"
-                },
-                "memory": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            },
-            "requests": {
-              "type": "object",
-              "properties": {
-                "cpu": {
-                  "type": "string"
-                },
-                "memory": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
     "env": {
       "type": "array",
       "items": {
@@ -479,6 +398,60 @@
       "properties": {
         "enabled": {
           "type": "boolean"
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "pullPolicy": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "replicaCount": {
+          "type": "integer"
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "secretKey": {
+          "type": "string"
+        },
+        "secretName": {
+          "type": "string"
         }
       },
       "additionalProperties": false
