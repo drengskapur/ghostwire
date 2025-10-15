@@ -326,13 +326,13 @@ oauth2-proxy:
   ## Generate new entries with: htpasswd -nbB username password
   ##
   ## ⚠️  SECURITY: Change default password for production!
-  ##    Default: admin / password
+  ##    Default: operator / alphabravocharlie1
   ##
   htpasswdFile:
     enabled: true
     existingSecret: ""
     entries:
-      - admin:$2y$05$6pLmHJVVs.kRz8cT/Ki5xuHPCWLLjCCC8qBKm.xM3nK1P/xhDZMCa  # admin:password
+      - operator:$2y$05$75AwOQmztZn2EyIjTFmjQ.4CH4WZoUFZZHLKdtLkbW38Gdi4dkJYi  # operator:alphabravocharlie1
 
   ## OAuth2 Proxy service configuration
   ##
