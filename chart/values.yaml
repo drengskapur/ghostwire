@@ -273,30 +273,33 @@ oauth2-proxy:
   ## OAuth2 Proxy image configuration
   ##
   ## @param oauth2-proxy.image.repository OAuth2 Proxy image repository
-  ## @param oauth2-proxy.image.tag OAuth2 Proxy image tag
+  ## @param oauth2-proxy.image.tag OAuth2 Proxy image tag (defaults to chart appVersion)
   ## @param oauth2-proxy.image.pullPolicy OAuth2 Proxy image pull policy
   ##
   image:
     repository: "quay.io/oauth2-proxy/oauth2-proxy"
-    tag: "v7.12.0"
+    # Use chart default version (v7.7.1 for chart 7.7.28)
+    tag: ""
     pullPolicy: IfNotPresent
 
   ## OAuth2 Proxy main configuration
   ##
+  ## @param oauth2-proxy.config.clientID OAuth client ID
+  ## @param oauth2-proxy.config.clientSecret OAuth client secret
+  ## @param oauth2-proxy.config.cookieSecret Cookie encryption secret (base64)
+  ## @param oauth2-proxy.config.cookieName Cookie name for authentication
+  ##
   config:
-    ## Cookie configuration for VNC session management
+    ## Required fields for oauth2-proxy
+    ## For htpasswd auth, these can be dummy values
     ##
-    ## @param oauth2-proxy.config.cookieName Cookie name for authentication
-    ## @param oauth2-proxy.config.cookieExpire Session expiration time
-    ## @param oauth2-proxy.config.cookieRefresh Session refresh interval
-    ## @param oauth2-proxy.config.cookieSecure Enable secure cookie (set true for HTTPS)
-    ## @param oauth2-proxy.config.cookieHttpOnly Enable HTTP-only cookie
+    clientID: "htpasswd"
+    clientSecret: "htpasswd"
+    ## Generate with: openssl rand -base64 32 | head -c 32 | base64
+    ## ⚠️  SECURITY: Change for production!
     ##
+    cookieSecret: "T0JQVEZVaEFMTEFPU1RCV0NPSVVBT1VFQUxUQT0="
     cookieName: "_oauth2_proxy_signal"
-    cookieExpire: "8h"
-    cookieRefresh: "1h"
-    cookieSecure: true  # HTTPS enabled for production
-    cookieHttpOnly: true
 
     ## Authentication provider configuration
     ##
@@ -308,7 +311,7 @@ oauth2-proxy:
     ##
     configFile: |-
       # Upstream to Signal VNC service (HTTPS with self-signed cert)
-      upstreams = [ "https://{{ include "ghostwire.fullname" . }}:6901/" ]
+      upstreams = [ "https://{{ .Release.Name }}-ghostwire:6901/" ]
 
       # Skip SSL verification for self-signed certs
       ssl_insecure_skip_verify = true
@@ -325,6 +328,15 @@ oauth2-proxy:
       # Display htpasswd login form (disables OAuth providers)
       display_htpasswd_form = true
       skip_provider_button = true
+
+      # Cookie configuration
+      cookie_expire = "8h0m0s"
+      cookie_refresh = "1h0m0s"
+      cookie_secure = true
+      cookie_httponly = true
+
+      # Email domain configuration
+      email_domains = [ "*" ]
 
       # Logging configuration
       standard_logging = true
@@ -352,20 +364,11 @@ oauth2-proxy:
   ## OAuth2 Proxy service configuration
   ##
   ## @param oauth2-proxy.service.type Service type
-  ## @param oauth2-proxy.service.port Service port
   ## @param oauth2-proxy.service.portNumber Service port number
-  ## @param oauth2-proxy.service.sessionAffinity Enable session affinity
-  ## @param oauth2-proxy.service.sessionAffinityConfig Session affinity configuration
   ##
   service:
     type: LoadBalancer
     portNumber: 443
-    ## Session affinity ensures VNC connections stay on same pod
-    ##
-    sessionAffinity: ClientIP
-    sessionAffinityConfig:
-      clientIP:
-        timeoutSeconds: 3600  # 1 hour sticky sessions
 
   ## OAuth2 Proxy resource configuration
   ##
@@ -398,16 +401,9 @@ oauth2-proxy:
   readinessProbe:
     enabled: true
     initialDelaySeconds: 5
-    timeoutSeconds: 1
-
-  ## @param oauth2-proxy.alphaConfig.enabled Enable alpha config (experimental features)
-  ##
-  ## Cookie secret is generated automatically if not provided
-  ## For production, generate with: openssl rand -base64 32
-  ## Then set: --set oauth2-proxy.config.cookieSecret=<value>
-  ##
-  alphaConfig:
-    enabled: false
+    timeoutSeconds: 5
+    periodSeconds: 10
+    successThreshold: 1
 
 ## @section Cloudflared Subchart Configuration
 ## Full configuration: https://community-charts.github.io/docs/cloudflared/

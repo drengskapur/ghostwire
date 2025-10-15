@@ -2,5 +2,8 @@ dependencies:
 - name: cloudflared
   repository: https://community-charts.github.io/helm-charts
   version: 2.2.2
-digest: sha256:e9aeff8bd466aee5c3d37667c844c6a23495ddcd269722038acf6213615a6e85
-generated: "2025-10-15T14:15:27.73743256-04:00"
+- name: oauth2-proxy
+  repository: https://oauth2-proxy.github.io/manifests
+  version: 7.7.28
+digest: sha256:dc1e530eae676d6b2102045e9a9f0c602ff935a02dc68c9e9e19a64e69cd7d01
+generated: "2025-10-15T14:32:02.413867535-04:00"

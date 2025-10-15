@@ -1,87 +1,149 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Ghostwire Helm Chart Values",
-  "description": "Schema for Ghostwire - Secure Signal Desktop Deployment System",
   "type": "object",
   "properties": {
-    "image": {
+    "affinity": {
+      "type": "object"
+    },
+    "auth": {
       "type": "object",
-      "description": "Signal Desktop container image configuration",
       "properties": {
-        "repository": {
-          "type": "string",
-          "description": "Signal Desktop image repository"
-        },
-        "tag": {
-          "type": "string",
-          "description": "Signal Desktop image tag (immutable tags are recommended)"
-        },
-        "pullPolicy": {
-          "type": "string",
-          "enum": ["Always", "IfNotPresent", "Never"],
-          "description": "Image pull policy"
+        "enabled": {
+          "type": "boolean"
         }
       },
-      "required": ["repository", "tag", "pullPolicy"],
+      "additionalProperties": false
+    },
+    "cloudflared": {
+      "type": "object",
+      "properties": {
+        "cloudflare": {
+          "type": "object",
+          "properties": {
+            "ingress": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "hostname": {
+                    "type": "string"
+                  },
+                  "originRequest": {
+                    "type": "object",
+                    "properties": {
+                      "noTLSVerify": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "service": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "secret": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "replicaCount": {
+          "type": "integer"
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "env": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "envFrom": {
+      "type": "array"
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "pullPolicy": {
+          "type": "string"
+        },
+        "repository": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        }
+      },
       "additionalProperties": false
     },
     "imagePullSecrets": {
-      "type": "array",
-      "description": "Docker registry secret names as an array",
-      "items": {
-        "type": "object"
-      }
-    },
-    "replicaCount": {
-      "type": "integer",
-      "description": "Number of Signal Desktop replicas (should be 1 for single-user)",
-      "minimum": 1,
-      "maximum": 1
-    },
-    "service": {
-      "type": "object",
-      "description": "Kubernetes Service configuration",
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
-          "description": "Kubernetes Service type"
-        },
-        "port": {
-          "type": "integer",
-          "description": "Service port for VNC access"
-        },
-        "targetPort": {
-          "type": "integer",
-          "description": "Container target port for VNC"
-        },
-        "loadBalancerIP": {
-          "type": "string",
-          "description": "LoadBalancer IP address (for type: LoadBalancer with reserved IP)"
-        }
-      },
-      "required": ["type", "port", "targetPort"],
-      "additionalProperties": false
+      "type": "array"
     },
     "ingress": {
       "type": "object",
-      "description": "Ingress configuration for external access",
       "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Enable ingress controller resource"
+        "annotations": {
+          "type": "object"
         },
         "className": {
-          "type": "string",
-          "description": "Ingress class name (e.g., nginx)"
+          "type": "string"
         },
-        "annotations": {
-          "type": "object",
-          "description": "Ingress annotations"
+        "enabled": {
+          "type": "boolean"
         },
         "hosts": {
           "type": "array",
-          "description": "Ingress host configuration",
           "items": {
             "type": "object",
             "properties": {
@@ -97,219 +159,36 @@
                       "type": "string"
                     },
                     "pathType": {
-                      "type": "string",
-                      "enum": ["Prefix", "Exact", "ImplementationSpecific"]
+                      "type": "string"
                     }
                   },
-                  "required": ["path", "pathType"],
                   "additionalProperties": false
                 }
               }
             },
-            "required": ["host", "paths"],
             "additionalProperties": false
           }
         },
         "tls": {
-          "type": "array",
-          "description": "Ingress TLS configuration",
-          "items": {
-            "type": "object",
-            "properties": {
-              "secretName": {
-                "type": "string"
-              },
-              "hosts": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
-          }
+          "type": "array"
         }
       },
-      "required": ["enabled"],
-      "additionalProperties": false
-    },
-    "persistence": {
-      "type": "object",
-      "description": "Persistent storage for Signal Desktop data",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Enable persistent storage for Signal data"
-        },
-        "storageClass": {
-          "type": "string",
-          "description": "PVC Storage Class (use default if empty)"
-        },
-        "accessMode": {
-          "type": "string",
-          "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"],
-          "description": "PVC Access Mode"
-        },
-        "size": {
-          "type": "string",
-          "description": "PVC Storage Request size",
-          "pattern": "^[0-9]+(Gi|Mi|Ti)$"
-        },
-        "mountPath": {
-          "type": "string",
-          "description": "Container mount path for Signal data"
-        }
-      },
-      "required": ["enabled", "accessMode", "size", "mountPath"],
-      "additionalProperties": false
-    },
-    "resources": {
-      "type": "object",
-      "description": "Resource limits and requests for Signal Desktop container",
-      "properties": {
-        "limits": {
-          "type": "object",
-          "properties": {
-            "cpu": {
-              "type": "string",
-              "description": "CPU limit"
-            },
-            "memory": {
-              "type": "string",
-              "description": "Memory limit"
-            }
-          },
-          "additionalProperties": false
-        },
-        "requests": {
-          "type": "object",
-          "properties": {
-            "cpu": {
-              "type": "string",
-              "description": "CPU request"
-            },
-            "memory": {
-              "type": "string",
-              "description": "Memory request"
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "securityContext": {
-      "type": "object",
-      "description": "Pod and container security context",
-      "properties": {
-        "runAsUser": {
-          "type": "integer",
-          "description": "User ID to run the container"
-        },
-        "runAsGroup": {
-          "type": "integer",
-          "description": "Group ID to run the container"
-        },
-        "fsGroup": {
-          "type": "integer",
-          "description": "Filesystem group ID for volumes"
-        },
-        "capabilities": {
-          "type": "object",
-          "properties": {
-            "drop": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "readOnlyRootFilesystem": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false
-    },
-    "env": {
-      "type": "array",
-      "description": "Environment configuration for KasmVNC and Signal",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          },
-          "valueFrom": {
-            "type": "object"
-          }
-        },
-        "required": ["name"]
-      }
-    },
-    "shmSize": {
-      "type": "integer",
-      "description": "Shared memory size in MB (for browser performance)"
-    },
-    "envFrom": {
-      "type": "array",
-      "description": "Additional environment variables from secrets/configmaps",
-      "items": {
-        "type": "object"
-      }
-    },
-    "podAnnotations": {
-      "type": "object",
-      "description": "Annotations for Signal Desktop pods"
-    },
-    "podLabels": {
-      "type": "object",
-      "description": "Extra labels for Signal Desktop pods"
-    },
-    "nodeSelector": {
-      "type": "object",
-      "description": "Node labels for pod assignment"
-    },
-    "tolerations": {
-      "type": "array",
-      "description": "Tolerations for pod assignment",
-      "items": {
-        "type": "object"
-      }
-    },
-    "affinity": {
-      "type": "object",
-      "description": "Affinity rules for pod assignment"
-    },
-    "serviceAccount": {
-      "type": "object",
-      "description": "Service account configuration",
-      "properties": {
-        "create": {
-          "type": "boolean",
-          "description": "Create service account"
-        },
-        "annotations": {
-          "type": "object",
-          "description": "Service account annotations"
-        },
-        "name": {
-          "type": "string",
-          "description": "Service account name (generated if not set)"
-        }
-      },
-      "required": ["create"],
       "additionalProperties": false
     },
     "livenessProbe": {
       "type": "object",
-      "description": "Liveness probe configuration",
       "properties": {
         "enabled": {
-          "type": "boolean",
-          "description": "Enable liveness probe"
+          "type": "boolean"
+        },
+        "failureThreshold": {
+          "type": "integer"
+        },
+        "initialDelaySeconds": {
+          "type": "integer"
+        },
+        "periodSeconds": {
+          "type": "integer"
         },
         "tcpSocket": {
           "type": "object",
@@ -318,256 +197,70 @@
               "type": "integer"
             }
           },
-          "required": ["port"],
           "additionalProperties": false
         },
-        "httpGet": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string"
-            },
-            "port": {
-              "type": "integer"
-            }
-          }
-        },
-        "initialDelaySeconds": {
-          "type": "integer",
-          "description": "Initial delay seconds"
-        },
-        "periodSeconds": {
-          "type": "integer",
-          "description": "Period seconds"
-        },
         "timeoutSeconds": {
-          "type": "integer",
-          "description": "Timeout seconds"
-        },
-        "failureThreshold": {
-          "type": "integer",
-          "description": "Failure threshold"
+          "type": "integer"
         }
       },
-      "required": ["enabled"],
       "additionalProperties": false
     },
-    "readinessProbe": {
-      "type": "object",
-      "description": "Readiness probe configuration",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Enable readiness probe"
-        },
-        "tcpSocket": {
-          "type": "object",
-          "properties": {
-            "port": {
-              "type": "integer"
-            }
-          },
-          "required": ["port"],
-          "additionalProperties": false
-        },
-        "httpGet": {
-          "type": "object",
-          "properties": {
-            "path": {
-              "type": "string"
-            },
-            "port": {
-              "type": "integer"
-            }
-          }
-        },
-        "initialDelaySeconds": {
-          "type": "integer",
-          "description": "Initial delay seconds"
-        },
-        "periodSeconds": {
-          "type": "integer",
-          "description": "Period seconds"
-        },
-        "timeoutSeconds": {
-          "type": "integer",
-          "description": "Timeout seconds"
-        },
-        "failureThreshold": {
-          "type": "integer",
-          "description": "Failure threshold"
-        }
-      },
-      "required": ["enabled"],
-      "additionalProperties": false
-    },
-    "tunnel": {
-      "type": "object",
-      "description": "Cloudflare Tunnel configuration",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Enable Cloudflare Tunnel for external access"
-        }
-      },
-      "required": ["enabled"],
-      "additionalProperties": false
-    },
-    "auth": {
-      "type": "object",
-      "description": "Authentication configuration",
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Enable OAuth2 Proxy authentication"
-        }
-      },
-      "required": ["enabled"],
-      "additionalProperties": false
+    "nodeSelector": {
+      "type": "object"
     },
     "oauth2-proxy": {
       "type": "object",
-      "description": "OAuth2 Proxy subchart configuration",
       "properties": {
-        "image": {
-          "type": "object",
-          "properties": {
-            "repository": {
-              "type": "string",
-              "description": "OAuth2 Proxy image repository"
-            },
-            "tag": {
-              "type": "string",
-              "description": "OAuth2 Proxy image tag"
-            },
-            "pullPolicy": {
-              "type": "string",
-              "enum": ["Always", "IfNotPresent", "Never"],
-              "description": "OAuth2 Proxy image pull policy"
-            }
-          },
-          "additionalProperties": false
-        },
         "config": {
           "type": "object",
           "properties": {
-            "cookieName": {
-              "type": "string",
-              "description": "Cookie name for authentication"
+            "clientID": {
+              "type": "string"
             },
-            "cookieExpire": {
-              "type": "string",
-              "description": "Session expiration time"
-            },
-            "cookieRefresh": {
-              "type": "string",
-              "description": "Session refresh interval"
-            },
-            "cookieSecure": {
-              "type": "boolean",
-              "description": "Enable secure cookie (set true for HTTPS)"
-            },
-            "cookieHttpOnly": {
-              "type": "boolean",
-              "description": "Enable HTTP-only cookie"
-            },
-            "cookieSecret": {
-              "type": "string",
-              "description": "Cookie secret for encryption"
+            "clientSecret": {
+              "type": "string"
             },
             "configFile": {
-              "type": "string",
-              "description": "OAuth2 Proxy configuration file content"
+              "type": "string"
+            },
+            "cookieName": {
+              "type": "string"
+            },
+            "cookieSecret": {
+              "type": "string"
             }
-          },
-          "additionalProperties": false
+          }
         },
         "htpasswdFile": {
           "type": "object",
           "properties": {
             "enabled": {
-              "type": "boolean",
-              "description": "Enable htpasswd authentication"
-            },
-            "existingSecret": {
-              "type": "string",
-              "description": "Use existing secret for htpasswd"
+              "type": "boolean"
             },
             "entries": {
               "type": "array",
-              "description": "htpasswd user entries (bcrypt format)",
               "items": {
                 "type": "string"
               }
+            },
+            "existingSecret": {
+              "type": "string"
             }
-          },
-          "additionalProperties": false
+          }
         },
-        "service": {
+        "image": {
           "type": "object",
           "properties": {
-            "type": {
-              "type": "string",
-              "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
-              "description": "Service type"
+            "pullPolicy": {
+              "type": "string"
             },
-            "portNumber": {
-              "type": "integer",
-              "description": "Service port number"
+            "repository": {
+              "type": "string"
             },
-            "sessionAffinity": {
-              "type": "string",
-              "enum": ["ClientIP", "None"],
-              "description": "Enable session affinity"
-            },
-            "sessionAffinityConfig": {
-              "type": "object",
-              "properties": {
-                "clientIP": {
-                  "type": "object",
-                  "properties": {
-                    "timeoutSeconds": {
-                      "type": "integer",
-                      "description": "Session affinity timeout in seconds"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "additionalProperties": false
+            "tag": {
+              "type": "string"
             }
-          },
-          "additionalProperties": false
-        },
-        "resources": {
-          "type": "object",
-          "properties": {
-            "limits": {
-              "type": "object",
-              "properties": {
-                "cpu": {
-                  "type": "string"
-                },
-                "memory": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            },
-            "requests": {
-              "type": "object",
-              "properties": {
-                "cpu": {
-                  "type": "string"
-                },
-                "memory": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
+          }
         },
         "livenessProbe": {
           "type": "object",
@@ -580,15 +273,8 @@
             },
             "timeoutSeconds": {
               "type": "integer"
-            },
-            "periodSeconds": {
-              "type": "integer"
-            },
-            "failureThreshold": {
-              "type": "integer"
             }
-          },
-          "additionalProperties": false
+          }
         },
         "readinessProbe": {
           "type": "object",
@@ -599,85 +285,16 @@
             "initialDelaySeconds": {
               "type": "integer"
             },
-            "timeoutSeconds": {
-              "type": "integer"
-            },
             "periodSeconds": {
               "type": "integer"
             },
-            "failureThreshold": {
+            "successThreshold": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
               "type": "integer"
             }
-          },
-          "additionalProperties": false
-        },
-        "alphaConfig": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "description": "Enable alpha config (experimental features)"
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "cloudflared": {
-      "type": "object",
-      "description": "Cloudflared subchart configuration for Cloudflare Tunnel",
-      "properties": {
-        "replicaCount": {
-          "type": "integer",
-          "description": "Number of cloudflared replicas",
-          "minimum": 1
-        },
-        "cloudflare": {
-          "type": "object",
-          "properties": {
-            "account": {
-              "type": "string",
-              "description": "Cloudflare account ID or email"
-            },
-            "tunnel": {
-              "type": "string",
-              "description": "Tunnel UUID or name"
-            },
-            "secret": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "Existing secret name containing tunnel credentials"
-                },
-                "key": {
-                  "type": "string",
-                  "description": "Key in the secret containing the tunnel token or credentials"
-                }
-              },
-              "additionalProperties": false
-            },
-            "ingress": {
-              "type": "array",
-              "description": "Tunnel ingress rules for routing traffic",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "hostname": {
-                    "type": "string"
-                  },
-                  "service": {
-                    "type": "string"
-                  },
-                  "originRequest": {
-                    "type": "object"
-                  }
-                }
-              }
-            }
-          },
-          "additionalProperties": false
+          }
         },
         "resources": {
           "type": "object",
@@ -691,8 +308,7 @@
                 "memory": {
                   "type": "string"
                 }
-              },
-              "additionalProperties": false
+              }
             },
             "requests": {
               "type": "object",
@@ -703,11 +319,166 @@
                 "memory": {
                   "type": "string"
                 }
-              },
-              "additionalProperties": false
+              }
+            }
+          }
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "portNumber": {
+              "type": "integer"
+            },
+            "type": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "properties": {
+        "accessMode": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "mountPath": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "podAnnotations": {
+      "type": "object"
+    },
+    "podLabels": {
+      "type": "object"
+    },
+    "readinessProbe": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "failureThreshold": {
+          "type": "integer"
+        },
+        "initialDelaySeconds": {
+          "type": "integer"
+        },
+        "periodSeconds": {
+          "type": "integer"
+        },
+        "tcpSocket": {
+          "type": "object",
+          "properties": {
+            "port": {
+              "type": "integer"
             }
           },
           "additionalProperties": false
+        },
+        "timeoutSeconds": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "replicaCount": {
+      "type": "integer"
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "securityContext": {
+      "type": "object",
+      "properties": {
+        "fsGroup": {
+          "type": "integer"
+        },
+        "runAsGroup": {
+          "type": "integer"
+        },
+        "runAsUser": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer"
+        },
+        "targetPort": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "serviceAccount": {
+      "type": "object",
+      "properties": {
+        "annotations": {
+          "type": "object"
+        },
+        "create": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "shmSize": {
+      "type": "integer"
+    },
+    "tolerations": {
+      "type": "array"
+    },
+    "tunnel": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
