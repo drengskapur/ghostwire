@@ -6,6 +6,6 @@ version: 0.7.0
 appVersion: "1.18.0"
 dependencies:
 - name: keycloak
-  version: "25.x.x"
+  version: "25.2.0"
   repository: "https://charts.bitnami.com/bitnami"
   condition: auth.enabled
