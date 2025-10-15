@@ -47,8 +47,8 @@ spec:
         {{- end }}
         {{- if .Values.livenessProbe.enabled }}
         livenessProbe:
-          httpGet:
-            {{- toYaml .Values.livenessProbe.httpGet | nindent 12 }}
+          tcpSocket:
+            {{- toYaml .Values.livenessProbe.tcpSocket | nindent 12 }}
           initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
           periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
           timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
@@ -56,8 +56,8 @@ spec:
         {{- end }}
         {{- if .Values.readinessProbe.enabled }}
         readinessProbe:
-          httpGet:
-            {{- toYaml .Values.readinessProbe.httpGet | nindent 12 }}
+          tcpSocket:
+            {{- toYaml .Values.readinessProbe.tcpSocket | nindent 12 }}
           initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
           periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
           timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
@@ -66,6 +66,8 @@ spec:
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
         volumeMounts:
+        - name: dshm
+          mountPath: /dev/shm
         {{- if .Values.persistence.enabled }}
         - name: signal-data
           mountPath: {{ .Values.persistence.mountPath }}
@@ -82,6 +84,11 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: {{ .Values.shmSize }}Mi
   {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:

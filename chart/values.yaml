@@ -162,6 +162,10 @@ env:
   - name: VNC_RESOLUTION
     value: "1280x720"
 
+## @param shmSize Shared memory size in MB (for browser performance)
+##
+shmSize: 256
+
 ## @param envFrom Additional environment variables from secrets/configmaps
 ## Example:
 ##   envFrom:
@@ -213,8 +217,7 @@ serviceAccount:
 ## Liveness and readiness probe configuration
 ##
 ## @param livenessProbe.enabled Enable liveness probe
-## @param livenessProbe.httpGet.path HTTP probe path
-## @param livenessProbe.httpGet.port HTTP probe port
+## @param livenessProbe.tcpSocket TCP socket probe
 ## @param livenessProbe.initialDelaySeconds Initial delay seconds
 ## @param livenessProbe.periodSeconds Period seconds
 ## @param livenessProbe.timeoutSeconds Timeout seconds
@@ -222,17 +225,15 @@ serviceAccount:
 ##
 livenessProbe:
   enabled: true
-  httpGet:
-    path: /
+  tcpSocket:
     port: 6901
-  initialDelaySeconds: 30
-  periodSeconds: 10
+  initialDelaySeconds: 60
+  periodSeconds: 30
   timeoutSeconds: 5
   failureThreshold: 3
 
 ## @param readinessProbe.enabled Enable readiness probe
-## @param readinessProbe.httpGet.path HTTP probe path
-## @param readinessProbe.httpGet.port HTTP probe port
+## @param readinessProbe.tcpSocket TCP socket probe
 ## @param readinessProbe.initialDelaySeconds Initial delay seconds
 ## @param readinessProbe.periodSeconds Period seconds
 ## @param readinessProbe.timeoutSeconds Timeout seconds
@@ -240,13 +241,12 @@ livenessProbe:
 ##
 readinessProbe:
   enabled: true
-  httpGet:
-    path: /
+  tcpSocket:
     port: 6901
-  initialDelaySeconds: 15
+  initialDelaySeconds: 30
   periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 3
+  timeoutSeconds: 3
+  failureThreshold: 5
 
 ## @section Authentication Configuration
 ## OAuth2 Proxy configuration for WebSocket-compatible VNC authentication
