@@ -31,10 +31,11 @@ data:
     backend ghostwire_backend
         mode http
         balance roundrobin
-        option httpchk GET /
+        # TCP check instead of HTTP (VNC doesn't have unauthenticated HTTP endpoints)
+        option tcp-check
         # WebSocket support
         http-request set-header X-Forwarded-Proto https if { ssl_fc }
         http-request set-header X-Forwarded-For %[src]
-        # Connect to ghostwire HTTPS endpoint
+        # Connect to ghostwire HTTPS endpoint (KasmVNC serves HTTPS)
         server ghostwire1 {{ include "ghostwire.fullname" . }}:6901 ssl verify none check inter 10s rise 2 fall 3
 {{- end }}
