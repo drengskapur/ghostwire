@@ -66,6 +66,23 @@ spec:
     auth:
       enabled: true
 
+    # Cloudflare Tunnel configuration
+    tunnel:
+      enabled: true
+      replicaCount: 1
+      image:
+        repository: cloudflare/cloudflared
+        tag: "2025.10.0"
+      secretName: cloudflared-credentials
+      secretKey: token
+      resources:
+        limits:
+          cpu: 200m
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+
     # OAuth2 Proxy configuration
     oauth2-proxy:
       image:

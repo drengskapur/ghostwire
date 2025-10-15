@@ -22,3 +22,8 @@ tasks:
     desc: Delete k3d-ghostwire cluster
     cmds:
       - k3d cluster delete ghostwire
+
+  tunnel:
+    desc: Setup Cloudflare Tunnel for ghostwire-dev.adhoc-solutions.com (automated)
+    cmds:
+      - ./scripts/setup-tunnel.sh
