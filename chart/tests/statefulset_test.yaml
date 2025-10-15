@@ -1,0 +1,274 @@
+suite: test statefulset
+templates:
+  - statefulset.yaml
+tests:
+  - it: should create a StatefulSet with default values
+    asserts:
+      - isKind:
+          of: StatefulSet
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-signal-system
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.serviceName
+          value: RELEASE-NAME-signal-system
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: signal
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: kasmweb/signal:1.18.0
+
+  - it: should use custom image when specified
+    set:
+      image.repository: custom/signal
+      image.tag: 2.0.0
+      image.pullPolicy: Always
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: custom/signal:2.0.0
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+
+  - it: should set custom replica count
+    set:
+      replicaCount: 2
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+
+  - it: should include imagePullSecrets when specified
+    set:
+      imagePullSecrets:
+        - name: my-registry-secret
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets[0].name
+          value: my-registry-secret
+
+  - it: should create serviceAccount when enabled
+    set:
+      serviceAccount.create: true
+      serviceAccount.name: custom-sa
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: custom-sa
+
+  - it: should not include serviceAccountName when serviceAccount.create is false
+    set:
+      serviceAccount.create: false
+    asserts:
+      - isNull:
+          path: spec.template.spec.serviceAccountName
+
+  - it: should apply security context
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.securityContext.runAsGroup
+          value: 1000
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1000
+
+  - it: should set environment variables
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNC_PW
+            value: password
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNC_RESOLUTION
+            value: 1280x720
+
+  - it: should include envFrom when specified
+    set:
+      envFrom:
+        - secretRef:
+            name: my-secret
+        - configMapRef:
+            name: my-config
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[0].secretRef.name
+          value: my-secret
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[1].configMapRef.name
+          value: my-config
+
+  - it: should configure liveness probe when enabled
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.path
+          value: /
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.port
+          value: 6901
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.initialDelaySeconds
+          value: 30
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.periodSeconds
+          value: 10
+
+  - it: should not include liveness probe when disabled
+    set:
+      livenessProbe.enabled: false
+    asserts:
+      - isNull:
+          path: spec.template.spec.containers[0].livenessProbe
+
+  - it: should configure readiness probe when enabled
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.path
+          value: /
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.port
+          value: 6901
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.initialDelaySeconds
+          value: 15
+
+  - it: should not include readiness probe when disabled
+    set:
+      readinessProbe.enabled: false
+    asserts:
+      - isNull:
+          path: spec.template.spec.containers[0].readinessProbe
+
+  - it: should set resource limits and requests
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 2000m
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 4Gi
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 500m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 1Gi
+
+  - it: should create volumeClaimTemplate when persistence enabled
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[0].metadata.name
+          value: signal-data
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.accessModes[0]
+          value: ReadWriteOnce
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.resources.requests.storage
+          value: 10Gi
+
+  - it: should not create volumeClaimTemplate when persistence disabled
+    set:
+      persistence.enabled: false
+    asserts:
+      - isNull:
+          path: spec.volumeClaimTemplates
+
+  - it: should set storageClassName when specified
+    set:
+      persistence.storageClass: fast-ssd
+    asserts:
+      - equal:
+          path: spec.volumeClaimTemplates[0].spec.storageClassName
+          value: fast-ssd
+
+  - it: should mount volume when persistence enabled
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: signal-data
+            mountPath: /home/kasm-user
+
+  - it: should not mount volume when persistence disabled
+    set:
+      persistence.enabled: false
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 0
+
+  - it: should set nodeSelector when specified
+    set:
+      nodeSelector:
+        disktype: ssd
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector.disktype
+          value: ssd
+
+  - it: should set tolerations when specified
+    set:
+      tolerations:
+        - key: "key1"
+          operator: "Equal"
+          value: "value1"
+          effect: "NoSchedule"
+    asserts:
+      - equal:
+          path: spec.template.spec.tolerations[0].key
+          value: key1
+
+  - it: should set affinity when specified
+    set:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - node1
+    asserts:
+      - isNotNull:
+          path: spec.template.spec.affinity.nodeAffinity
+
+  - it: should apply pod annotations when specified
+    set:
+      podAnnotations:
+        prometheus.io/scrape: "true"
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/scrape"]
+          value: "true"
+
+  - it: should apply pod labels when specified
+    set:
+      podLabels:
+        custom: label
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.custom
+          value: label
+
+  - it: should include standard labels
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: signal-system
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm

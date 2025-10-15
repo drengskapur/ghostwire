@@ -1,0 +1,224 @@
+suite: test ingress
+templates:
+  - ingress.yaml
+tests:
+  - it: should not create Ingress when disabled
+    set:
+      ingress.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create Ingress when enabled
+    set:
+      ingress.enabled: true
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-signal-system
+
+  - it: should set ingress className when specified
+    set:
+      ingress.enabled: true
+      ingress.className: nginx
+    asserts:
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+
+  - it: should not set ingress className when empty
+    set:
+      ingress.enabled: true
+      ingress.className: ""
+    asserts:
+      - isNull:
+          path: spec.ingressClassName
+
+  - it: should configure host and path
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - host: signal.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - equal:
+          path: spec.rules[0].host
+          value: signal.example.com
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: Prefix
+
+  - it: should route to oauth2-proxy when auth is enabled
+    set:
+      ingress.enabled: true
+      auth.enabled: true
+      ingress.hosts:
+        - host: signal.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+    release:
+      name: my-release
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: my-release-oauth2-proxy
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 80
+
+  - it: should route to signal service when auth is disabled
+    set:
+      ingress.enabled: true
+      auth.enabled: false
+      service.port: 6901
+      ingress.hosts:
+        - host: signal.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: RELEASE-NAME-signal-system
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 6901
+
+  - it: should include WebSocket annotations when auth is enabled
+    set:
+      ingress.enabled: true
+      auth.enabled: true
+    release:
+      name: test-release
+    asserts:
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-read-timeout"]
+          value: "3600"
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-send-timeout"]
+          value: "3600"
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/websocket-services"]
+          value: test-release-oauth2-proxy
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-body-size"]
+          value: "10m"
+
+  - it: should not include auth-specific annotations when auth is disabled
+    set:
+      ingress.enabled: true
+      auth.enabled: false
+    asserts:
+      - isNull:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-read-timeout"]
+
+  - it: should merge custom annotations with default annotations
+    set:
+      ingress.enabled: true
+      auth.enabled: true
+      ingress.annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        custom-annotation: custom-value
+    asserts:
+      - equal:
+          path: metadata.annotations["cert-manager.io/cluster-issuer"]
+          value: letsencrypt-prod
+      - equal:
+          path: metadata.annotations["custom-annotation"]
+          value: custom-value
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-read-timeout"]
+          value: "3600"
+
+  - it: should configure TLS when specified
+    set:
+      ingress.enabled: true
+      ingress.tls:
+        - secretName: signal-tls
+          hosts:
+            - signal.example.com
+    asserts:
+      - equal:
+          path: spec.tls[0].secretName
+          value: signal-tls
+      - contains:
+          path: spec.tls[0].hosts
+          content: signal.example.com
+
+  - it: should not configure TLS when not specified
+    set:
+      ingress.enabled: true
+      ingress.tls: []
+    asserts:
+      - isNull:
+          path: spec.tls
+
+  - it: should support multiple hosts
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - host: signal1.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+        - host: signal2.example.com
+          paths:
+            - path: /app
+              pathType: Prefix
+    asserts:
+      - equal:
+          path: spec.rules[0].host
+          value: signal1.example.com
+      - equal:
+          path: spec.rules[1].host
+          value: signal2.example.com
+      - equal:
+          path: spec.rules[1].http.paths[0].path
+          value: /app
+
+  - it: should support multiple paths per host
+    set:
+      ingress.enabled: true
+      auth.enabled: false
+      ingress.hosts:
+        - host: signal.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+            - path: /api
+              pathType: Exact
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: Prefix
+      - equal:
+          path: spec.rules[0].http.paths[1].path
+          value: /api
+      - equal:
+          path: spec.rules[0].http.paths[1].pathType
+          value: Exact
+
+  - it: should include standard labels
+    set:
+      ingress.enabled: true
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: signal-system
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm

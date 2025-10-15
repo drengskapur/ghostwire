@@ -1,0 +1,106 @@
+suite: test service
+templates:
+  - service.yaml
+tests:
+  - it: should create a Service with default values
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-signal-system
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0].port
+          value: 6901
+      - equal:
+          path: spec.ports[0].targetPort
+          value: vnc
+      - equal:
+          path: spec.ports[0].protocol
+          value: TCP
+      - equal:
+          path: spec.ports[0].name
+          value: vnc
+
+  - it: should set custom service type
+    set:
+      service.type: NodePort
+    asserts:
+      - equal:
+          path: spec.type
+          value: NodePort
+
+  - it: should set LoadBalancer type
+    set:
+      service.type: LoadBalancer
+    asserts:
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+
+  - it: should set loadBalancerIP when type is LoadBalancer and IP is specified
+    set:
+      service.type: LoadBalancer
+      service.loadBalancerIP: "209.38.63.45"
+    asserts:
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+      - equal:
+          path: spec.loadBalancerIP
+          value: "209.38.63.45"
+
+  - it: should not set loadBalancerIP when type is LoadBalancer but IP is not specified
+    set:
+      service.type: LoadBalancer
+    asserts:
+      - isNull:
+          path: spec.loadBalancerIP
+
+  - it: should not set loadBalancerIP when type is ClusterIP
+    set:
+      service.type: ClusterIP
+      service.loadBalancerIP: "209.38.63.45"
+    asserts:
+      - isNull:
+          path: spec.loadBalancerIP
+
+  - it: should set custom port
+    set:
+      service.port: 8080
+    asserts:
+      - equal:
+          path: spec.ports[0].port
+          value: 8080
+
+  - it: should set custom target port
+    set:
+      service.targetPort: 8080
+    asserts:
+      - equal:
+          path: spec.ports[0].targetPort
+          value: vnc
+
+  - it: should include standard labels
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: signal-system
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm
+
+  - it: should include selector labels
+    asserts:
+      - equal:
+          path: spec.selector["app.kubernetes.io/name"]
+          value: signal-system
+      - equal:
+          path: spec.selector["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
