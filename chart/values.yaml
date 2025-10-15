@@ -299,23 +299,30 @@ oauth2-proxy:
     ## - htpasswd provider for simple username/password authentication
     ##
     configFile: |-
-      # Upstream to Signal VNC service
-      upstreams = [ "http://{{ include "ghostwire.fullname" . }}:6901/" ]
+      # Upstream to Signal VNC service (HTTPS with self-signed cert)
+      upstreams = [ "https://{{ include "ghostwire.fullname" . }}:6901/" ]
+
+      # Skip SSL verification for self-signed certs
+      ssl_insecure_skip_verify = true
 
       # WebSocket support (CRITICAL for VNC streaming)
       proxy_websockets = true
       pass_host_header = true
       pass_access_token = false
-      pass_user_headers = true
-      set_xauthrequest = true
+      pass_user_headers = false
+      pass_authorization_header = false
+      set_xauthrequest = false
+      set_authorization_header = false
 
-      # Display htpasswd login form
+      # Display htpasswd login form (disables OAuth providers)
       display_htpasswd_form = true
+      skip_provider_button = true
 
       # Logging configuration
       standard_logging = true
       auth_logging = true
       request_logging = true
+      silence_ping_logging = true
 
   ## htpasswd user configuration
   ##
