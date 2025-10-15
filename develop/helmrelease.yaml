@@ -44,7 +44,7 @@ spec:
     persistence:
       enabled: true
       accessMode: ReadWriteOnce
-      size: 5Gi  # Smaller size for dev environment
+      size: 2Gi  # Minimal size for dev environment
 
     # Reduced resources for local development
     resources:
