@@ -1,0 +1,221 @@
+version: '3'
+
+dotenv: ['.env', '.env.local']
+
+env:
+  VERSION:
+    sh: grep '^version:' chart/Chart.yaml | awk '{print $2}'
+  CHART_NAME:
+    sh: grep '^name:' chart/Chart.yaml | awk '{print $2}'
+  REGISTRY: '{{.REGISTRY | default "ghcr.io"}}'
+  NAMESPACE: '{{.NAMESPACE | default "drengskapur/signal-system"}}'
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  claude:
+    desc: Run Claude Code
+    silent: true
+    cmds:
+      - claude --dangerously-skip-permissions
+
+  resume:
+    desc: Resume Claude Code session
+    silent: true
+    cmds:
+      - claude --dangerously-skip-permissions --resume
+
+  test:
+    desc: Run Helm tests (lint, template, unit tests)
+    dir: chart
+    cmds:
+      - helm dependency update
+      - helm lint .
+      - helm template test . > /dev/null
+      - echo "✅ Helm chart tests passed"
+
+  schema:
+    desc: Generate values.schema.json from values.yaml
+    dir: chart
+    cmds:
+      - ./scripts/schema.sh
+
+  package:
+    desc: Package Helm chart locally
+    dir: chart
+    cmds:
+      - |
+        echo "📦 Packaging Helm chart..."
+        helm dependency update
+        helm package . --destination /tmp
+        echo "✅ Chart packaged: /tmp/{{.CHART_NAME}}-{{.VERSION}}.tgz"
+
+  login:
+    desc: Login to container registry
+    silent: true
+    cmds:
+      - |
+        if [ -z "$DOCKER_PASSWORD" ]; then
+          echo "❌ DOCKER_PASSWORD not set"
+          exit 1
+        fi
+        echo "$DOCKER_PASSWORD" | helm registry login {{.REGISTRY}} -u "$DOCKER_USERNAME" --password-stdin
+        echo "✅ Logged in to {{.REGISTRY}}"
+
+  helm:push:
+    desc: Package and push Helm chart to OCI registry
+    deps: [login]
+    dir: chart
+    cmds:
+      - |
+        echo "📦 Packaging Helm chart..."
+        helm dependency update
+        helm package . --destination /tmp
+
+        PACKAGE_FILE="/tmp/{{.CHART_NAME}}-{{.VERSION}}.tgz"
+
+        echo "📤 Pushing chart to OCI registry..."
+        helm push "$PACKAGE_FILE" "oci://{{.REGISTRY}}/{{.NAMESPACE}}/chart"
+
+        # Clean up package file
+        rm -f "$PACKAGE_FILE"
+
+        echo "✅ Helm chart pushed to oci://{{.REGISTRY}}/{{.NAMESPACE}}/chart/{{.CHART_NAME}}:{{.VERSION}}"
+
+  helm:pull:
+    desc: Pull Helm chart from OCI registry
+    deps: [login]
+    cmds:
+      - |
+        echo "📥 Pulling chart from OCI registry..."
+        helm pull "oci://{{.REGISTRY}}/{{.NAMESPACE}}/chart/{{.CHART_NAME}}" \
+          --version "{{.VERSION}}" \
+          --destination /tmp
+
+        echo "✅ Chart downloaded to /tmp/{{.CHART_NAME}}-{{.VERSION}}.tgz"
+
+  deploy:
+    desc: Deploy Signal Desktop to Kubernetes
+    deps: [regcred]
+    cmds:
+      - |
+        helm upgrade --install signal \
+          chart/ \
+          --namespace signal \
+          --create-namespace \
+          --timeout 10m
+
+        kubectl config set-context --current --namespace=signal
+        echo "✅ Signal Desktop deployed"
+
+  helm:deploy:
+    desc: Deploy Signal Desktop from OCI registry
+    deps: [login, regcred]
+    cmds:
+      - |
+        echo "🚀 Deploying Signal Desktop from OCI registry..."
+
+        helm upgrade --install signal \
+          "oci://{{.REGISTRY}}/{{.NAMESPACE}}/chart/{{.CHART_NAME}}" \
+          --version "{{.VERSION}}" \
+          --namespace signal \
+          --create-namespace \
+          --timeout 10m
+
+        kubectl config set-context --current --namespace=signal
+        echo "✅ Signal Desktop deployed from OCI chart"
+
+  regcred:
+    desc: Create Docker registry credentials for image pulling
+    silent: true
+    internal: true
+    status:
+      - "[ -z \"$DOCKER_USERNAME\" ] || [ -z \"$DOCKER_PASSWORD\" ]"
+    cmds:
+      - kubectl create namespace signal || true
+      - |
+        kubectl create secret docker-registry regcred \
+          --namespace signal \
+          --docker-server={{.REGISTRY}} \
+          --docker-username=$DOCKER_USERNAME \
+          --docker-password=$DOCKER_PASSWORD \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+  watch:
+    desc: Watch Signal deployment
+    cmds:
+      - kubectl get pods --namespace signal --watch
+
+  forward:
+    desc: Forward ports to Signal VNC
+    cmds:
+      - |
+        pkill -f "port-forward.*signal" 2>/dev/null || true
+        kubectl port-forward --namespace signal svc/signal 6901:6901
+
+  destroy:
+    desc: Destroy Signal from Kubernetes
+    cmds:
+      - |
+        echo "🗑️ Destroying Signal namespace..."
+        kubectl delete namespace signal --grace-period=30 --ignore-not-found=true 2>/dev/null || true
+
+        if kubectl get namespace signal 2>/dev/null | grep -q Terminating; then
+          echo "⚠️ Namespace stuck in Terminating state, removing finalizers..."
+          kubectl patch namespace signal -p '{"metadata":{"finalizers":[]}}' --type=merge 2>/dev/null || true
+          kubectl delete namespace signal --force --grace-period=0 2>/dev/null || true
+        fi
+
+        if kubectl get namespace signal 2>/dev/null; then
+          echo "❌ Failed to delete namespace, manual intervention may be required"
+          exit 1
+        else
+          echo "✅ Signal namespace destroyed"
+        fi
+
+  version:bump:
+    desc: Bump chart version (usage - task version:bump TYPE=major|minor|patch)
+    silent: true
+    vars:
+      TYPE: '{{.TYPE | default "patch"}}'
+    cmds:
+      - |
+        CURRENT=$(grep '^version:' chart/Chart.yaml | awk '{print $2}')
+        echo "📌 Current version: ${CURRENT}"
+
+        IFS='.' read -r MAJOR MINOR PATCH <<< "${CURRENT}"
+
+        case "{{.TYPE}}" in
+          major)
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            ;;
+          minor)
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            ;;
+          patch)
+            PATCH=$((PATCH + 1))
+            ;;
+          *)
+            echo "❌ Invalid type. Use: major, minor, or patch"
+            exit 1
+            ;;
+        esac
+
+        NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+        echo "🔼 New version: ${NEW_VERSION}"
+
+        sed -i "s/^version:.*/version: ${NEW_VERSION}/" chart/Chart.yaml
+
+        echo "✅ Chart version bumped to ${NEW_VERSION}"
+        echo ""
+        echo "💡 Next steps:"
+        echo "   1. Review the change: git diff chart/Chart.yaml"
+        echo "   2. Commit: git add chart/Chart.yaml && git commit -m 'release: bump chart version to ${NEW_VERSION}'"
+        echo "   3. Tag: git tag v${NEW_VERSION} && git push --tags"
+        echo "   4. Push chart: task helm:push"
