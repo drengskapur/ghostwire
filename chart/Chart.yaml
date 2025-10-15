@@ -7,5 +7,6 @@ appVersion: "1.18.0"
 dependencies:
 - name: keycloak
   version: "25.2.0"
-  repository: "https://charts.bitnami.com/bitnami"
+  repository: "oci://registry-1.docker.io/bitnamicharts"
   condition: auth.enabled
+  # Digest: sha256:3e12451e0300902bafa1e588e62cce8ad3467dc3d6bf15352c25a0393a75fc6e
