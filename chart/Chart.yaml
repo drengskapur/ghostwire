@@ -4,6 +4,8 @@ description: Ghostwire - Secure Signal Desktop Deployment System
 type: application
 version: 0.3.7
 appVersion: "1.18.0"
+annotations:
+  org.opencontainers.image.tags: "0.3.7,stable"
 # dependencies:
 #   - name: oauth2-proxy
 #     version: "8.3.1"
