@@ -14,19 +14,17 @@
       },
       "additionalProperties": false
     },
-    "env": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          }
+    "display": {
+      "type": "object",
+      "properties": {
+        "resolution": {
+          "type": "string"
         }
-      }
+      },
+      "additionalProperties": false
+    },
+    "env": {
+      "type": "array"
     },
     "envFrom": {
       "type": "array"
@@ -380,6 +378,18 @@
           "type": "string"
         },
         "secretName": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "vnc": {
+      "type": "object",
+      "properties": {
+        "password": {
+          "type": "string"
+        },
+        "user": {
           "type": "string"
         }
       },

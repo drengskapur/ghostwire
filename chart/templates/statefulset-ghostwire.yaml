@@ -41,10 +41,18 @@ spec:
           containerPort: {{ .Values.service.targetPort }}
           protocol: TCP
         env:
-        {{- toYaml .Values.env | nindent 8 }}
+        - name: VNC_USER
+          value: {{ .Values.vnc.user | quote }}
+        - name: VNC_PW
+          value: {{ .Values.vnc.password | quote }}
+        - name: VNC_RESOLUTION
+          value: {{ .Values.display.resolution | quote }}
         {{- if .Values.auth.enabled }}
         - name: VNCOPTIONS
           value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -disableBasicAuth"
+        {{- end }}
+        {{- with .Values.env }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
         {{- with .Values.envFrom }}
         envFrom:

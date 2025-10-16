@@ -150,22 +150,34 @@ securityContext:
   #   - ALL
   # readOnlyRootFilesystem: true
 
+## @section VNC Authentication
+## VNC authentication credentials
+##
+## @param vnc.user VNC authentication username
+## @param vnc.password VNC authentication password
+##
+## ⚠️  SECURITY: Change VNC credentials for production!
+##
+vnc:
+  user: "kasm_user"
+  password: "password"
+
+## @section Display Configuration
+## VNC display settings
+##
+## @param display.resolution VNC screen resolution
+##
+display:
+  resolution: "1280x720"
+
 ## @section Environment Variables
-## Environment configuration for KasmVNC and Signal
+## Additional environment configuration for KasmVNC and Signal
 ##
-## @param env Array of environment variables
+## @param env Array of additional environment variables
 ##
-env:
-  ## ⚠️  SECURITY: Change VNC credentials for production!
-  ##
-  - name: VNC_USER
-    value: "kasm_user"
-  - name: VNC_PW
-    value: "password"
-  ## VNC screen resolution
-  ##
-  - name: VNC_RESOLUTION
-    value: "1280x720"
+env: []
+  # - name: CUSTOM_VAR
+  #   value: "custom_value"
 
 ## @param shmSize Shared memory size in MB (for browser performance)
 ##
