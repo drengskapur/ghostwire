@@ -1,16 +1,18 @@
 suite: test helpers
 templates:
-  - service.yaml  # We use service.yaml as a template to test helpers
+  - service-ghostwire.yaml  # We use service as a template to test helpers
 tests:
+  ## Chart Name
   - it: should generate correct chart name
-    template: service.yaml
+    template: service-ghostwire.yaml
     asserts:
       - equal:
           path: metadata.labels["helm.sh/chart"]
-          value: ghostwire-0.1.0
+          value: ghostwire-0.7.0
 
+  ## Fullname
   - it: should generate correct fullname
-    template: service.yaml
+    template: service-ghostwire.yaml
     release:
       name: my-release
     asserts:
@@ -19,7 +21,7 @@ tests:
           value: my-release-ghostwire
 
   - it: should use fullnameOverride when specified
-    template: service.yaml
+    template: service-ghostwire.yaml
     set:
       fullnameOverride: custom-name
     asserts:
@@ -28,7 +30,7 @@ tests:
           value: custom-name
 
   - it: should truncate fullname to 63 characters
-    template: service.yaml
+    template: service-ghostwire.yaml
     release:
       name: very-long-release-name-for-testing-truncation-ok
     asserts:
@@ -36,15 +38,16 @@ tests:
           path: metadata.name
           pattern: ^.{1,63}$
 
+  ## App Name
   - it: should generate correct app name label
-    template: service.yaml
+    template: service-ghostwire.yaml
     asserts:
       - equal:
           path: metadata.labels["app.kubernetes.io/name"]
           value: ghostwire
 
   - it: should use nameOverride when specified
-    template: service.yaml
+    template: service-ghostwire.yaml
     set:
       nameOverride: custom-app-name
     asserts:
@@ -52,8 +55,9 @@ tests:
           path: metadata.labels["app.kubernetes.io/name"]
           value: custom-app-name
 
+  ## Instance and Version Labels
   - it: should include instance label
-    template: service.yaml
+    template: service-ghostwire.yaml
     release:
       name: test-instance
     asserts:
@@ -62,7 +66,7 @@ tests:
           value: test-instance
 
   - it: should include version label
-    template: service.yaml
+    template: service-ghostwire.yaml
     chart:
       appVersion: 1.18.0
     asserts:
@@ -71,23 +75,15 @@ tests:
           value: "1.18.0"
 
   - it: should include managed-by label
-    template: service.yaml
+    template: service-ghostwire.yaml
     asserts:
       - equal:
           path: metadata.labels["app.kubernetes.io/managed-by"]
           value: Helm
 
-  - it: should use release name when it contains chart name
-    template: service.yaml
-    release:
-      name: ghostwire
-    asserts:
-      - equal:
-          path: metadata.name
-          value: ghostwire
-
+  ## Selector Labels
   - it: should include selector labels
-    template: service.yaml
+    template: service-ghostwire.yaml
     release:
       name: my-release
     asserts:

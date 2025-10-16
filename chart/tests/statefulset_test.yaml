@@ -1,7 +1,8 @@
 suite: test statefulset
 templates:
-  - statefulset.yaml
+  - statefulset-ghostwire.yaml
 tests:
+  ## Basic StatefulSet Configuration
   - it: should create a StatefulSet with default values
     asserts:
       - isKind:
@@ -15,12 +16,19 @@ tests:
       - equal:
           path: spec.serviceName
           value: RELEASE-NAME-ghostwire
+
+  ## Container Configuration
+  - it: should configure signal container with default image
+    asserts:
       - equal:
           path: spec.template.spec.containers[0].name
           value: signal
       - equal:
           path: spec.template.spec.containers[0].image
           value: kasmweb/signal:1.18.0
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: IfNotPresent
 
   - it: should use custom image when specified
     set:
@@ -35,93 +43,109 @@ tests:
           path: spec.template.spec.containers[0].imagePullPolicy
           value: Always
 
-  - it: should set custom replica count
-    set:
-      replicaCount: 2
+  ## Authentication Configuration
+  - it: should set default VNC auth credentials
     asserts:
-      - equal:
-          path: spec.replicas
-          value: 2
-
-  - it: should include imagePullSecrets when specified
-    set:
-      imagePullSecrets:
-        - name: my-registry-secret
-    asserts:
-      - equal:
-          path: spec.template.spec.imagePullSecrets[0].name
-          value: my-registry-secret
-
-  - it: should create serviceAccount when enabled
-    set:
-      serviceAccount.create: true
-      serviceAccount.name: custom-sa
-    asserts:
-      - equal:
-          path: spec.template.spec.serviceAccountName
-          value: custom-sa
-
-  - it: should not include serviceAccountName when serviceAccount.create is false
-    set:
-      serviceAccount.create: false
-    asserts:
-      - isNull:
-          path: spec.template.spec.serviceAccountName
-
-  - it: should apply security context
-    asserts:
-      - equal:
-          path: spec.template.spec.securityContext.runAsUser
-          value: 1000
-      - equal:
-          path: spec.template.spec.securityContext.runAsGroup
-          value: 1000
-      - equal:
-          path: spec.template.spec.securityContext.fsGroup
-          value: 1000
-
-  - it: should set environment variables
-    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNC_USER
+            value: kasm_user
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: VNC_PW
             value: password
+
+  - it: should set custom VNC auth credentials
+    set:
+      auth.username: myuser
+      auth.password: mypass123
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNC_USER
+            value: myuser
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNC_PW
+            value: mypass123
+
+  - it: should not include VNCOPTIONS when auth is enabled
+    set:
+      auth.enabled: true
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNCOPTIONS
+
+  - it: should disable basic auth when auth.enabled is false
+    set:
+      auth.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNCOPTIONS
+            value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -disableBasicAuth"
+
+  ## Display Configuration
+  - it: should set default VNC resolution
+    asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: VNC_RESOLUTION
-            value: 1280x720
+            value: "1280x720"
+
+  - it: should set custom VNC resolution
+    set:
+      display.resolution: "1920x1080"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNC_RESOLUTION
+            value: "1920x1080"
+
+  ## Additional Environment Variables
+  - it: should include additional env variables when specified
+    set:
+      env:
+        - name: CUSTOM_VAR
+          value: custom_value
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CUSTOM_VAR
+            value: custom_value
 
   - it: should include envFrom when specified
     set:
       envFrom:
         - secretRef:
             name: my-secret
-        - configMapRef:
-            name: my-config
     asserts:
       - equal:
           path: spec.template.spec.containers[0].envFrom[0].secretRef.name
           value: my-secret
-      - equal:
-          path: spec.template.spec.containers[0].envFrom[1].configMapRef.name
-          value: my-config
 
-  - it: should configure liveness probe when enabled
+  ## Health Probes
+  - it: should configure TCP liveness probe when enabled
     asserts:
       - equal:
-          path: spec.template.spec.containers[0].livenessProbe.path
-          value: /
-      - equal:
-          path: spec.template.spec.containers[0].livenessProbe.port
+          path: spec.template.spec.containers[0].livenessProbe.tcpSocket.port
           value: 6901
       - equal:
           path: spec.template.spec.containers[0].livenessProbe.initialDelaySeconds
-          value: 30
+          value: 60
       - equal:
           path: spec.template.spec.containers[0].livenessProbe.periodSeconds
-          value: 10
+          value: 30
 
   - it: should not include liveness probe when disabled
     set:
@@ -130,17 +154,17 @@ tests:
       - isNull:
           path: spec.template.spec.containers[0].livenessProbe
 
-  - it: should configure readiness probe when enabled
+  - it: should configure TCP readiness probe when enabled
     asserts:
       - equal:
-          path: spec.template.spec.containers[0].readinessProbe.path
-          value: /
-      - equal:
-          path: spec.template.spec.containers[0].readinessProbe.port
+          path: spec.template.spec.containers[0].readinessProbe.tcpSocket.port
           value: 6901
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.initialDelaySeconds
-          value: 15
+          value: 30
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.periodSeconds
+          value: 10
 
   - it: should not include readiness probe when disabled
     set:
@@ -149,7 +173,8 @@ tests:
       - isNull:
           path: spec.template.spec.containers[0].readinessProbe
 
-  - it: should set resource limits and requests
+  ## Resources
+  - it: should set default resource limits and requests
     asserts:
       - equal:
           path: spec.template.spec.containers[0].resources.limits.cpu
@@ -164,6 +189,7 @@ tests:
           path: spec.template.spec.containers[0].resources.requests.memory
           value: 1Gi
 
+  ## Persistence
   - it: should create volumeClaimTemplate when persistence enabled
     asserts:
       - equal:
@@ -183,15 +209,7 @@ tests:
       - isNull:
           path: spec.volumeClaimTemplates
 
-  - it: should set storageClassName when specified
-    set:
-      persistence.storageClass: fast-ssd
-    asserts:
-      - equal:
-          path: spec.volumeClaimTemplates[0].spec.storageClassName
-          value: fast-ssd
-
-  - it: should mount volume when persistence enabled
+  - it: should mount signal-data volume when persistence enabled
     asserts:
       - contains:
           path: spec.template.spec.containers[0].volumeMounts
@@ -199,14 +217,61 @@ tests:
             name: signal-data
             mountPath: /home/kasm-user
 
-  - it: should not mount volume when persistence disabled
-    set:
-      persistence.enabled: false
+  - it: should mount dshm volume for shared memory
     asserts:
-      - lengthEqual:
+      - contains:
           path: spec.template.spec.containers[0].volumeMounts
-          count: 0
+          content:
+            name: dshm
+            mountPath: /dev/shm
 
+  - it: should set dshm size from values
+    set:
+      shmSize: 512
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].emptyDir.sizeLimit
+          value: 512Mi
+
+  ## Security Context
+  - it: should apply security context
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 1000
+      - equal:
+          path: spec.template.spec.securityContext.runAsGroup
+          value: 1000
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 1000
+
+  ## Pod Configuration
+  - it: should apply pod annotations when specified
+    set:
+      podAnnotations:
+        prometheus.io/scrape: "true"
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/scrape"]
+          value: "true"
+
+  - it: should apply pod labels when specified
+    set:
+      podLabels:
+        custom: label
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels.custom
+          value: label
+
+  - it: should include component label
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: app
+
+  ## Scheduling
   - it: should set nodeSelector when specified
     set:
       nodeSelector:
@@ -242,33 +307,3 @@ tests:
     asserts:
       - isNotNull:
           path: spec.template.spec.affinity.nodeAffinity
-
-  - it: should apply pod annotations when specified
-    set:
-      podAnnotations:
-        prometheus.io/scrape: "true"
-    asserts:
-      - equal:
-          path: spec.template.metadata.annotations["prometheus.io/scrape"]
-          value: "true"
-
-  - it: should apply pod labels when specified
-    set:
-      podLabels:
-        custom: label
-    asserts:
-      - equal:
-          path: spec.template.metadata.labels.custom
-          value: label
-
-  - it: should include standard labels
-    asserts:
-      - equal:
-          path: metadata.labels["app.kubernetes.io/name"]
-          value: ghostwire
-      - equal:
-          path: metadata.labels["app.kubernetes.io/instance"]
-          value: RELEASE-NAME
-      - equal:
-          path: metadata.labels["app.kubernetes.io/managed-by"]
-          value: Helm

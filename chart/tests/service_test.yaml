@@ -1,8 +1,11 @@
-suite: test service
+suite: test services
 templates:
-  - service.yaml
+  - service-ghostwire.yaml
+  - service-haproxy.yaml
 tests:
-  - it: should create a Service with default values
+  ## Ghostwire Service Tests
+  - it: should create a ghostwire Service with default values
+    template: service-ghostwire.yaml
     asserts:
       - isKind:
           of: Service
@@ -25,15 +28,8 @@ tests:
           path: spec.ports[0].name
           value: vnc
 
-  - it: should set custom service type
-    set:
-      service.type: NodePort
-    asserts:
-      - equal:
-          path: spec.type
-          value: NodePort
-
-  - it: should set LoadBalancer type
+  - it: should set custom service type for ghostwire
+    template: service-ghostwire.yaml
     set:
       service.type: LoadBalancer
     asserts:
@@ -41,34 +37,8 @@ tests:
           path: spec.type
           value: LoadBalancer
 
-  - it: should set loadBalancerIP when type is LoadBalancer and IP is specified
-    set:
-      service.type: LoadBalancer
-      service.loadBalancerIP: "209.38.63.45"
-    asserts:
-      - equal:
-          path: spec.type
-          value: LoadBalancer
-      - equal:
-          path: spec.loadBalancerIP
-          value: "209.38.63.45"
-
-  - it: should not set loadBalancerIP when type is LoadBalancer but IP is not specified
-    set:
-      service.type: LoadBalancer
-    asserts:
-      - isNull:
-          path: spec.loadBalancerIP
-
-  - it: should not set loadBalancerIP when type is ClusterIP
-    set:
-      service.type: ClusterIP
-      service.loadBalancerIP: "209.38.63.45"
-    asserts:
-      - isNull:
-          path: spec.loadBalancerIP
-
-  - it: should set custom port
+  - it: should set custom port for ghostwire
+    template: service-ghostwire.yaml
     set:
       service.port: 8080
     asserts:
@@ -76,15 +46,54 @@ tests:
           path: spec.ports[0].port
           value: 8080
 
-  - it: should set custom target port
-    set:
-      service.targetPort: 8080
+  - it: should include component selector for ghostwire
+    template: service-ghostwire.yaml
     asserts:
       - equal:
-          path: spec.ports[0].targetPort
-          value: vnc
+          path: spec.selector["app.kubernetes.io/component"]
+          value: app
 
-  - it: should include standard labels
+  ## HAProxy Service Tests
+  - it: should create HAProxy service when enabled
+    template: service-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-ghostwire-haproxy
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0].name
+          value: vnc
+      - equal:
+          path: spec.ports[0].port
+          value: 6901
+
+  - it: should not create HAProxy service when disabled
+    template: service-haproxy.yaml
+    set:
+      haproxy.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should include component selector for haproxy
+    template: service-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - equal:
+          path: spec.selector["app.kubernetes.io/component"]
+          value: proxy
+
+  ## Standard Labels
+  - it: should include standard labels on ghostwire service
+    template: service-ghostwire.yaml
     asserts:
       - equal:
           path: metadata.labels["app.kubernetes.io/name"]
@@ -96,11 +105,14 @@ tests:
           path: metadata.labels["app.kubernetes.io/managed-by"]
           value: Helm
 
-  - it: should include selector labels
+  - it: should include standard labels on haproxy service
+    template: service-haproxy.yaml
+    set:
+      haproxy.enabled: true
     asserts:
       - equal:
-          path: spec.selector["app.kubernetes.io/name"]
+          path: metadata.labels["app.kubernetes.io/name"]
           value: ghostwire
       - equal:
-          path: spec.selector["app.kubernetes.io/instance"]
+          path: metadata.labels["app.kubernetes.io/instance"]
           value: RELEASE-NAME

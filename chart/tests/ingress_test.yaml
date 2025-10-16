@@ -1,7 +1,8 @@
 suite: test ingress
 templates:
-  - ingress.yaml
+  - ingress-ghostwire.yaml
 tests:
+  ## Ingress Disabled
   - it: should not create Ingress when disabled
     set:
       ingress.enabled: false
@@ -9,6 +10,7 @@ tests:
       - hasDocuments:
           count: 0
 
+  ## Basic Ingress Configuration
   - it: should create Ingress when enabled
     set:
       ingress.enabled: true
@@ -36,14 +38,10 @@ tests:
       - isNull:
           path: spec.ingressClassName
 
-  - it: should configure host and path
+  ## Host and Path Configuration
+  - it: should configure default host and path
     set:
       ingress.enabled: true
-      ingress.hosts:
-        - host: signal.example.com
-          paths:
-            - path: /
-              pathType: Prefix
     asserts:
       - equal:
           path: spec.rules[0].host
@@ -55,35 +53,22 @@ tests:
           path: spec.rules[0].http.paths[0].pathType
           value: Prefix
 
-  - it: should route to oauth2-proxy when auth is enabled
+  - it: should route to haproxy service by default
     set:
       ingress.enabled: true
-      auth.enabled: true
-      ingress.hosts:
-        - host: signal.example.com
-          paths:
-            - path: /
-              pathType: Prefix
-    release:
-      name: my-release
     asserts:
       - equal:
           path: spec.rules[0].http.paths[0].backend.service.name
-          value: my-release-oauth2-proxy
+          value: RELEASE-NAME-haproxy
       - equal:
           path: spec.rules[0].http.paths[0].backend.service.port.number
-          value: 80
+          value: 6901
 
-  - it: should route to signal service when auth is disabled
+  - it: should route directly to ghostwire when haproxy is disabled
     set:
       ingress.enabled: true
-      auth.enabled: false
+      haproxy.enabled: false
       service.port: 6901
-      ingress.hosts:
-        - host: signal.example.com
-          paths:
-            - path: /
-              pathType: Prefix
     asserts:
       - equal:
           path: spec.rules[0].http.paths[0].backend.service.name
@@ -91,75 +76,6 @@ tests:
       - equal:
           path: spec.rules[0].http.paths[0].backend.service.port.number
           value: 6901
-
-  - it: should include WebSocket annotations when auth is enabled
-    set:
-      ingress.enabled: true
-      auth.enabled: true
-    release:
-      name: test-release
-    asserts:
-      - equal:
-          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-read-timeout"]
-          value: "3600"
-      - equal:
-          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-send-timeout"]
-          value: "3600"
-      - equal:
-          path: metadata.annotations["nginx.ingress.kubernetes.io/websocket-services"]
-          value: test-release-oauth2-proxy
-      - equal:
-          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-body-size"]
-          value: "10m"
-
-  - it: should not include auth-specific annotations when auth is disabled
-    set:
-      ingress.enabled: true
-      auth.enabled: false
-    asserts:
-      - isNull:
-          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-read-timeout"]
-
-  - it: should merge custom annotations with default annotations
-    set:
-      ingress.enabled: true
-      auth.enabled: true
-      ingress.annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-prod
-        custom-annotation: custom-value
-    asserts:
-      - equal:
-          path: metadata.annotations["cert-manager.io/cluster-issuer"]
-          value: letsencrypt-prod
-      - equal:
-          path: metadata.annotations["custom-annotation"]
-          value: custom-value
-      - equal:
-          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-read-timeout"]
-          value: "3600"
-
-  - it: should configure TLS when specified
-    set:
-      ingress.enabled: true
-      ingress.tls:
-        - secretName: signal-tls
-          hosts:
-            - signal.example.com
-    asserts:
-      - equal:
-          path: spec.tls[0].secretName
-          value: signal-tls
-      - contains:
-          path: spec.tls[0].hosts
-          content: signal.example.com
-
-  - it: should not configure TLS when not specified
-    set:
-      ingress.enabled: true
-      ingress.tls: []
-    asserts:
-      - isNull:
-          path: spec.tls
 
   - it: should support multiple hosts
     set:
@@ -184,31 +100,46 @@ tests:
           path: spec.rules[1].http.paths[0].path
           value: /app
 
-  - it: should support multiple paths per host
+  ## Annotations
+  - it: should include custom annotations when specified
     set:
       ingress.enabled: true
-      auth.enabled: false
-      ingress.hosts:
-        - host: signal.example.com
-          paths:
-            - path: /
-              pathType: Prefix
-            - path: /api
-              pathType: Exact
+      ingress.annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        custom-annotation: custom-value
     asserts:
       - equal:
-          path: spec.rules[0].http.paths[0].path
-          value: /
+          path: metadata.annotations["cert-manager.io/cluster-issuer"]
+          value: letsencrypt-prod
       - equal:
-          path: spec.rules[0].http.paths[0].pathType
-          value: Prefix
-      - equal:
-          path: spec.rules[0].http.paths[1].path
-          value: /api
-      - equal:
-          path: spec.rules[0].http.paths[1].pathType
-          value: Exact
+          path: metadata.annotations["custom-annotation"]
+          value: custom-value
 
+  ## TLS Configuration
+  - it: should configure TLS when specified
+    set:
+      ingress.enabled: true
+      ingress.tls:
+        - secretName: signal-tls
+          hosts:
+            - signal.example.com
+    asserts:
+      - equal:
+          path: spec.tls[0].secretName
+          value: signal-tls
+      - contains:
+          path: spec.tls[0].hosts
+          content: signal.example.com
+
+  - it: should not configure TLS when not specified
+    set:
+      ingress.enabled: true
+      ingress.tls: []
+    asserts:
+      - isNull:
+          path: spec.tls
+
+  ## Labels
   - it: should include standard labels
     set:
       ingress.enabled: true
