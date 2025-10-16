@@ -2,21 +2,45 @@ version: '3'
 
 dotenv: ['../.env', '../.env.local']
 
+env:
+  FLUX_GITHUB_REPO: drengskapur/ghostwire
+  FLUX_CLUSTER_CONTEXT: k3d-ghostwire
+  FLUX_DEPLOY_KEY_TITLE: flux-ghostwire-dev
+
 tasks:
   default:
     desc: Show available tasks
     cmds:
       - task --list
 
+  dev:
+    desc: Complete dev environment setup (cluster + flux + tunnel)
+    cmds:
+      - task cluster
+      - task setup
+      - task tunnel
+      - echo "✅ Dev environment ready! FluxCD is watching the repository."
+      - echo "🌐 Accessible via Cloudflare Tunnel at ghostwire-dev.adhoc-solutions.com"
+      - echo "📊 Check status with 'flux get all' or 'kubectl get all -n ghostwire'"
+
   setup:
     desc: Setup FluxCD GitOps for k3d-ghostwire development cluster
+    preconditions:
+      - sh: kubectl config current-context | grep -q "k3d-ghostwire"
+        msg: "❌ Not on k3d-ghostwire context! Run 'kubectl config use-context k3d-ghostwire' or 'task cluster'"
     cmds:
+      - kubectl config use-context k3d-ghostwire
       - ./scripts/setup-flux.sh
 
   cluster:
     desc: Create k3d cluster from config
+    status:
+      - k3d cluster list | grep -q ghostwire
     cmds:
       - k3d cluster create --config k3d-config.yaml
+      - echo "⏳ Waiting for cluster to be ready..."
+      - kubectl config use-context k3d-ghostwire
+      - kubectl wait --for=condition=Ready nodes --all --timeout=60s
 
   destroy:
     desc: Delete k3d-ghostwire cluster
@@ -24,6 +48,24 @@ tasks:
       - k3d cluster delete ghostwire
 
   tunnel:
-    desc: Setup Cloudflare Tunnel for ghostwire-dev.adhoc-solutions.com (automated)
+    desc: Setup Cloudflare Tunnel for ghostwire-dev.adhoc-solutions.com
+    preconditions:
+      - sh: kubectl config current-context | grep -q "k3d-ghostwire"
+        msg: "❌ Not on k3d-ghostwire context!"
     cmds:
+      - kubectl config use-context k3d-ghostwire
       - ./scripts/setup-tunnel.sh
+
+  local:
+    desc: Setup local access via /etc/hosts and port-forward (dev simulation)
+    preconditions:
+      - sh: kubectl config current-context | grep -q "k3d-ghostwire"
+        msg: "❌ Not on k3d-ghostwire context!"
+    cmds:
+      - kubectl config use-context k3d-ghostwire
+      - ./scripts/setup-local-access.sh
+
+  stop:
+    desc: Stop port-forward and clean up
+    cmds:
+      - pkill -f "kubectl.*port-forward.*ghostwire" || echo "No port-forward running"
