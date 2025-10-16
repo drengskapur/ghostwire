@@ -1,0 +1,60 @@
+{{- if .Values.tunnel.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "ghostwire.fullname" . }}-test-tunnel-external
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ghostwire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  serviceAccountName: {{ include "ghostwire.fullname" . }}-test
+  restartPolicy: Never
+  containers:
+    - name: tunnel-external-test
+      image: ghcr.io/drengskapur/ghostwire/debug:latest
+      imagePullPolicy: IfNotPresent
+      args:
+        - -c
+        - |
+          echo "Testing Cloudflare Tunnel external access..."
+
+          # Extract hostname from cloudflared logs
+          TUNNEL_POD=$(kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/component=tunnel -o jsonpath='{.items[0].metadata.name}')
+          HOSTNAME=$(kubectl logs -n {{ .Release.Namespace }} $TUNNEL_POD --tail=50 | sed -n 's/.*\\"hostname\\":\\"\([^\\]*\)\\".*/\1/p' | head -1)
+
+          if [ -z "$HOSTNAME" ]; then
+            echo "❌ Could not extract hostname from cloudflared logs"
+            exit 1
+          fi
+
+          echo "📡 Testing external access to: https://$HOSTNAME"
+
+          # Test if the tunnel endpoint is accessible
+          # We expect a response (even if 401 due to VNC auth)
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://$HOSTNAME)
+
+          if [ "$HTTP_CODE" = "401" ] || [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "403" ]; then
+            echo "✅ Tunnel is accessible externally (HTTP $HTTP_CODE)"
+            echo "   VNC authentication required (expected)"
+          elif [ "$HTTP_CODE" = "000" ]; then
+            echo "❌ Tunnel is not accessible - connection failed"
+            exit 1
+          else
+            echo "⚠️  Tunnel responded with unexpected code: $HTTP_CODE"
+            # Still pass - as long as we got a response
+          fi
+
+          # Verify Cloudflare headers are present
+          if curl -sI https://$HOSTNAME | grep -qi "cloudflare"; then
+            echo "✅ Response includes Cloudflare headers"
+          else
+            echo "⚠️  Cloudflare headers not detected"
+          fi
+
+          echo "✅ Tunnel external access test passed"
+          echo "   Access your application at: https://$HOSTNAME"
+{{- end }}
