@@ -6,9 +6,6 @@ metadata:
   labels:
     {{- include "ghostwire.labels" . | nindent 4 }}
     app.kubernetes.io/component: test
-  annotations:
-    "helm.sh/hook": test
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -18,16 +15,13 @@ metadata:
   labels:
     {{- include "ghostwire.labels" . | nindent 4 }}
     app.kubernetes.io/component: test
-  annotations:
-    "helm.sh/hook": test
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 rules:
 - apiGroups: [""]
   resources: ["pods", "services", "secrets", "persistentvolumeclaims"]
   verbs: ["get", "list"]
 - apiGroups: [""]
-  resources: ["pods/log"]
-  verbs: ["get"]
+  resources: ["pods/log", "pods/exec"]
+  verbs: ["get", "create"]
 - apiGroups: ["apps"]
   resources: ["statefulsets", "deployments"]
   verbs: ["get", "list"]
@@ -40,9 +34,6 @@ metadata:
   labels:
     {{- include "ghostwire.labels" . | nindent 4 }}
     app.kubernetes.io/component: test
-  annotations:
-    "helm.sh/hook": test
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

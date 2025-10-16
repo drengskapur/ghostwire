@@ -161,7 +161,7 @@ securityContext:
 ##
 auth:
   enabled: true
-  username: "testuser"
+  username: "kasm_user"
   password: "testpass123"
 
 ## @section Display Configuration
