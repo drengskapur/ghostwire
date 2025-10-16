@@ -10,10 +10,10 @@ spec:
   loadBalancerIP: {{ .Values.service.loadBalancerIP }}
   {{- end }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: vnc
-      protocol: TCP
-      name: vnc
+  - port: {{ .Values.service.port }}
+    targetPort: vnc
+    protocol: TCP
+    name: vnc
   selector:
     {{- include "ghostwire.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: app

@@ -28,19 +28,19 @@ spec:
         image: "{{ include "ghostwire.tunnelImage" . }}"
         imagePullPolicy: {{ .Values.tunnel.image.pullPolicy | default "IfNotPresent" }}
         args:
-          - tunnel
-          - --no-autoupdate
-          - --metrics
-          - 0.0.0.0:2000
-          - run
-          - --token
-          - $(TUNNEL_TOKEN)
+        - tunnel
+        - --no-autoupdate
+        - --metrics
+        - 0.0.0.0:2000
+        - run
+        - --token
+        - $(TUNNEL_TOKEN)
         env:
-          - name: TUNNEL_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.tunnel.secretName }}
-                key: {{ .Values.tunnel.secretKey | default "token" }}
+        - name: TUNNEL_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.tunnel.secretName }}
+              key: {{ .Values.tunnel.secretKey | default "token" }}
         livenessProbe:
           httpGet:
             path: /ready
