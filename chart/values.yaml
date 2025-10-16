@@ -156,8 +156,10 @@ securityContext:
 ## @param env Array of environment variables
 ##
 env:
-  ## ⚠️  SECURITY: Change VNC password for production!
+  ## ⚠️  SECURITY: Change VNC credentials for production!
   ##
+  - name: VNC_USER
+    value: "kasm_user"
   - name: VNC_PW
     value: "password"
   ## VNC screen resolution

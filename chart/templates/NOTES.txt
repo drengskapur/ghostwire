@@ -38,7 +38,7 @@ To access Signal:
 {{- end }}
 
 3. VNC login credentials:
-   Username: kasm_user
+   Username: {{ range .Values.env }}{{ if eq .name "VNC_USER" }}{{ .value }}{{ end }}{{ end }}
    Password: {{ range .Values.env }}{{ if eq .name "VNC_PW" }}{{ .value }}{{ end }}{{ end }}
 
 IMPORTANT NOTES:
