@@ -424,12 +424,14 @@ networkPolicy:
 ##
 ## **Disable HAProxy (haproxy.enabled: false) for:**
 ##   - Simpler architecture (Cloudflared → Ghostwire directly)
-##   - Lower resource usage
+##   - Lower resource usage (saves ~66Mi memory)
 ##   - Single-user Signal Desktop (recommended)
 ##
-## ⚠️  NOTE: If using Cloudflare Tunnel, update your tunnel configuration:
-##   - With HAProxy: service: http://ghostwire-haproxy.namespace.svc.cluster.local:6901
-##   - Without HAProxy: service: http://ghostwire.namespace.svc.cluster.local:6901
+## ✅  AUTOMATIC ROUTING: A "ghostwire-proxy" service automatically routes to the
+##     correct backend (HAProxy or Ghostwire) based on this setting. No manual
+##     configuration changes needed in Cloudflare Tunnel or Ingress!
+##
+##     Always use: http://ghostwire-proxy.namespace.svc.cluster.local:6901
 ##
 haproxy:
   ## @param haproxy.enabled Enable HAProxy for VNC/WebSocket proxying

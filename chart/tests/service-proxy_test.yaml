@@ -1,0 +1,92 @@
+suite: test proxy service
+templates:
+  - service-proxy.yaml
+tests:
+  ## Proxy Service Creation
+  - it: should create proxy service when tunnel is enabled
+    set:
+      tunnel.enabled: true
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-ghostwire-proxy
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0].port
+          value: 6901
+
+  - it: should not create proxy service when tunnel is disabled
+    set:
+      tunnel.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  ## Selector Tests - HAProxy Enabled
+  - it: should route to HAProxy when haproxy.enabled is true
+    set:
+      tunnel.enabled: true
+      haproxy.enabled: true
+    asserts:
+      - equal:
+          path: spec.selector["app.kubernetes.io/component"]
+          value: proxy
+      - equal:
+          path: spec.selector["app.kubernetes.io/name"]
+          value: ghostwire
+      - equal:
+          path: spec.selector["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
+
+  ## Selector Tests - HAProxy Disabled
+  - it: should route to Ghostwire directly when haproxy.enabled is false
+    set:
+      tunnel.enabled: true
+      haproxy.enabled: false
+    asserts:
+      - equal:
+          path: spec.selector["app.kubernetes.io/component"]
+          value: app
+      - equal:
+          path: spec.selector["app.kubernetes.io/name"]
+          value: ghostwire
+      - equal:
+          path: spec.selector["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
+
+  ## Labels
+  - it: should include standard labels
+    set:
+      tunnel.enabled: true
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: ghostwire
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: proxy
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm
+
+  ## Port Configuration
+  - it: should expose VNC port 6901
+    set:
+      tunnel.enabled: true
+    asserts:
+      - equal:
+          path: spec.ports[0].name
+          value: vnc
+      - equal:
+          path: spec.ports[0].port
+          value: 6901
+      - equal:
+          path: spec.ports[0].targetPort
+          value: 6901
+      - equal:
+          path: spec.ports[0].protocol
+          value: TCP

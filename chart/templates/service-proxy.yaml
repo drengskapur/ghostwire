@@ -1,0 +1,24 @@
+{{- if .Values.tunnel.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ghostwire.fullname" . }}-proxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ghostwire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: proxy
+spec:
+  type: ClusterIP
+  ports:
+    - port: 6901
+      targetPort: 6901
+      protocol: TCP
+      name: vnc
+  selector:
+    {{- include "ghostwire.selectorLabels" . | nindent 4 }}
+    {{- if .Values.haproxy.enabled }}
+    app.kubernetes.io/component: proxy
+    {{- else }}
+    app.kubernetes.io/component: app
+    {{- end }}
+{{- end }}
