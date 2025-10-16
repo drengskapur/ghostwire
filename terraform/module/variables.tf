@@ -64,35 +64,26 @@ variable "tags" {
   default     = ["gitops", "k3s", "ghostwire"]
 }
 
+variable "ssh_allowed_ips" {
+  description = "List of IP addresses/CIDRs allowed for SSH access"
+  type        = list(string)
+  default     = ["0.0.0.0/0", "::/0"]
+}
+
+variable "k8s_api_allowed_ips" {
+  description = "List of IP addresses/CIDRs allowed for Kubernetes API access"
+  type        = list(string)
+  default     = ["0.0.0.0/0", "::/0"]
+}
+
 variable "firewall_rules" {
-  description = "Custom firewall inbound rules"
+  description = "Additional custom firewall inbound rules"
   type = list(object({
     protocol         = string
     port_range       = string
     source_addresses = list(string)
   }))
-  default = [
-    {
-      protocol         = "tcp"
-      port_range       = "22"
-      source_addresses = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      protocol         = "tcp"
-      port_range       = "80"
-      source_addresses = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      protocol         = "tcp"
-      port_range       = "443"
-      source_addresses = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      protocol         = "tcp"
-      port_range       = "6443"
-      source_addresses = ["0.0.0.0/0", "::/0"]
-    }
-  ]
+  default = []
 }
 
 variable "cloud_init_template" {

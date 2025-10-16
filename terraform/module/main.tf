@@ -1,14 +1,3 @@
-terraform {
-  required_version = ">= 1.0"
-
-  required_providers {
-    digitalocean = {
-      source  = "digitalocean/digitalocean"
-      version = "~> 2.0"
-    }
-  }
-}
-
 # SSH key for droplet access
 resource "digitalocean_ssh_key" "this" {
   name       = "${var.name}-key"
@@ -42,6 +31,7 @@ resource "digitalocean_droplet" "this" {
   # Prevent accidental deletion
   lifecycle {
     prevent_destroy = var.prevent_destroy
+    ignore_changes  = [user_data]
   }
 }
 
@@ -51,7 +41,35 @@ resource "digitalocean_firewall" "this" {
 
   droplet_ids = [digitalocean_droplet.this.id]
 
-  # Dynamic inbound rules
+  # SSH access
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = var.ssh_allowed_ips
+  }
+
+  # HTTP
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "80"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  # HTTPS
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "443"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  # Kubernetes API
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "6443"
+    source_addresses = var.k8s_api_allowed_ips
+  }
+
+  # Additional custom rules
   dynamic "inbound_rule" {
     for_each = var.firewall_rules
     content {
