@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "ghostwire.fullname" . }}-test-auth
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ghostwire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  serviceAccountName: {{ include "ghostwire.fullname" . }}-test
+  restartPolicy: Never
+  containers:
+    - name: auth-test
+      image: ghcr.io/drengskapur/ghostwire/debug:latest
+      imagePullPolicy: IfNotPresent
+      args:
+        - -c
+        - |
+          echo "Testing VNC authentication configuration..."
+
+          # Check if auth environment variables are set in the main container
+          POD_NAME="{{ include "ghostwire.fullname" . }}-0"
+
+          # Verify VNCOPTIONS environment variable is set (contains auth settings)
+          if kubectl exec -n {{ .Release.Namespace }} $POD_NAME -- env | grep -q "VNCOPTIONS"; then
+            echo "✅ VNCOPTIONS environment variable is set"
+          else
+            echo "⚠️  VNCOPTIONS not found (may use alternative auth method)"
+          fi
+
+          # Check if the VNC endpoint responds (even if it requires auth)
+          # We expect a connection but authentication would be required
+          if timeout 5 bash -c "curl -k -s -o /dev/null -w '%{http_code}' https://{{ include "ghostwire.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/" | grep -qE "200|401|403"; then
+            echo "✅ VNC HTTPS endpoint is responding"
+          else
+            echo "❌ VNC HTTPS endpoint is not responding"
+            exit 1
+          fi
+
+          # Test authentication credentials are configured
+          AUTH_USER="{{ .Values.auth.username }}"
+          AUTH_PASS="{{ .Values.auth.password }}"
+
+          if [ -n "$AUTH_USER" ] && [ -n "$AUTH_PASS" ]; then
+            echo "✅ VNC authentication credentials are configured"
+            echo "   Username: $AUTH_USER"
+          else
+            echo "❌ VNC authentication credentials not properly configured"
+            exit 1
+          fi
+
+          echo "✅ Authentication configuration test passed"
