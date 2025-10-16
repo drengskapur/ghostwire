@@ -44,6 +44,10 @@ To access Signal:
 
 IMPORTANT NOTES:
 - ⚠️  Change the VNC credentials (auth.username, auth.password) in values.yaml before deploying to production
+- ℹ️  If authentication fails, browsers cache the credentials. To retry with correct password:
+    • Use an Incognito/Private window, OR
+    • Clear browser credentials (Ctrl+Shift+Delete), OR
+    • Close and reopen the tab/browser
 {{- else }}
 3. VNC authentication is DISABLED (auth.enabled: false)
    No password required for VNC access
