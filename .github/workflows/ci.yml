@@ -48,6 +48,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check if version already exists
+        working-directory: chart
+        run: |
+          VERSION=$(grep '^version:' Chart.yaml | awk '{print $2}')
+          CHART_NAME=$(grep '^name:' Chart.yaml | awk '{print $2}')
+
+          # Check if the version already exists in GHCR
+          if helm pull oci://${{ env.REGISTRY }}/${{ env.NAMESPACE }}/chart/${CHART_NAME} --version ${VERSION} 2>/dev/null; then
+            echo "❌ ERROR: Version ${VERSION} already exists in registry!"
+            echo "🚫 Chart versions are immutable and cannot be overwritten."
+            echo "💡 Please bump the version in Chart.yaml before pushing."
+            exit 1
+          else
+            echo "✅ Version ${VERSION} does not exist - safe to publish"
+          fi
+
       - name: Package and push chart
         working-directory: chart
         run: |
@@ -56,3 +72,4 @@ jobs:
           helm package . --destination /tmp
           helm push "/tmp/${CHART_NAME}-${VERSION}.tgz" "oci://${{ env.REGISTRY }}/${{ env.NAMESPACE }}/chart"
           echo "✅ Pushed ${CHART_NAME}:${VERSION} to oci://${{ env.REGISTRY }}/${{ env.NAMESPACE }}/chart"
+          echo "🔒 This version is now immutable and cannot be overwritten"
