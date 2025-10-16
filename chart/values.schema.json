@@ -59,6 +59,9 @@
     "envFrom": {
       "type": "array"
     },
+    "fullnameOverride": {
+      "type": "string"
+    },
     "haproxy": {
       "type": "object",
       "properties": {
@@ -326,6 +329,9 @@
         }
       },
       "additionalProperties": false
+    },
+    "nameOverride": {
+      "type": "string"
     },
     "networkPolicy": {
       "type": "object",
