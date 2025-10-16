@@ -17,6 +17,12 @@
 
 ## @section Global parameters
 ##
+## @param nameOverride Override chart name
+## @param fullnameOverride Override fully qualified app name
+##
+nameOverride: ""
+fullnameOverride: ""
+
 ## @section Image Configuration
 ## Signal Desktop container image configuration
 ##
@@ -407,6 +413,23 @@ networkPolicy:
 
 ## @section HAProxy Configuration
 ## HAProxy provides efficient HTTP/WebSocket proxying with connection pooling
+##
+## ℹ️  HAProxy is OPTIONAL for this deployment:
+##
+## **Enable HAProxy (haproxy.enabled: true) if you want:**
+##   - Explicit SSL/TLS verification control to backend
+##   - Advanced health checks and observability
+##   - Future expansion with multiple backend services
+##   - Current footprint: ~1m CPU, ~66Mi memory
+##
+## **Disable HAProxy (haproxy.enabled: false) for:**
+##   - Simpler architecture (Cloudflared → Ghostwire directly)
+##   - Lower resource usage
+##   - Single-user Signal Desktop (recommended)
+##
+## ⚠️  NOTE: If using Cloudflare Tunnel, update your tunnel configuration:
+##   - With HAProxy: service: http://ghostwire-haproxy.namespace.svc.cluster.local:6901
+##   - Without HAProxy: service: http://ghostwire.namespace.svc.cluster.local:6901
 ##
 haproxy:
   ## @param haproxy.enabled Enable HAProxy for VNC/WebSocket proxying
