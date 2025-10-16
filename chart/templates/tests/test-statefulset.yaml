@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "ghostwire.fullname" . }}-test-statefulset
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ghostwire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  serviceAccountName: {{ include "ghostwire.fullname" . }}-test
+  restartPolicy: Never
+  containers:
+    - name: statefulset-test
+      image: ghcr.io/drengskapur/ghostwire/debug:latest
+      imagePullPolicy: IfNotPresent
+      args:
+        - -c
+        - |
+          echo "Testing StatefulSet deployment..."
+
+          # Check if StatefulSet exists
+          if kubectl get statefulset {{ include "ghostwire.fullname" . }} -n {{ .Release.Namespace }} &>/dev/null; then
+            echo "✅ StatefulSet exists"
+          else
+            echo "❌ StatefulSet not found"
+            exit 1
+          fi
+
+          # Check if pod is running
+          if kubectl get pod {{ include "ghostwire.fullname" . }}-0 -n {{ .Release.Namespace }} -o jsonpath='{.status.phase}' | grep -q "Running"; then
+            echo "✅ StatefulSet pod is running"
+          else
+            echo "❌ StatefulSet pod is not running"
+            exit 1
+          fi
+
+          {{- if .Values.persistence.enabled }}
+          # Check if PVC is bound
+          if kubectl get pvc -n {{ .Release.Namespace }} -l app.kubernetes.io/name=ghostwire -o jsonpath='{.items[0].status.phase}' | grep -q "Bound"; then
+            echo "✅ PVC is bound"
+          else
+            echo "❌ PVC is not bound"
+            exit 1
+          fi
+          {{- end }}
+
+          echo "✅ StatefulSet deployment test passed"

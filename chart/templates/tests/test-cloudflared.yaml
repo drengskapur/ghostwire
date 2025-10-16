@@ -1,0 +1,42 @@
+{{- if .Values.tunnel.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "ghostwire.fullname" . }}-test-cloudflared
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ghostwire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  serviceAccountName: {{ include "ghostwire.fullname" . }}-test
+  restartPolicy: Never
+  containers:
+    - name: cloudflared-test
+      image: ghcr.io/drengskapur/ghostwire/debug:latest
+      imagePullPolicy: IfNotPresent
+      args:
+        - -c
+        - |
+          echo "Testing Cloudflare Tunnel deployment..."
+
+          # Check if cloudflared pod is running
+          if kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/name=ghostwire,app.kubernetes.io/component=tunnel -o jsonpath='{.items[0].status.phase}' | grep -q "Running"; then
+            echo "✅ Cloudflared pod is running"
+          else
+            echo "❌ Cloudflared pod is not running"
+            exit 1
+          fi
+
+          # Check if secret exists
+          if kubectl get secret {{ .Values.tunnel.secretName }} -n {{ .Release.Namespace }} &>/dev/null; then
+            echo "✅ Cloudflared secret exists"
+          else
+            echo "❌ Cloudflared secret not found"
+            exit 1
+          fi
+
+          echo "✅ Cloudflared deployment test passed"
+{{- end }}
