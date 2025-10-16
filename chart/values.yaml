@@ -289,6 +289,11 @@ tunnel:
     ## digest: ""
     pullPolicy: IfNotPresent
 
+  ## @param tunnel.token Cloudflare Tunnel token (leave empty to use existing secret)
+  ## Get your token from: https://one.dash.cloudflare.com/
+  ## If empty, secret must be created manually
+  token: ""
+
   ## @param tunnel.secretName Kubernetes secret containing tunnel token
   secretName: cloudflared-credentials
 

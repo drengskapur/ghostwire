@@ -5,12 +5,6 @@
     "affinity": {
       "type": "object"
     },
-    "fullnameOverride": {
-      "type": "string"
-    },
-    "nameOverride": {
-      "type": "string"
-    },
     "auth": {
       "type": "object",
       "properties": {
@@ -390,6 +384,9 @@
           "type": "string"
         },
         "secretName": {
+          "type": "string"
+        },
+        "token": {
           "type": "string"
         }
       },
