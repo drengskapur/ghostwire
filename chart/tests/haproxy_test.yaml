@@ -1,0 +1,257 @@
+suite: test haproxy
+templates:
+  - deployment-haproxy.yaml
+  - configmap-haproxy.yaml
+tests:
+  ## HAProxy Disabled
+  - it: should not create haproxy deployment when disabled
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not create haproxy configmap when disabled
+    template: configmap-haproxy.yaml
+    set:
+      haproxy.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  ## Basic Deployment Configuration
+  - it: should create haproxy deployment when enabled
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-ghostwire-haproxy
+      - equal:
+          path: spec.replicas
+          value: 1
+
+  - it: should set custom replica count for haproxy
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+      haproxy.replicaCount: 2
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+
+  ## Container Configuration
+  - it: should use default haproxy image
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: haproxy
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: haproxytech/haproxy-alpine:2.9
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: IfNotPresent
+
+  - it: should use custom haproxy image
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+      haproxy.image.repository: custom/haproxy
+      haproxy.image.tag: "3.0"
+      haproxy.image.pullPolicy: Always
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: custom/haproxy:3.0
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+
+  ## Port Configuration
+  - it: should expose VNC port
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].name
+          value: vnc
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 6901
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].protocol
+          value: TCP
+
+  ## ConfigMap Mount
+  - it: should mount haproxy config from configmap
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: haproxy-config
+            mountPath: /usr/local/etc/haproxy/haproxy.cfg
+            subPath: haproxy.cfg
+      - equal:
+          path: spec.template.spec.volumes[0].configMap.name
+          value: RELEASE-NAME-ghostwire-haproxy
+
+  ## ConfigMap Checksum Annotation
+  - it: should include configmap checksum annotation
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - isNotNull:
+          path: spec.template.metadata.annotations["checksum/config"]
+
+  ## Resources
+  - it: should set default haproxy resources
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 200m
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 128Mi
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 50m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 32Mi
+
+  - it: should set custom haproxy resources
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+      haproxy.resources.limits.cpu: 500m
+      haproxy.resources.limits.memory: 256Mi
+      haproxy.resources.requests.cpu: 100m
+      haproxy.resources.requests.memory: 64Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 500m
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 256Mi
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 100m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 64Mi
+
+  ## ConfigMap Tests
+  - it: should create haproxy configmap
+    template: configmap-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-ghostwire-haproxy
+
+  - it: should include haproxy.cfg in configmap
+    template: configmap-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - isNotNull:
+          path: data["haproxy.cfg"]
+
+  - it: should configure ghostwire backend in haproxy config
+    template: configmap-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    release:
+      name: test-release
+    asserts:
+      - matchRegex:
+          path: data["haproxy.cfg"]
+          pattern: "backend ghostwire_backend"
+      - matchRegex:
+          path: data["haproxy.cfg"]
+          pattern: "server ghostwire1 test-release-ghostwire:6901"
+
+  - it: should configure VNC frontend in haproxy config
+    template: configmap-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - matchRegex:
+          path: data["haproxy.cfg"]
+          pattern: "frontend vnc_frontend"
+      - matchRegex:
+          path: data["haproxy.cfg"]
+          pattern: "bind \\*:6901"
+
+  - it: should enable WebSocket support in haproxy config
+    template: configmap-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - matchRegex:
+          path: data["haproxy.cfg"]
+          pattern: "mode http"
+      - matchRegex:
+          path: data["haproxy.cfg"]
+          pattern: "timeout tunnel"
+
+  ## Labels
+  - it: should include standard labels on deployment
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: ghostwire
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: proxy
+
+  - it: should include standard labels on configmap
+    template: configmap-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: ghostwire
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: proxy
+
+  - it: should include component label in pod template
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: proxy

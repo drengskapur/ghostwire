@@ -1,0 +1,186 @@
+suite: test cloudflared
+templates:
+  - deployment-cloudflared.yaml
+tests:
+  ## Tunnel Disabled
+  - it: should not create cloudflared deployment when tunnel is disabled
+    set:
+      tunnel.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  ## Basic Deployment Configuration
+  - it: should create cloudflared deployment when tunnel is enabled
+    set:
+      tunnel.enabled: true
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-ghostwire-cloudflared
+      - equal:
+          path: spec.replicas
+          value: 1
+
+  - it: should set custom replica count for cloudflared
+    set:
+      tunnel.enabled: true
+      tunnel.replicaCount: 2
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+
+  ## Container Configuration
+  - it: should use default cloudflared image
+    set:
+      tunnel.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: cloudflared
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: cloudflare/cloudflared:2025.10.0
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: IfNotPresent
+
+  - it: should use custom cloudflared image
+    set:
+      tunnel.enabled: true
+      tunnel.image.repository: custom/cloudflared
+      tunnel.image.tag: "2024.1.0"
+      tunnel.image.pullPolicy: Always
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: custom/cloudflared:2024.1.0
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+
+  ## Command Arguments
+  - it: should configure tunnel command arguments
+    set:
+      tunnel.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: tunnel
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --no-autoupdate
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: run
+
+  ## Secret Configuration
+  - it: should reference default tunnel secret
+    set:
+      tunnel.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].name
+          value: TUNNEL_TOKEN
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
+          value: cloudflared-credentials
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
+          value: token
+
+  - it: should use custom tunnel secret
+    set:
+      tunnel.enabled: true
+      tunnel.secretName: my-tunnel-secret
+      tunnel.secretKey: my-token
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name
+          value: my-tunnel-secret
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.key
+          value: my-token
+
+  ## Health Probes
+  - it: should configure liveness probe for metrics endpoint
+    set:
+      tunnel.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /ready
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 2000
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.initialDelaySeconds
+          value: 10
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.periodSeconds
+          value: 10
+
+  ## Resources
+  - it: should set default cloudflared resources
+    set:
+      tunnel.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 200m
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 256Mi
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 100m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 128Mi
+
+  - it: should set custom cloudflared resources
+    set:
+      tunnel.enabled: true
+      tunnel.resources.limits.cpu: 500m
+      tunnel.resources.limits.memory: 512Mi
+      tunnel.resources.requests.cpu: 250m
+      tunnel.resources.requests.memory: 256Mi
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.cpu
+          value: 500m
+      - equal:
+          path: spec.template.spec.containers[0].resources.limits.memory
+          value: 512Mi
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: 250m
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: 256Mi
+
+  ## Labels
+  - it: should include standard labels
+    set:
+      tunnel.enabled: true
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: ghostwire
+      - equal:
+          path: metadata.labels["app.kubernetes.io/instance"]
+          value: RELEASE-NAME
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: tunnel
+
+  - it: should include component label in pod template
+    set:
+      tunnel.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: tunnel
