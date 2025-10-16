@@ -1,0 +1,122 @@
+#!/bin/bash
+set -e
+export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_MODE=a
+
+# Log everything
+exec > >(tee /var/log/user-data.log)
+exec 2>&1
+
+echo "=== Starting k3d setup at $(date) ==="
+
+# Create ubuntu user
+useradd -m -s /bin/bash ubuntu || true
+mkdir -p /home/ubuntu/.ssh
+cp /root/.ssh/authorized_keys /home/ubuntu/.ssh/ || true
+chown -R ubuntu:ubuntu /home/ubuntu/.ssh
+chmod 700 /home/ubuntu/.ssh
+chmod 600 /home/ubuntu/.ssh/authorized_keys || true
+
+# Install Docker
+echo "Installing Docker..."
+curl -fsSL https://get.docker.com | bash
+usermod -aG docker root
+usermod -aG docker ubuntu
+systemctl enable docker
+systemctl start docker
+sleep 10
+
+# Install k3d
+echo "Installing k3d..."
+curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+
+# Install kubectl
+echo "Installing kubectl..."
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+rm kubectl
+
+# Install Flux CLI
+echo "Installing Flux CLI..."
+curl -s https://fluxcd.io/install.sh | bash
+
+# Create k3d cluster with port mapping
+echo "Creating k3d cluster..."
+k3d cluster create ghostwire --api-port 6443 -p "443:30080@server:0" --k3s-arg "--disable=traefik@server:*" --k3s-arg "--disable=servicelb@server:*"
+
+# Set up kubeconfig
+mkdir -p /root/.kube
+k3d kubeconfig get ghostwire > /root/.kube/config
+chmod 600 /root/.kube/config
+
+mkdir -p /home/ubuntu/.kube
+k3d kubeconfig get ghostwire > /home/ubuntu/.kube/config
+chown -R ubuntu:ubuntu /home/ubuntu/.kube
+chmod 600 /home/ubuntu/.kube/config
+
+# Wait for cluster
+kubectl wait --for=condition=Ready nodes --all --timeout=300s
+
+echo "=== k3d setup complete at $(date) ==="
+
+# Bootstrap Flux
+if [ -n "${github_token}" ]; then
+  echo "=== Installing Flux components at $(date) ==="
+  flux install
+
+  echo "=== Bootstrapping Flux at $(date) ==="
+  export GITHUB_TOKEN="${github_token}"
+
+  flux bootstrap github \
+    --owner=drengskapur \
+    --repository=fleet-infra \
+    --branch=main \
+    --path=digitalocean/ghostwire/droplet-ghostwire1/do-nyc3-ghostwire1 \
+    --personal \
+    --timeout=10m
+
+  echo "=== Creating GHCR credentials at $(date) ==="
+  kubectl create secret docker-registry ghcr-credentials \
+    --namespace flux-system \
+    --docker-server=ghcr.io \
+    --docker-username=drengskapur \
+    --docker-password="${github_token}"
+
+  echo "=== Waiting for Flux to reconcile at $(date) ==="
+  kubectl wait --for=condition=Ready kustomization/flux-system -n flux-system --timeout=10m
+
+  echo "=== Waiting for ghostwire deployment at $(date) ==="
+  # Wait for namespace to be created
+  for i in {1..60}; do
+    if kubectl get namespace ghostwire 2>/dev/null; then
+      echo "Namespace ghostwire found"
+      break
+    fi
+    echo "Waiting for namespace ghostwire... ($i/60)"
+    sleep 5
+  done
+
+  # Wait for service to be created
+  for i in {1..60}; do
+    if kubectl get svc ghostwire -n ghostwire 2>/dev/null; then
+      echo "Service ghostwire found"
+      break
+    fi
+    echo "Waiting for service ghostwire... ($i/60)"
+    sleep 5
+  done
+
+  # Patch service to use correct NodePort
+  echo "=== Patching ghostwire service to use NodePort 30080 at $(date) ==="
+  kubectl patch svc ghostwire -n ghostwire --type='json' -p='[{"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30080}]' || true
+
+  # Wait for pod to be ready
+  echo "=== Waiting for ghostwire pod to be ready at $(date) ==="
+  kubectl wait --for=condition=Ready pod/ghostwire-0 -n ghostwire --timeout=10m || true
+
+  echo "=== Flux bootstrap and deployment complete at $(date) ==="
+else
+  echo "=== WARNING: GITHUB_TOKEN not provided, skipping Flux bootstrap ==="
+fi
+
+echo "=== Setup complete at $(date) ==="
