@@ -16,6 +16,7 @@ spec:
     - Ingress
     - Egress
   ingress:
+    {{- if .Values.haproxy.enabled }}
     # Allow HAProxy to access VNC port
     - from:
       - podSelector:
@@ -25,6 +26,18 @@ spec:
       ports:
       - protocol: TCP
         port: 6901
+    {{- end }}
+    {{- if and .Values.tunnel.enabled (not .Values.haproxy.enabled) }}
+    # Allow Cloudflared direct access when HAProxy is disabled
+    - from:
+      - podSelector:
+          matchLabels:
+            {{- include "ghostwire.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: tunnel
+      ports:
+      - protocol: TCP
+        port: 6901
+    {{- end }}
   egress:
     # Allow DNS resolution
     - to:

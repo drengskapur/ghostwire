@@ -28,13 +28,22 @@ spec:
       ports:
       - protocol: UDP
         port: 53
-    # Allow connection to HAProxy
+    # Allow connection to HAProxy or Ghostwire directly
     {{- if .Values.haproxy.enabled }}
     - to:
       - podSelector:
           matchLabels:
             {{- include "ghostwire.selectorLabels" . | nindent 12 }}
             app.kubernetes.io/component: proxy
+      ports:
+      - protocol: TCP
+        port: 6901
+    {{- else }}
+    - to:
+      - podSelector:
+          matchLabels:
+            {{- include "ghostwire.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: app
       ports:
       - protocol: TCP
         port: 6901
