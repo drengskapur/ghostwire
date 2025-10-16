@@ -23,10 +23,17 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.tunnel.serviceAccount.create }}
+      serviceAccountName: {{ include "ghostwire.fullname" . }}-cloudflared
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.tunnel.securityContext | nindent 8 }}
       containers:
       - name: cloudflared
         image: "{{ include "ghostwire.tunnelImage" . }}"
         imagePullPolicy: {{ .Values.tunnel.image.pullPolicy | default "IfNotPresent" }}
+        securityContext:
+          {{- toYaml .Values.tunnel.containerSecurityContext | nindent 10 }}
         args:
         - tunnel
         - --no-autoupdate

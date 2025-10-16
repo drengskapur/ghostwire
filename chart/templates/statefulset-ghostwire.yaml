@@ -30,12 +30,37 @@ spec:
       {{- if .Values.serviceAccount.create }}
       serviceAccountName: {{ include "ghostwire.serviceAccountName" . }}
       {{- end }}
+      restartPolicy: Always
       securityContext:
         {{- toYaml .Values.securityContext | nindent 8 }}
+      {{- if .Values.tls.enabled }}
+      initContainers:
+      - name: setup-tls
+        image: cgr.dev/chainguard/busybox:latest
+        command: ['/bin/ash', '-c']
+        args:
+        - |
+          mkdir -p /home/kasm-user/.vnc
+          cat /tmp/tls-secret/tls.key /tmp/tls-secret/tls.crt > /home/kasm-user/.vnc/self.pem
+          chmod 600 /home/kasm-user/.vnc/self.pem
+          chown 1000:1000 /home/kasm-user/.vnc/self.pem
+          echo "Custom TLS certificate installed"
+        volumeMounts:
+        - name: tls-certs
+          mountPath: /tmp/tls-secret
+          readOnly: true
+        - name: signal-data
+          mountPath: /home/kasm-user
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+      {{- end }}
       containers:
       - name: signal
         image: "{{ include "ghostwire.image" . }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.containerSecurityContext | nindent 10 }}
         ports:
         - name: vnc
           containerPort: {{ .Values.service.targetPort }}
@@ -102,6 +127,12 @@ spec:
         emptyDir:
           medium: Memory
           sizeLimit: {{ .Values.shmSize }}Mi
+      {{- if .Values.tls.enabled }}
+      - name: tls-certs
+        secret:
+          secretName: {{ .Values.tls.secretName | default (printf "%s-tls" (include "ghostwire.fullname" .)) }}
+          defaultMode: 0400
+      {{- end }}
   {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:

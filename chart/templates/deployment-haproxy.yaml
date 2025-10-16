@@ -25,22 +25,63 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.haproxy.serviceAccount.create }}
+      serviceAccountName: {{ include "ghostwire.fullname" . }}-haproxy
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.haproxy.securityContext | nindent 8 }}
       containers:
       - name: haproxy
         image: "{{ .Values.haproxy.image.repository }}:{{ .Values.haproxy.image.tag }}"
         imagePullPolicy: {{ .Values.haproxy.image.pullPolicy | default "IfNotPresent" }}
+        securityContext:
+          {{- toYaml .Values.haproxy.containerSecurityContext | nindent 10 }}
         ports:
         - name: vnc
           containerPort: 6901
           protocol: TCP
+        - name: health
+          containerPort: 8080
+          protocol: TCP
+        {{- if .Values.haproxy.livenessProbe.enabled }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: health
+          initialDelaySeconds: {{ .Values.haproxy.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.haproxy.livenessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.haproxy.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.haproxy.livenessProbe.failureThreshold }}
+        {{- end }}
+        {{- if .Values.haproxy.readinessProbe.enabled }}
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: health
+          initialDelaySeconds: {{ .Values.haproxy.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.haproxy.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.haproxy.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.haproxy.readinessProbe.failureThreshold }}
+        {{- end }}
         volumeMounts:
         - name: haproxy-config
           mountPath: /usr/local/etc/haproxy/haproxy.cfg
           subPath: haproxy.cfg
+        {{- if .Values.haproxy.ssl.caSecret }}
+        - name: ca-cert
+          mountPath: /etc/haproxy/ca
+          readOnly: true
+        {{- end }}
         resources:
           {{- toYaml .Values.haproxy.resources | nindent 10 }}
       volumes:
       - name: haproxy-config
         configMap:
           name: {{ include "ghostwire.fullname" . }}-haproxy
+      {{- if .Values.haproxy.ssl.caSecret }}
+      - name: ca-cert
+        secret:
+          secretName: {{ .Values.haproxy.ssl.caSecret }}
+          defaultMode: 0444
+      {{- end }}
 {{- end }}
