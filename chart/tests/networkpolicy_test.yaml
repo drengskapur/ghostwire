@@ -1,0 +1,234 @@
+suite: test network policies
+templates:
+  - networkpolicy-ghostwire.yaml
+  - networkpolicy-haproxy.yaml
+  - networkpolicy-cloudflared.yaml
+tests:
+  ## Network Policy Disabled
+  - it: should not create network policies when disabled
+    templates:
+      - networkpolicy-ghostwire.yaml
+      - networkpolicy-haproxy.yaml
+      - networkpolicy-cloudflared.yaml
+    set:
+      networkPolicy.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  ## Ghostwire Network Policy
+  - it: should create ghostwire network policy
+    template: networkpolicy-ghostwire.yaml
+    set:
+      networkPolicy.enabled: true
+    asserts:
+      - isKind:
+          of: NetworkPolicy
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-ghostwire
+      - equal:
+          path: spec.podSelector.matchLabels["app.kubernetes.io/component"]
+          value: app
+
+  - it: should allow ingress from HAProxy when enabled
+    template: networkpolicy-ghostwire.yaml
+    set:
+      networkPolicy.enabled: true
+      haproxy.enabled: true
+    asserts:
+      - contains:
+          path: spec.ingress
+          content:
+            from:
+              - podSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: ghostwire
+                    app.kubernetes.io/instance: RELEASE-NAME
+                    app.kubernetes.io/component: proxy
+            ports:
+              - protocol: TCP
+                port: 6901
+
+  - it: should allow ingress from Cloudflared when HAProxy disabled
+    template: networkpolicy-ghostwire.yaml
+    set:
+      networkPolicy.enabled: true
+      haproxy.enabled: false
+      tunnel.enabled: true
+    asserts:
+      - contains:
+          path: spec.ingress
+          content:
+            from:
+              - podSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: ghostwire
+                    app.kubernetes.io/instance: RELEASE-NAME
+                    app.kubernetes.io/component: tunnel
+            ports:
+              - protocol: TCP
+                port: 6901
+
+  - it: should allow internet egress when configured
+    template: networkpolicy-ghostwire.yaml
+    set:
+      networkPolicy.enabled: true
+      networkPolicy.allowInternetEgress: true
+    asserts:
+      - contains:
+          path: spec.egress
+          content:
+            to:
+              - namespaceSelector: {}
+            ports:
+              - protocol: TCP
+                port: 443
+              - protocol: TCP
+                port: 80
+
+  ## HAProxy Network Policy
+  - it: should create haproxy network policy when enabled
+    template: networkpolicy-haproxy.yaml
+    set:
+      networkPolicy.enabled: true
+      haproxy.enabled: true
+    asserts:
+      - isKind:
+          of: NetworkPolicy
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-ghostwire-haproxy
+      - equal:
+          path: spec.podSelector.matchLabels["app.kubernetes.io/component"]
+          value: proxy
+
+  - it: should not create haproxy network policy when haproxy disabled
+    template: networkpolicy-haproxy.yaml
+    set:
+      networkPolicy.enabled: true
+      haproxy.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should allow ingress from Cloudflared to HAProxy
+    template: networkpolicy-haproxy.yaml
+    set:
+      networkPolicy.enabled: true
+      haproxy.enabled: true
+      tunnel.enabled: true
+    asserts:
+      - contains:
+          path: spec.ingress
+          content:
+            from:
+              - podSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: ghostwire
+                    app.kubernetes.io/instance: RELEASE-NAME
+                    app.kubernetes.io/component: tunnel
+            ports:
+              - protocol: TCP
+                port: 6901
+
+  - it: should allow egress to Ghostwire from HAProxy
+    template: networkpolicy-haproxy.yaml
+    set:
+      networkPolicy.enabled: true
+      haproxy.enabled: true
+    asserts:
+      - contains:
+          path: spec.egress
+          content:
+            to:
+              - podSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: ghostwire
+                    app.kubernetes.io/instance: RELEASE-NAME
+                    app.kubernetes.io/component: app
+            ports:
+              - protocol: TCP
+                port: 6901
+
+  ## Cloudflared Network Policy
+  - it: should create cloudflared network policy when enabled
+    template: networkpolicy-cloudflared.yaml
+    set:
+      networkPolicy.enabled: true
+      tunnel.enabled: true
+    asserts:
+      - isKind:
+          of: NetworkPolicy
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-ghostwire-cloudflared
+      - equal:
+          path: spec.podSelector.matchLabels["app.kubernetes.io/component"]
+          value: tunnel
+
+  - it: should not create cloudflared network policy when tunnel disabled
+    template: networkpolicy-cloudflared.yaml
+    set:
+      networkPolicy.enabled: true
+      tunnel.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should allow egress to HAProxy when enabled
+    template: networkpolicy-cloudflared.yaml
+    set:
+      networkPolicy.enabled: true
+      tunnel.enabled: true
+      haproxy.enabled: true
+    asserts:
+      - contains:
+          path: spec.egress
+          content:
+            to:
+              - podSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: ghostwire
+                    app.kubernetes.io/instance: RELEASE-NAME
+                    app.kubernetes.io/component: proxy
+            ports:
+              - protocol: TCP
+                port: 6901
+
+  - it: should allow egress to Ghostwire when HAProxy disabled
+    template: networkpolicy-cloudflared.yaml
+    set:
+      networkPolicy.enabled: true
+      tunnel.enabled: true
+      haproxy.enabled: false
+    asserts:
+      - contains:
+          path: spec.egress
+          content:
+            to:
+              - podSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: ghostwire
+                    app.kubernetes.io/instance: RELEASE-NAME
+                    app.kubernetes.io/component: app
+            ports:
+              - protocol: TCP
+                port: 6901
+
+  - it: should allow egress to Cloudflare servers
+    template: networkpolicy-cloudflared.yaml
+    set:
+      networkPolicy.enabled: true
+      tunnel.enabled: true
+    asserts:
+      - contains:
+          path: spec.egress
+          content:
+            to:
+              - namespaceSelector: {}
+            ports:
+              - protocol: TCP
+                port: 443
+              - protocol: TCP
+                port: 7844

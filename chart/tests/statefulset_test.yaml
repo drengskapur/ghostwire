@@ -55,7 +55,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: VNC_PW
-            value: password
+            value: testpass123
 
   - it: should set custom VNC auth credentials
     set:

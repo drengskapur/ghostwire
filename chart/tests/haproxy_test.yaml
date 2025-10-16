@@ -190,7 +190,7 @@ tests:
           pattern: "backend ghostwire_backend"
       - matchRegex:
           path: data["haproxy.cfg"]
-          pattern: "server ghostwire1 test-release-ghostwire:6901"
+          pattern: "server test-release-ghostwire-0 test-release-ghostwire:6901"
 
   - it: should configure VNC frontend in haproxy config
     template: configmap-haproxy.yaml
@@ -255,3 +255,169 @@ tests:
       - equal:
           path: spec.template.metadata.labels["app.kubernetes.io/component"]
           value: proxy
+
+  ## Security Context Tests
+  - it: should set pod security context
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.runAsUser
+          value: 99
+      - equal:
+          path: spec.template.spec.securityContext.runAsGroup
+          value: 99
+      - equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.securityContext.seccompProfile.type
+          value: RuntimeDefault
+
+  - it: should set container security context
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.capabilities.drop[0]
+          value: ALL
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: false
+
+  ## ServiceAccount Tests
+  - it: should set service account name
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+      haproxy.serviceAccount.create: true
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: RELEASE-NAME-ghostwire-haproxy
+
+  ## Health Probes Tests
+  - it: should expose health check port
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[1].name
+          value: health
+      - equal:
+          path: spec.template.spec.containers[0].ports[1].containerPort
+          value: 8080
+
+  - it: should configure liveness probe
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+      haproxy.livenessProbe.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /health
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: health
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.initialDelaySeconds
+          value: 10
+
+  - it: should configure readiness probe
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+      haproxy.readinessProbe.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /health
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: health
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.initialDelaySeconds
+          value: 5
+
+  - it: should disable liveness probe when configured
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+      haproxy.livenessProbe.enabled: false
+    asserts:
+      - isNull:
+          path: spec.template.spec.containers[0].livenessProbe
+
+  ## SSL Verification Tests
+  - it: should use verify none by default
+    template: configmap-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - matchRegex:
+          path: data["haproxy.cfg"]
+          pattern: "ssl verify none"
+
+  - it: should configure SSL verification to optional
+    template: configmap-haproxy.yaml
+    set:
+      haproxy.enabled: true
+      haproxy.ssl.verify: optional
+    asserts:
+      - matchRegex:
+          path: data["haproxy.cfg"]
+          pattern: "ssl verify optional"
+
+  - it: should configure SSL verification to required with CA
+    template: configmap-haproxy.yaml
+    set:
+      haproxy.enabled: true
+      haproxy.ssl.verify: required
+      haproxy.ssl.caSecret: my-ca-secret
+    asserts:
+      - matchRegex:
+          path: data["haproxy.cfg"]
+          pattern: "ssl verify required ca-file"
+
+  - it: should mount CA certificate when provided
+    template: deployment-haproxy.yaml
+    set:
+      haproxy.enabled: true
+      haproxy.ssl.caSecret: my-ca-secret
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: ca-cert
+            secret:
+              secretName: my-ca-secret
+              defaultMode: 292
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: ca-cert
+            mountPath: /etc/haproxy/ca
+            readOnly: true
+
+  ## Health Check Endpoint in Config
+  - it: should include health check frontend
+    template: configmap-haproxy.yaml
+    set:
+      haproxy.enabled: true
+    asserts:
+      - matchRegex:
+          path: data["haproxy.cfg"]
+          pattern: "frontend health_frontend"
+      - matchRegex:
+          path: data["haproxy.cfg"]
+          pattern: "bind \\*:8080"
+      - matchRegex:
+          path: data["haproxy.cfg"]
+          pattern: "monitor-uri /health"
