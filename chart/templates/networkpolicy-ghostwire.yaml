@@ -1,0 +1,48 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "ghostwire.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ghostwire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: app
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "ghostwire.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: app
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow HAProxy to access VNC port
+    - from:
+      - podSelector:
+          matchLabels:
+            {{- include "ghostwire.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: proxy
+      ports:
+      - protocol: TCP
+        port: 6901
+  egress:
+    # Allow DNS resolution
+    - to:
+      - namespaceSelector: {}
+        podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+      ports:
+      - protocol: UDP
+        port: 53
+    # Allow internet access for Signal Desktop functionality
+    {{- if .Values.networkPolicy.allowInternetEgress }}
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 443
+      - protocol: TCP
+        port: 80
+    {{- end }}
+{{- end }}

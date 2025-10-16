@@ -1,0 +1,64 @@
+{{- if and .Values.networkPolicy.enabled .Values.haproxy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "ghostwire.fullname" . }}-haproxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ghostwire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: proxy
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "ghostwire.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: proxy
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow Cloudflared to access HAProxy
+    {{- if .Values.tunnel.enabled }}
+    - from:
+      - podSelector:
+          matchLabels:
+            {{- include "ghostwire.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: tunnel
+      ports:
+      - protocol: TCP
+        port: 6901
+    {{- end }}
+    # Allow Ingress controller to access HAProxy if ingress is enabled
+    {{- if .Values.ingress.enabled }}
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            {{- toYaml .Values.networkPolicy.ingressControllerNamespaceSelector | nindent 12 }}
+      {{- if .Values.networkPolicy.ingressControllerPodSelector }}
+      - podSelector:
+          matchLabels:
+            {{- toYaml .Values.networkPolicy.ingressControllerPodSelector | nindent 12 }}
+      {{- end }}
+      ports:
+      - protocol: TCP
+        port: 6901
+    {{- end }}
+  egress:
+    # Allow DNS resolution
+    - to:
+      - namespaceSelector: {}
+        podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+      ports:
+      - protocol: UDP
+        port: 53
+    # Allow HAProxy to connect to Ghostwire StatefulSet
+    - to:
+      - podSelector:
+          matchLabels:
+            {{- include "ghostwire.selectorLabels" . | nindent 12 }}
+            app.kubernetes.io/component: app
+      ports:
+      - protocol: TCP
+        port: 6901
+{{- end }}
