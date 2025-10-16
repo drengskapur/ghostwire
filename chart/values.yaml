@@ -150,16 +150,18 @@ securityContext:
   #   - ALL
   # readOnlyRootFilesystem: true
 
-## @section VNC Authentication
+## @section Authentication
 ## VNC authentication credentials
 ##
-## @param vnc.user VNC authentication username
-## @param vnc.password VNC authentication password
+## @param auth.enabled Enable VNC password authentication (set to false to disable)
+## @param auth.username VNC authentication username
+## @param auth.password VNC authentication password
 ##
-## ⚠️  SECURITY: Change VNC credentials for production!
+## ⚠️  SECURITY: Change these credentials for production!
 ##
-vnc:
-  user: "kasm_user"
+auth:
+  enabled: true
+  username: "kasm_user"
   password: "password"
 
 ## @section Display Configuration
@@ -264,14 +266,6 @@ readinessProbe:
   periodSeconds: 10
   timeoutSeconds: 3
   failureThreshold: 5
-
-## @section Authentication Configuration
-## Authentication relies on built-in KasmVNC basic auth
-##
-## @param auth.enabled Enable external authentication (Keycloak)
-##
-auth:
-  enabled: false
 
 ## @section Cloudflare Tunnel Configuration
 ## Cloudflared provides secure Cloudflare Tunnel access without exposing ports

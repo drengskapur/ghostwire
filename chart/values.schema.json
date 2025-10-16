@@ -5,11 +5,23 @@
     "affinity": {
       "type": "object"
     },
+    "fullnameOverride": {
+      "type": "string"
+    },
+    "nameOverride": {
+      "type": "string"
+    },
     "auth": {
       "type": "object",
       "properties": {
         "enabled": {
           "type": "boolean"
+        },
+        "password": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -378,18 +390,6 @@
           "type": "string"
         },
         "secretName": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false
-    },
-    "vnc": {
-      "type": "object",
-      "properties": {
-        "password": {
-          "type": "string"
-        },
-        "user": {
           "type": "string"
         }
       },

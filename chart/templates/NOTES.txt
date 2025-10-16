@@ -37,12 +37,20 @@ To access Signal:
 
 {{- end }}
 
+{{- if .Values.auth.enabled }}
 3. VNC login credentials:
-   Username: {{ .Values.vnc.user }}
-   Password: {{ .Values.vnc.password }}
+   Username: {{ .Values.auth.username }}
+   Password: {{ .Values.auth.password }}
 
 IMPORTANT NOTES:
-- ⚠️  Change the VNC credentials (vnc.user, vnc.password) in values.yaml before deploying to production
+- ⚠️  Change the VNC credentials (auth.username, auth.password) in values.yaml before deploying to production
+{{- else }}
+3. VNC authentication is DISABLED (auth.enabled: false)
+   No password required for VNC access
+
+IMPORTANT NOTES:
+- ⚠️  VNC authentication is disabled - ensure you have other security measures in place
+{{- end }}
 - Signal will persist data to a PersistentVolume
 - First time setup will require linking to your phone number
 - The StatefulSet ensures your Signal data persists across pod restarts

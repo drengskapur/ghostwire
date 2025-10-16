@@ -42,12 +42,12 @@ spec:
           protocol: TCP
         env:
         - name: VNC_USER
-          value: {{ .Values.vnc.user | quote }}
+          value: {{ .Values.auth.username | quote }}
         - name: VNC_PW
-          value: {{ .Values.vnc.password | quote }}
+          value: {{ .Values.auth.password | quote }}
         - name: VNC_RESOLUTION
           value: {{ .Values.display.resolution | quote }}
-        {{- if .Values.auth.enabled }}
+        {{- if not .Values.auth.enabled }}
         - name: VNCOPTIONS
           value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -disableBasicAuth"
         {{- end }}
