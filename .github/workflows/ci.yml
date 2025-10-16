@@ -54,5 +54,5 @@ jobs:
           VERSION=$(grep '^version:' Chart.yaml | awk '{print $2}')
           CHART_NAME=$(grep '^name:' Chart.yaml | awk '{print $2}')
           helm package . --destination /tmp
-          helm push "/tmp/${CHART_NAME}-${VERSION}.tgz" "oci://${{ env.REGISTRY }}/${{ env.NAMESPACE }}/chart"
-          echo "✅ Pushed ${CHART_NAME}:${VERSION} to oci://${{ env.REGISTRY }}/${{ env.NAMESPACE }}/chart"
+          helm push "/tmp/${CHART_NAME}-${VERSION}.tgz" "oci://${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${CHART_NAME}"
+          echo "✅ Pushed ${CHART_NAME}:${VERSION} to oci://${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${CHART_NAME}"
