@@ -27,7 +27,7 @@ data:
         bind *:6901
         default_backend ghostwire_backend
 
-    # Ghostwire backend - HTTP mode with WebSocket support
+    # Backend - HTTP mode with WebSocket support
     backend ghostwire_backend
         mode http
         balance roundrobin
@@ -36,6 +36,6 @@ data:
         # WebSocket support
         http-request set-header X-Forwarded-Proto https if { ssl_fc }
         http-request set-header X-Forwarded-For %[src]
-        # Connect to ghostwire HTTPS endpoint (KasmVNC serves HTTPS)
-        server ghostwire1 {{ include "ghostwire.fullname" . }}:6901 ssl verify none check inter 10s rise 2 fall 3
+        # Connect to HTTPS endpoint (KasmVNC serves HTTPS)
+        server {{ include "ghostwire.fullname" . }}-0 {{ include "ghostwire.fullname" . }}:6901 ssl verify none check inter 10s rise 2 fall 3
 {{- end }}
