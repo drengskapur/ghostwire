@@ -161,8 +161,8 @@ securityContext:
 ##
 auth:
   enabled: true
-  username: "kasm_user"
-  password: "password"
+  username: "testuser"
+  password: "testpass123"
 
 ## @section Display Configuration
 ## VNC display settings
