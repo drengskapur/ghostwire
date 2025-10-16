@@ -138,17 +138,32 @@ resources:
 ## @param securityContext.runAsUser User ID to run the container
 ## @param securityContext.runAsGroup Group ID to run the container
 ## @param securityContext.fsGroup Filesystem group ID for volumes
+## @param securityContext.runAsNonRoot Ensure container runs as non-root
+## @param securityContext.seccompProfile Seccomp profile configuration
 ##
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
   fsGroup: 1000
-  ## Additional security options (uncomment to enable):
-  ##
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+## @section Container Security Context
+## Container-level security settings
+##
+## @param containerSecurityContext.allowPrivilegeEscalation Prevent privilege escalation
+## @param containerSecurityContext.capabilities.drop Dropped capabilities
+## @param containerSecurityContext.readOnlyRootFilesystem Read-only root filesystem (disabled for KasmVNC)
+##
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  ## Note: readOnlyRootFilesystem is NOT enabled for KasmVNC as it requires write access
+  ## to /tmp, /home/kasm-user, and other runtime directories
+  readOnlyRootFilesystem: false
 
 ## @section Authentication
 ## VNC authentication credentials
@@ -163,6 +178,45 @@ auth:
   enabled: true
   username: "kasm_user"
   password: "testpass123"
+
+## @section TLS/SSL Configuration
+## Custom SSL certificates for KasmVNC HTTPS/WebSocket connections
+##
+## @param tls.enabled Enable custom TLS certificates (if false, KasmVNC uses built-in self-signed)
+## @param tls.secretName Name of existing Kubernetes secret containing TLS cert/key
+## @param tls.cert TLS certificate (PEM format, inline - leave empty to use existing secret)
+## @param tls.key TLS private key (PEM format, inline - leave empty to use existing secret)
+## @param tls.certPath Container path for certificate file
+## @param tls.keyPath Container path for private key file
+##
+## Example using existing secret:
+##   tls:
+##     enabled: true
+##     secretName: ghostwire-tls
+##
+## Example with inline certificates:
+##   tls:
+##     enabled: true
+##     cert: |
+##       -----BEGIN CERTIFICATE-----
+##       ...
+##       -----END CERTIFICATE-----
+##     key: |
+##       -----BEGIN PRIVATE KEY-----
+##       ...
+##       -----END PRIVATE KEY-----
+##
+tls:
+  enabled: false
+  ## Use existing secret (leave empty to create from inline cert/key below)
+  secretName: ""
+  ## Inline certificate (only used if secretName is empty)
+  cert: ""
+  ## Inline private key (only used if secretName is empty)
+  key: ""
+  ## Certificate mount paths (KasmVNC standard paths)
+  certPath: /tmp/vnc.crt
+  keyPath: /tmp/vnc.key
 
 ## @section Display Configuration
 ## VNC display settings
@@ -300,6 +354,28 @@ tunnel:
   ## @param tunnel.secretKey Secret key containing the token
   secretKey: token
 
+  ## @param tunnel.securityContext Pod security context for Cloudflared
+  securityContext:
+    runAsUser: 65532  # nonroot user
+    runAsGroup: 65532
+    runAsNonRoot: true
+    fsGroup: 65532
+    seccompProfile:
+      type: RuntimeDefault
+
+  ## @param tunnel.containerSecurityContext Container security context for Cloudflared
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    readOnlyRootFilesystem: true
+
+  ## @param tunnel.serviceAccount Service account configuration for Cloudflared
+  serviceAccount:
+    create: true
+    annotations: {}
+
   ## @param tunnel.resources Resource limits for cloudflared
   resources:
     limits:
@@ -308,6 +384,26 @@ tunnel:
     requests:
       cpu: 100m
       memory: 128Mi
+
+## @section Network Policy Configuration
+## Network policies for pod-to-pod communication restrictions
+##
+## @param networkPolicy.enabled Enable network policies
+## @param networkPolicy.allowInternetEgress Allow Ghostwire pods to access internet (required for Signal)
+## @param networkPolicy.ingressControllerNamespaceSelector Namespace selector for ingress controller
+## @param networkPolicy.ingressControllerPodSelector Pod selector for ingress controller
+##
+networkPolicy:
+  enabled: true
+  ## Allow internet egress for Signal Desktop functionality
+  allowInternetEgress: true
+  ## Ingress controller namespace selector (for ingress access to HAProxy)
+  ## Default assumes ingress-nginx in ingress-nginx namespace
+  ingressControllerNamespaceSelector:
+    name: ingress-nginx
+  ## Optional: Pod selector for ingress controller
+  ## Leave empty to allow all pods from the namespace
+  ingressControllerPodSelector: {}
 
 ## @section HAProxy Configuration
 ## HAProxy provides efficient HTTP/WebSocket proxying with connection pooling
@@ -327,6 +423,60 @@ haproxy:
     repository: haproxytech/haproxy-alpine
     tag: "2.9"
     pullPolicy: IfNotPresent
+
+  ## @param haproxy.securityContext Pod security context for HAProxy
+  securityContext:
+    runAsUser: 99  # HAProxy user
+    runAsGroup: 99
+    runAsNonRoot: true
+    fsGroup: 99
+    seccompProfile:
+      type: RuntimeDefault
+
+  ## @param haproxy.containerSecurityContext Container security context for HAProxy
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    readOnlyRootFilesystem: false
+
+  ## @param haproxy.serviceAccount Service account configuration for HAProxy
+  serviceAccount:
+    create: true
+    annotations: {}
+
+  ## @param haproxy.ssl SSL/TLS configuration for backend connections
+  ## @param haproxy.ssl.verify SSL verification mode (none, optional, required)
+  ## @param haproxy.ssl.caSecret Name of secret containing CA certificate (tls.crt key)
+  ##
+  ## SSL verification modes:
+  ##   none     - No certificate verification (default, works with self-signed certs)
+  ##   optional - Verify if CA is available, but don't fail if verification fails
+  ##   required - Strict verification, requires valid certificate and CA bundle
+  ##
+  ## For production with custom certificates, use 'required' mode and provide CA secret
+  ssl:
+    verify: none
+    ## Optional: Secret containing CA certificate for backend SSL verification
+    ## If provided, will be mounted and used for verification
+    caSecret: ""
+
+  ## @param haproxy.livenessProbe Liveness probe configuration for HAProxy
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+  ## @param haproxy.readinessProbe Readiness probe configuration for HAProxy
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 3
 
   ## @param haproxy.resources Resource limits for HAProxy
   resources:
