@@ -126,7 +126,7 @@ jobs:
           version: '3.14.0'
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v4
+        uses: sigstore/cosign-installer@v4.0.0
 
       - name: Get commit SHA
         id: commit
@@ -202,7 +202,7 @@ jobs:
           version: '3.14.0'
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v4
+        uses: sigstore/cosign-installer@v4.0.0
 
       - name: Install git-cliff
         run: |
