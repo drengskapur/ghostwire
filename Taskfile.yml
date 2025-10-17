@@ -5,26 +5,12 @@ env:
     sh: grep '^version:' chart/Chart.yaml | awk '{print $2}'
   CHART_NAME:
     sh: grep '^name:' chart/Chart.yaml | awk '{print $2}'
-  REGISTRY: '{{.REGISTRY | default "ghcr.io"}}'
-  NAMESPACE: '{{.NAMESPACE | default "drengskapur/ghostwire"}}'
 
 tasks:
   default:
     desc: Show available tasks
     cmds:
       - task --list
-
-  claude:
-    desc: Run Claude Code
-    silent: true
-    cmds:
-      - claude --dangerously-skip-permissions --continue || claude --dangerously-skip-permissions
-
-  resume:
-    desc: Resume Claude Code session
-    silent: true
-    cmds:
-      - claude --dangerously-skip-permissions --resume || claude --dangerously-skip-permissions
 
   test:
     desc: Run Helm tests (lint, template, unit tests)
@@ -70,17 +56,14 @@ tasks:
           (.properties.affinity | select(. != null)) |= del(.additionalProperties) |
 
           # Ensure imagePullSecrets are strings (secret names)
-          (.properties.imagePullSecrets.items | select(. != null)) = { "type": "string" } |
-
-          # Allow keycloak subchart to have its own schema - recursively remove additionalProperties
-          (.properties."keycloak" | select(. != null)) |= walk(if type == "object" and has("additionalProperties") then del(.additionalProperties) else . end)
+          (.properties.imagePullSecrets.items | select(. != null)) = { "type": "string" }
         ' values.schema.json > values.schema.json.tmp && mv values.schema.json.tmp values.schema.json
 
         echo "✅ Schema generated: values.schema.json"
         echo "💡 Your IDE can now provide validation and autocomplete for values.yaml"
 
   package:
-    desc: Package Helm chart locally
+    desc: Package Helm chart locally for testing
     dir: chart
     cmds:
       - |
@@ -88,50 +71,6 @@ tasks:
         helm dependency update
         helm package . --destination /tmp
         echo "✅ Chart packaged: /tmp/{{.CHART_NAME}}-{{.VERSION}}.tgz"
-
-  login:
-    desc: Login to container registry
-    silent: true
-    cmds:
-      - |
-        if [ -z "$DOCKER_PASSWORD" ]; then
-          echo "❌ DOCKER_PASSWORD not set"
-          exit 1
-        fi
-        echo "$DOCKER_PASSWORD" | helm registry login {{.REGISTRY}} -u "$DOCKER_USERNAME" --password-stdin
-        echo "✅ Logged in to {{.REGISTRY}}"
-
-  helm:push:
-    desc: Package and push Helm chart to OCI registry
-    deps: [login]
-    dir: chart
-    cmds:
-      - |
-        echo "📦 Packaging Helm chart..."
-        helm dependency update
-        helm package . --destination /tmp
-
-        PACKAGE_FILE="/tmp/{{.CHART_NAME}}-{{.VERSION}}.tgz"
-
-        echo "📤 Pushing chart to OCI registry..."
-        helm push "$PACKAGE_FILE" "oci://{{.REGISTRY}}/{{.NAMESPACE}}/charts"
-
-        # Clean up package file
-        rm -f "$PACKAGE_FILE"
-
-        echo "✅ Helm chart pushed to oci://{{.REGISTRY}}/{{.NAMESPACE}}/charts/{{.CHART_NAME}}:{{.VERSION}}"
-
-  helm:pull:
-    desc: Pull Helm chart from OCI registry
-    deps: [login]
-    cmds:
-      - |
-        echo "📥 Pulling chart from OCI registry..."
-        helm pull "oci://{{.REGISTRY}}/{{.NAMESPACE}}/charts/{{.CHART_NAME}}" \
-          --version "{{.VERSION}}" \
-          --destination /tmp
-
-        echo "✅ Chart downloaded to /tmp/{{.CHART_NAME}}-{{.VERSION}}.tgz"
 
   changelog:
     desc: Generate CHANGELOG.md from git history using git-cliff
