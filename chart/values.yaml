@@ -18,9 +18,16 @@
 
 ## @section Global parameters
 ##
+## @param global.imagePullSecrets Global Docker registry secret names
 ## @param nameOverride Override chart name
 ## @param fullnameOverride Override fully qualified app name
 ##
+global:
+  ## Docker registry secret names as an array
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ##
+  imagePullSecrets: []
+
 nameOverride: ""
 fullnameOverride: ""
 
