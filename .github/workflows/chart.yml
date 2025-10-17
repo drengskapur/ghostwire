@@ -21,6 +21,7 @@ concurrency:
 permissions:
   contents: write
   packages: write
+  id-token: write
 
 env:
   REGISTRY: ghcr.io
@@ -124,6 +125,9 @@ jobs:
         with:
           version: '3.14.0'
 
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
       - name: Get commit SHA
         id: commit
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -144,14 +148,21 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
       - name: Push chart with main tag
+        id: push_main
         run: |
           CHART_NAME="${{ steps.package.outputs.chart_name }}"
           CHART_VERSION="${{ steps.package.outputs.chart_version }}"
 
-          helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}
+          DIGEST=$(helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} | grep Digest | awk '{print $2}')
+          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
           echo "✅ Published ${CHART_NAME}:${CHART_VERSION}"
 
+      - name: Sign chart with main tag
+        run: |
+          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_main.outputs.digest }}
+
       - name: Tag as latest
+        id: push_latest
         run: |
           CHART_NAME="${{ steps.package.outputs.chart_name }}"
           CHART_VERSION="${{ steps.package.outputs.chart_version }}"
@@ -165,8 +176,13 @@ jobs:
           helm package ${CHART_NAME}
 
           # Push with latest tag
-          helm push ${CHART_NAME}-latest.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}
+          DIGEST=$(helm push ${CHART_NAME}-latest.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} | grep Digest | awk '{print $2}')
+          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
           echo "✅ Tagged as ${CHART_NAME}:latest"
+
+      - name: Sign latest tag
+        run: |
+          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_latest.outputs.digest }}
 
   publish-release:
     name: Publish Release
@@ -184,6 +200,9 @@ jobs:
         uses: azure/setup-helm@v4.3.0
         with:
           version: '3.14.0'
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
 
       - name: Install git-cliff
         run: |
@@ -252,16 +271,24 @@ jobs:
 
       - name: Push chart with semver tag
         if: steps.version.outputs.bump == 'true'
+        id: push_semver
         run: |
           CHART_NAME="${{ steps.package.outputs.chart_name }}"
           VERSION=${{ steps.version.outputs.version }}
 
-          helm push ${CHART_NAME}-${VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}
+          DIGEST=$(helm push ${CHART_NAME}-${VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} | grep Digest | awk '{print $2}')
+          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
           echo "✅ Published ${CHART_NAME}:${VERSION}"
           echo "🔒 This version is now immutable and cannot be overwritten"
 
+      - name: Sign chart with semver tag
+        if: steps.version.outputs.bump == 'true'
+        run: |
+          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_semver.outputs.digest }}
+
       - name: Tag as latest-stable
         if: steps.version.outputs.bump == 'true'
+        id: push_stable
         run: |
           CHART_NAME="${{ steps.package.outputs.chart_name }}"
           VERSION=${{ steps.version.outputs.version }}
@@ -275,8 +302,14 @@ jobs:
           helm package ${CHART_NAME}
 
           # Push with latest-stable tag
-          helm push ${CHART_NAME}-latest-stable.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}
+          DIGEST=$(helm push ${CHART_NAME}-latest-stable.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} | grep Digest | awk '{print $2}')
+          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
           echo "✅ Tagged as ${CHART_NAME}:latest-stable"
+
+      - name: Sign latest-stable tag
+        if: steps.version.outputs.bump == 'true'
+        run: |
+          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_stable.outputs.digest }}
 
       - name: Create GitHub Release
         if: steps.version.outputs.bump == 'true'
