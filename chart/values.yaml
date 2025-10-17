@@ -188,21 +188,24 @@ auth:
 ## @section TLS/SSL Configuration
 ## Custom SSL certificates for KasmVNC HTTPS/WebSocket connections
 ##
-## @param tls.enabled Enable custom TLS certificates (if false, KasmVNC uses built-in self-signed)
-## @param tls.secretName Name of existing Kubernetes secret containing TLS cert/key
+## @param tls.mode TLS mode: "auto" (default self-signed), "custom" (use provided cert), or "disabled" (HTTP only)
+## @param tls.secretName Name of existing Kubernetes secret containing TLS cert/key (for custom mode)
 ## @param tls.cert TLS certificate (PEM format, inline - leave empty to use existing secret)
 ## @param tls.key TLS private key (PEM format, inline - leave empty to use existing secret)
-## @param tls.certPath Container path for certificate file
-## @param tls.keyPath Container path for private key file
+##
+## TLS Modes:
+##   auto     - KasmVNC uses built-in self-signed certificate (default, HTTPS enabled)
+##   custom   - Use custom certificate from secret or inline values (HTTPS with your cert)
+##   disabled - HTTP only, no TLS (useful behind reverse proxy with TLS termination)
 ##
 ## Example using existing secret:
 ##   tls:
-##     enabled: true
+##     mode: custom
 ##     secretName: ghostwire-tls
 ##
 ## Example with inline certificates:
 ##   tls:
-##     enabled: true
+##     mode: custom
 ##     cert: |
 ##       -----BEGIN CERTIFICATE-----
 ##       ...
@@ -212,17 +215,18 @@ auth:
 ##       ...
 ##       -----END PRIVATE KEY-----
 ##
+## Example disabling HTTPS entirely (HTTP only):
+##   tls:
+##     mode: disabled
+##
 tls:
-  enabled: false
+  mode: auto  # auto, custom, or disabled
   ## Use existing secret (leave empty to create from inline cert/key below)
   secretName: ""
-  ## Inline certificate (only used if secretName is empty)
+  ## Inline certificate (only used if secretName is empty and mode is custom)
   cert: ""
-  ## Inline private key (only used if secretName is empty)
+  ## Inline private key (only used if secretName is empty and mode is custom)
   key: ""
-  ## Certificate mount paths (KasmVNC standard paths)
-  certPath: /tmp/vnc.crt
-  keyPath: /tmp/vnc.key
 
 ## @section Display Configuration
 ## VNC display settings
