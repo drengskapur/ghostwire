@@ -15,8 +15,8 @@ spec:
   restartPolicy: Never
   containers:
   - name: test-tls-cert
-    image: cgr.dev/chainguard/busybox:latest
-    command: ['/bin/sh', '-c']
+    image: bitnami/kubectl:latest
+    command: ['/bin/bash', '-c']
     args:
     - |
       set -e

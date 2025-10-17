@@ -43,7 +43,6 @@ spec:
           mkdir -p /home/kasm-user/.vnc
           cat /tmp/tls-secret/tls.key /tmp/tls-secret/tls.crt > /home/kasm-user/.vnc/self.pem
           chmod 600 /home/kasm-user/.vnc/self.pem
-          chown 1000:1000 /home/kasm-user/.vnc/self.pem
           echo "Custom TLS certificate installed"
         volumeMounts:
         - name: tls-certs
@@ -52,8 +51,8 @@ spec:
         - name: signal-data
           mountPath: /home/kasm-user
         securityContext:
-          runAsUser: 0
-          runAsGroup: 0
+          runAsUser: 1000
+          runAsGroup: 1000
       {{- end }}
       containers:
       - name: signal
