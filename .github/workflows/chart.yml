@@ -144,8 +144,15 @@ jobs:
           echo "chart_version=0.0.0-main.${{ steps.commit.outputs.sha_short }}" >> $GITHUB_OUTPUT
         id: package
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry (Helm)
         run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      - name: Log in to GitHub Container Registry (Docker/Cosign)
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push chart with main tag
         id: push_main
@@ -257,9 +264,17 @@ jobs:
           echo "chart_name=${CHART_NAME}" >> $GITHUB_OUTPUT
         id: package
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry (Helm)
         if: steps.version.outputs.bump == 'true'
         run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      - name: Log in to GitHub Container Registry (Docker/Cosign)
+        if: steps.version.outputs.bump == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if version already exists
         if: steps.version.outputs.bump == 'true'
