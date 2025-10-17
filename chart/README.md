@@ -732,15 +732,26 @@ Issues and pull requests welcome at: https://github.com/drengskapur/ghostwire
 
 ## License
 
-- **This Helm chart**: MIT License
-- **Signal Desktop**: AGPLv3
-- **KasmVNC**: GPLv2
+- **This Helm chart**: Apache License 2.0
+- **Signal Desktop**: AGPLv3 (Copyright Signal Messenger LLC)
+- **Kasm Workspaces Images**: MIT License (Copyright 2022 Kasm Technologies Inc)
+
+See [../LICENSE](../LICENSE) and [../NOTICE](../NOTICE) for complete license information and third-party attributions.
 
 ---
 
 ## Acknowledgments
 
-Built with:
-- [Signal Desktop](https://github.com/signalapp/Signal-Desktop) - Secure messaging application
-- [KasmVNC](https://github.com/kasmtech/KasmVNC) - Modern VNC server with web client
-- [XFCE](https://xfce.org/) - Lightweight desktop environment
+This project uses the following open-source software:
+
+- **[Signal Desktop](https://github.com/signalapp/Signal-Desktop)** - Secure messaging application (AGPLv3)
+  - "Signal" is a registered trademark of Signal Messenger LLC
+- **[Kasm Workspaces](https://github.com/kasmtech/workspaces-images)** - Container streaming platform with VNC (MIT License)
+  - Provides the kasmweb/signal Docker image
+  - Copyright 2022 Kasm Technologies Inc
+- **[KasmVNC](https://github.com/kasmtech/KasmVNC)** - Modern VNC server with web client
+- **[XFCE](https://xfce.org/)** - Lightweight desktop environment
+
+Signal Messenger LLC and Kasm Technologies Inc do not endorse or support this project.
+
+For detailed attribution and license information, see [../NOTICE](../NOTICE).

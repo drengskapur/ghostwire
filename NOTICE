@@ -1,0 +1,93 @@
+Ghostwire
+Copyright 2025 Drengskapur LLC and The Ghostwire Authors
+
+This product includes software developed by The Ghostwire Project.
+
+================================================================================
+
+THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
+
+This project incorporates components from the projects listed below.
+
+================================================================================
+
+1. Kasm Workspaces Images
+   https://github.com/kasmtech/workspaces-images
+
+   Copyright (c) 2022 Kasm Technologies Inc
+
+   License: MIT License
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+   This project uses the kasmweb/signal Docker image, which includes:
+   - KasmVNC: A modern VNC server with web interface
+   - Signal Desktop application packaged for browser access
+
+   KasmVNC and the Kasm workspace images are developed and maintained by
+   Kasm Technologies Inc. (https://kasmweb.com)
+
+================================================================================
+
+2. Signal Desktop
+   https://github.com/signalapp/Signal-Desktop
+
+   Signal Desktop is a secure messaging application developed by Signal Messenger LLC.
+
+   License: GNU Affero General Public License v3.0 (AGPLv3)
+
+   Copyright 2014-2025 Signal Messenger LLC
+
+   "Signal" and the Signal logo are registered trademarks of Signal Messenger LLC.
+
+   Signal Desktop is licensed under the AGPLv3. For complete license terms, see:
+   https://github.com/signalapp/Signal-Desktop/blob/main/LICENSE
+
+   This project does not modify Signal Desktop itself. The application is packaged
+   within the KasmVNC container image and delivered as-is.
+
+================================================================================
+
+3. Additional Components
+
+   The KasmVNC container images include additional open-source software:
+   - Ubuntu Linux (Canonical Ltd.)
+   - Chromium browser (The Chromium Authors)
+   - Various system libraries and dependencies
+
+   Each component maintains its own license and copyright. For detailed
+   attribution of all components within the container image, see:
+   https://github.com/kasmtech/workspaces-images
+
+================================================================================
+
+TRADEMARKS
+
+- "Signal" and the Signal logo are registered trademarks of Signal Messenger LLC
+- "Kasm" and "KasmVNC" are trademarks of Kasm Technologies Inc
+- All other trademarks referenced herein are the property of their respective owners
+
+Signal Messenger LLC and Kasm Technologies Inc do not endorse or support this project.
+
+================================================================================
+
+For more information about Ghostwire, visit:
+https://github.com/drengskapur/ghostwire
+
+For licensing questions, contact: Drengskapur LLC
