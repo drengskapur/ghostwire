@@ -14,7 +14,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: statefulset-test
-      image: ghcr.io/drengskapur/ghostwire/debug:latest
+      image: ghcr.io/drengskapur/ghostwire/tools:latest
       imagePullPolicy: IfNotPresent
       args:
         - -c

@@ -13,7 +13,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: connection-test
-      image: ghcr.io/drengskapur/ghostwire/debug:latest
+      image: ghcr.io/drengskapur/ghostwire/tools:latest
       imagePullPolicy: IfNotPresent
       args:
         - -c
