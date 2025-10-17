@@ -4,6 +4,29 @@
 
 ---
 
+## Quickstart
+
+**Get Signal Desktop running in 60 seconds:**
+
+```bash
+# Install
+helm install ghostwire ./chart --create-namespace -n ghostwire
+
+# Access
+kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
+
+# Open browser
+open http://localhost:6901?keyboard=1
+```
+
+**Default credentials (when auth is enabled):**
+- Username: `kasm_user`
+- Password: `CorrectHorseBatteryStaple`
+
+**⚠️ For production:** Disable built-in auth and use ingress + OAuth2 instead (see [Production Setup](#production-setup))
+
+---
+
 ## Why Ghostwire?
 
 Unlike traditional VNC deployments that bake security into the application, **Ghostwire is designed to be a well-behaved cloud-native citizen** that integrates cleanly with your existing Kubernetes security infrastructure.
