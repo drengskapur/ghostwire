@@ -1,4 +1,0 @@
-# Example terraform.tfvars
-# Copy to terraform.tfvars and fill in your values
-
-github_token = "ghp_your_github_personal_access_token"

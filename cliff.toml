@@ -1,4 +1,4 @@
-# git-cliff configuration for ghostwire
+# git-cliff configuration
 # https://git-cliff.org/docs/configuration
 
 [changelog]
@@ -75,5 +75,5 @@ topo_order = false
 sort_commits = "oldest"
 
 [remote.github]
-owner = "graymatterresources"
+owner = "drengskapur"
 repo = "ghostwire"

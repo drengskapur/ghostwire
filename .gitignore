@@ -1,18 +1,9 @@
-# Local environment overrides (contains secrets)
+.DS_Store
 .env.local
 .env.production
-
-# Helm chart dependencies
-chart/charts/
-chart/*.tgz
-
-# IDE
-.vscode/
 .idea/
-
-# macOS
-.DS_Store
-
-# Task cache
 .task/
+.vscode/
 *.tgz
+chart/*.tgz
+chart/charts/
