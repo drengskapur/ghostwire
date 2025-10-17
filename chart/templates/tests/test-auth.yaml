@@ -16,6 +16,7 @@ spec:
     - name: auth-test
       image: cgr.dev/chainguard/kubectl:latest-dev
       imagePullPolicy: IfNotPresent
+      command: ["/bin/sh"]
       args:
         - -c
         - |
