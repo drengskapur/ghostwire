@@ -323,11 +323,11 @@ jobs:
 
           # Re-package with latest-stable tag (semver-compatible)
           tar -xzf ${CHART_NAME}-${VERSION}.tgz
-          sed -i "s/^version:.*/version: 0.0.0-lateststable/" ${CHART_NAME}/Chart.yaml
+          sed -i "s/^version:.*/version: 0.0.0-latest-stable/" ${CHART_NAME}/Chart.yaml
           helm package ${CHART_NAME}
 
           # Push with latest-stable tag
-          PUSH_OUTPUT=$(helm push ${CHART_NAME}-0.0.0-lateststable.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
+          PUSH_OUTPUT=$(helm push ${CHART_NAME}-0.0.0-latest-stable.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
           echo "$PUSH_OUTPUT"
 
           DIGEST=$(echo "$PUSH_OUTPUT" | grep Digest | awk '{print $2}')
