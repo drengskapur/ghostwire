@@ -66,8 +66,6 @@ spec:
           containerPort: {{ .Values.service.targetPort }}
           protocol: TCP
         env:
-        - name: VNC_USER
-          value: {{ .Values.auth.username | quote }}
         - name: VNC_PW
           value: {{ .Values.auth.password | quote }}
         - name: VNC_RESOLUTION

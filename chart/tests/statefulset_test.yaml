@@ -44,29 +44,25 @@ tests:
           value: Always
 
   ## Authentication Configuration
-  - it: should set default VNC auth credentials
+  - it: should set default VNC password
     asserts:
-      - contains:
-          path: spec.template.spec.containers[0].env
-          content:
-            name: VNC_USER
-            value: kasm_user
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: VNC_PW
             value: CorrectHorseBatteryStaple
 
-  - it: should set custom VNC auth credentials
-    set:
-      auth.username: myuser
-      auth.password: mypass123
+  - it: should not include VNC_USER environment variable
     asserts:
-      - contains:
+      - notContains:
           path: spec.template.spec.containers[0].env
           content:
             name: VNC_USER
-            value: myuser
+
+  - it: should set custom VNC password
+    set:
+      auth.password: mypass123
+    asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:

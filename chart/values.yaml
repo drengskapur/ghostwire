@@ -142,14 +142,14 @@ containerSecurityContext:
 ## VNC authentication credentials
 ##
 ## @param auth.enabled Enable VNC password authentication (set to false to disable)
-## @param auth.username VNC authentication username
 ## @param auth.password VNC authentication password
+##
+## Note: Username is always "kasm_user" (hardcoded in KasmVNC image)
 ##
 ## ⚠️  SECURITY: Enable authentication for production!
 ##
 auth:
   enabled: false
-  username: "kasm_user"
   password: "CorrectHorseBatteryStaple"
 
 ## @section TLS/SSL Configuration
