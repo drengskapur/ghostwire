@@ -1,0 +1,87 @@
+# Gitleaks configuration for Ghostwire
+# https://github.com/gitleaks/gitleaks
+
+title = "Gitleaks Config for Ghostwire"
+
+# Global allowlist
+[allowlist]
+description = "Global allowlist"
+regexes = [
+  # Example placeholder tokens in documentation
+  '''ghp_[a-zA-Z0-9]{36}.*example''',
+  '''ghp_your_token''',
+  '''your-github-username''',
+]
+
+paths = [
+  # Don't scan git history or dependencies
+  '''\.git/''',
+  '''chart/charts/''',
+  '''\.task/''',
+
+  # Don't scan compiled/generated files
+  '''.*\.tgz$''',
+  '''.*\.tar\.gz$''',
+]
+
+# Custom rules for common secrets
+[[rules]]
+id = "github-pat"
+description = "GitHub Personal Access Token"
+regex = '''ghp_[0-9a-zA-Z]{36}'''
+tags = ["key", "github"]
+
+[[rules]]
+id = "github-oauth"
+description = "GitHub OAuth Access Token"
+regex = '''gho_[0-9a-zA-Z]{36}'''
+tags = ["key", "github"]
+
+[[rules]]
+id = "github-app-token"
+description = "GitHub App Token"
+regex = '''(ghu|ghs)_[0-9a-zA-Z]{36}'''
+tags = ["key", "github"]
+
+[[rules]]
+id = "github-refresh-token"
+description = "GitHub Refresh Token"
+regex = '''ghr_[0-9a-zA-Z]{36}'''
+tags = ["key", "github"]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["key", "aws"]
+
+[[rules]]
+id = "slack-token"
+description = "Slack Token"
+regex = '''xox[baprs]-([0-9a-zA-Z]{10,48})'''
+tags = ["key", "slack"]
+
+[[rules]]
+id = "slack-webhook"
+description = "Slack Webhook"
+regex = '''https://hooks\.slack\.com/services/T[a-zA-Z0-9_]+/B[a-zA-Z0-9_]+/[a-zA-Z0-9_]+'''
+tags = ["webhook", "slack"]
+
+[[rules]]
+id = "private-key"
+description = "Private Key"
+regex = '''-----BEGIN (RSA|DSA|EC|OPENSSH|PGP) PRIVATE KEY-----'''
+tags = ["key", "private"]
+
+[[rules]]
+id = "docker-config"
+description = "Docker config with auth"
+regex = '''"auths":\s*\{[^}]*"auth":\s*"[^"]+'''
+tags = ["key", "docker"]
+
+[[rules]]
+id = "cloudflare-api-token"
+description = "Cloudflare API Token"
+regex = '''[a-zA-Z0-9_-]{40}'''
+# This is broad - use allowlist for false positives
+tags = ["key", "cloudflare"]
