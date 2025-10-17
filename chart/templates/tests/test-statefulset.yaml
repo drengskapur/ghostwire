@@ -11,10 +11,14 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   serviceAccountName: {{ include "ghostwire.fullname" . }}-test
+  {{- with .Values.global.imagePullSecrets }}
+  imagePullSecrets:
+    {{- toYaml . | nindent 2 }}
+  {{- end }}
   restartPolicy: Never
   containers:
     - name: statefulset-test
-      image: cgr.dev/chainguard/kubectl:latest-dev
+      image: ghcr.io/drengskapur/ghostwire/tools:latest-stable
       imagePullPolicy: IfNotPresent
       command: ["/bin/sh"]
       args:
