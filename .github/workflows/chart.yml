@@ -137,11 +137,11 @@ jobs:
           CHART_NAME=$(grep '^name:' ${{ env.CHART_PATH }}/Chart.yaml | awk '{print $2}')
 
           # Set version to main-<sha> for this build
-          sed -i "s/^version:.*/version: main-${{ steps.commit.outputs.sha_short }}/" ${{ env.CHART_PATH }}/Chart.yaml
+          sed -i "s/^version:.*/version: 0.0.0-main.${{ steps.commit.outputs.sha_short }}/" ${{ env.CHART_PATH }}/Chart.yaml
 
           helm package ${{ env.CHART_PATH }}
           echo "chart_name=${CHART_NAME}" >> $GITHUB_OUTPUT
-          echo "chart_version=main-${{ steps.commit.outputs.sha_short }}" >> $GITHUB_OUTPUT
+          echo "chart_version=0.0.0-main.${{ steps.commit.outputs.sha_short }}" >> $GITHUB_OUTPUT
         id: package
 
       - name: Log in to GitHub Container Registry
