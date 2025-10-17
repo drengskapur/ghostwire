@@ -1,9 +1,13 @@
 .DS_Store
-.env.local
-.env.production
 .idea/
 .task/
 .vscode/
+
+# Environment files (use Taskfile.yml or CI/CD for config)
+.env*
+.envrc
+
+# Helm artifacts
 *.tgz
 chart/*.tgz
 chart/charts/
