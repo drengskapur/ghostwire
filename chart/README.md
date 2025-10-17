@@ -1,383 +1,164 @@
-# Ghostwire - Signal Desktop Helm Chart
+# Ghostwire
 
-Secure deployment system for Signal Desktop using KasmWeb VNC with OAuth2 Proxy authentication.
+Helm chart for running [Signal Desktop](https://signal.org/) in Kubernetes with persistent storage and web-based access.
 
-## Features
+## TL;DR
 
-- **StatefulSet deployment** for persistent Signal data
-- **OAuth2 Proxy authentication** with WebSocket support for VNC
-- **Custom login page** with modern UI
-- **Session management** with configurable timeouts
-- **Persistent storage** for Signal database and configuration
-- **Ingress support** with proper WebSocket annotations
-- **Health probes** for VNC interface availability
+```bash
+helm install ghostwire ./chart --create-namespace -n ghostwire
+kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
+# Open http://localhost:6901?keyboard=1
+```
 
-## Prerequisites
+## What is this?
 
-- Kubernetes 1.19+
-- Helm 3.0+
-- PersistentVolume provisioner support (for data persistence)
-- (Optional) Ingress controller with WebSocket support (e.g., NGINX Ingress)
-- (Optional) cert-manager for TLS certificates
+Ghostwire deploys Signal Desktop in a browser-accessible VNC session with:
+
+- **Persistent storage** - Your conversations survive pod restarts
+- **StatefulSet** - Stable identity for Signal's device linking
+- **Web-based VNC** - Access via KasmVNC (no VNC client needed)
+- **On-screen keyboard** - Mobile-friendly input support
 
 ## Installation
 
-### Quick Start
+### From source
 
 ```bash
-# Install with default values (uses auth with default password)
-helm install signal ./chart
-
-# Install without authentication
-helm install signal ./chart --set auth.enabled=false
-
-# Install with custom domain and TLS
-helm install signal ./chart \
-  --set ingress.enabled=true \
-  --set ingress.hosts[0].host=signal.example.com \
-  --set ingress.tls[0].secretName=signal-tls \
-  --set ingress.tls[0].hosts[0]=signal.example.com
+helm install ghostwire ./chart \
+  --create-namespace \
+  --namespace ghostwire \
+  --set auth.password=your-secure-password
 ```
 
-### Configure Authentication
-
-1. Generate htpasswd entries:
-
-```bash
-htpasswd -nbB admin MySecurePassword
-```
-
-2. Generate cookie secret:
-
-```bash
-openssl rand -base64 32
-```
-
-3. Create `custom-values.yaml`:
+### With custom configuration
 
 ```yaml
+# values-custom.yaml
 auth:
-  enabled: true
-  cookieSecret: "YOUR_32_BYTE_COOKIE_SECRET"
-  users:
-    - "admin:$2y$05$..."  # Output from generate-htpasswd.sh
-    - "user1:$2y$05$..."  # Additional users
-```
+  password: "change-me"
 
-4. Install with custom values:
+resources:
+  requests:
+    memory: "2Gi"
+    cpu: "500m"
+  limits:
+    memory: "4Gi"
+    cpu: "2000m"
+
+persistence:
+  size: 10Gi
+  storageClass: "fast-ssd"
+```
 
 ```bash
-helm install signal ./chart -f custom-values.yaml
+helm install ghostwire ./chart -f values-custom.yaml -n ghostwire
 ```
+
+## Accessing Signal
+
+After installation, follow the NOTES output. For ClusterIP (default):
+
+```bash
+kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
+```
+
+Then open: **http://localhost:6901?keyboard=1**
+
+**First-time setup:**
+1. Open Signal Desktop in the VNC session
+2. Scan the QR code with your phone's Signal app
+3. Link your device as "Ghostwire" or similar
 
 ## Configuration
 
-### Key Parameters
+Key values to customize (see [values.yaml](values.yaml) for all options):
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `image.repository` | Signal container image | `kasmweb/signal` |
-| `image.tag` | Signal image tag | `1.18.0` |
-| `replicaCount` | Number of replicas | `1` |
-| `service.type` | Service type | `ClusterIP` |
-| `service.port` | VNC port | `6901` |
-| `persistence.enabled` | Enable persistent storage | `true` |
-| `persistence.size` | Storage size | `10Gi` |
-| `auth.enabled` | Enable OAuth2 Proxy | `true` |
-| `auth.cookieSecret` | OAuth2 cookie secret | `CHANGE_ME...` |
-| `auth.cookieExpire` | Session expiration | `8h` |
-| `auth.cookieRefresh` | Session refresh interval | `1h` |
-| `auth.users` | htpasswd user entries | `["admin:..."]` |
-| `ingress.enabled` | Enable ingress | `false` |
+| `auth.password` | VNC password (required if auth enabled) | `testpass123` |
+| `auth.enabled` | Enable VNC authentication | `true` |
+| `persistence.size` | Signal data volume size | `5Gi` |
+| `persistence.storageClass` | StorageClass for PVC | `""` (default) |
+| `resources.requests.memory` | Minimum memory | `1Gi` |
+| `resources.limits.memory` | Maximum memory | `2Gi` |
+| `display.resolution` | VNC screen resolution | `1280x720` |
+| `service.type` | Service type (ClusterIP/NodePort/LoadBalancer) | `ClusterIP` |
 
-### Authentication Configuration
+## Common tasks
 
-#### Adding Users
-
-Generate htpasswd entries:
-
+### View logs
 ```bash
-htpasswd -nbB username password
+kubectl logs -n ghostwire ghostwire-0 -f
 ```
 
-Add to `values.yaml`:
-
-```yaml
-auth:
-  users:
-    - "username:$2y$05$..."
-```
-
-#### Custom Login Page
-
-Customize the login page appearance:
-
-```yaml
-auth:
-  customLoginPage:
-    enabled: true
-    title: "Custom Title"
-    subtitle: "Custom subtitle message"
-```
-
-#### Session Management
-
-Configure session duration for VNC usage:
-
-```yaml
-auth:
-  cookieRefresh: "1h"   # Refresh session every hour
-  cookieExpire: "8h"    # Total session duration
-  sessionAffinity:
-    enabled: true
-    timeoutSeconds: 3600  # 1 hour sticky sessions
-```
-
-### Resource Limits
-
-#### Signal Container
-
-```yaml
-resources:
-  limits:
-    cpu: 2000m
-    memory: 4Gi
-  requests:
-    cpu: 500m
-    memory: 1Gi
-```
-
-#### OAuth2 Proxy
-
-```yaml
-auth:
-  resources:
-    limits:
-      cpu: 200m
-      memory: 256Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-```
-
-### Ingress Configuration
-
-#### With NGINX Ingress Controller
-
-```yaml
-ingress:
-  enabled: true
-  className: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-  hosts:
-    - host: signal.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: signal-tls
-      hosts:
-        - signal.example.com
-```
-
-The chart automatically adds WebSocket-specific annotations when `auth.enabled=true`:
-- Extended timeouts for VNC sessions
-- WebSocket service configuration
-- Proper buffering and keepalive settings
-
-### LoadBalancer with Reserved IP
-
-For DigitalOcean or cloud providers with reserved IPs:
-
-```yaml
-service:
-  type: LoadBalancer
-  loadBalancerIP: "your.reserved.ip"
-```
-
-## Usage
-
-### Accessing Signal
-
-1. **With Authentication (default):**
-   - Navigate to your ingress URL or service endpoint
-   - Log in with configured username/password
-   - VNC interface loads automatically
-
-2. **Without Authentication:**
-   - Direct access to VNC on port 6901
-   - Default VNC password: `password` (change this!)
-
-### First-Time Setup
-
-1. Link Signal to your phone number
-2. Scan QR code with Signal mobile app
-3. Signal data persists in PersistentVolume
-
-### Managing Users
-
-#### Add User
-
+### Check pod status
 ```bash
-# Generate entry
-htpasswd -nbB newuser password
-
-# Update values and upgrade
-helm upgrade signal ./chart -f custom-values.yaml
+kubectl get pod -n ghostwire ghostwire-0
+kubectl describe pod -n ghostwire ghostwire-0
 ```
 
-#### Remove User
-
-Edit `values.yaml` and remove the user entry, then upgrade:
-
+### Access the persistent volume
 ```bash
-helm upgrade signal ./chart -f custom-values.yaml
+kubectl exec -n ghostwire ghostwire-0 -- ls -la /home/kasm-user/.config/Signal
 ```
 
-### Changing Passwords
-
-1. Generate new htpasswd entry
-2. Update `values.yaml`
-3. Upgrade the release:
-
+### Change VNC password
 ```bash
-helm upgrade signal ./chart -f custom-values.yaml
+helm upgrade ghostwire ./chart -n ghostwire --set auth.password=new-password --reuse-values
 ```
+
+### Increase storage size
+```bash
+# Edit the PVC (if supported by your storage class)
+kubectl patch pvc -n ghostwire ghostwire-ghostwire-0 -p '{"spec":{"resources":{"requests":{"storage":"10Gi"}}}}'
+```
+
+## Security considerations
+
+- **Change the default password** - `auth.password` defaults to `testpass123`
+- **Use authentication** - Keep `auth.enabled: true` in production
+- **Network policies** - Consider adding NetworkPolicies to restrict access
+- **TLS** - Use an ingress with TLS termination for external access
+- **Resource limits** - Set appropriate limits to prevent resource exhaustion
 
 ## Troubleshooting
 
-### Authentication Loop
+### Signal won't start
+Check pod logs for errors:
+```bash
+kubectl logs -n ghostwire ghostwire-0 | grep -i error
+```
 
-If experiencing redirect loops:
+### VNC shows blank screen
+1. Check if the pod is running: `kubectl get pod -n ghostwire`
+2. Verify resources: `kubectl top pod -n ghostwire ghostwire-0`
+3. Increase `shmSize` if browser crashes (default: 512MB)
 
-1. Check cookie secret is properly set:
-   ```bash
-   kubectl get secret signal-auth -o jsonpath='{.data.cookie-secret}' | base64 -d
-   ```
+### Authentication fails
+Browsers cache VNC credentials. To reset:
+- Use an incognito/private window, or
+- Clear browser data (Ctrl+Shift+Delete)
 
-2. Verify ingress annotations include WebSocket support
-
-3. Check OAuth2 Proxy logs:
-   ```bash
-   kubectl logs -l app.kubernetes.io/component=auth-proxy
-   ```
-
-### VNC Connection Issues
-
-1. Verify WebSocket annotations in ingress:
-   ```bash
-   kubectl get ingress signal -o yaml
-   ```
-
-2. Check Signal logs:
-   ```bash
-   kubectl logs -l app.kubernetes.io/name=signal
-   ```
-
-3. Test direct access (port-forward):
-   ```bash
-   kubectl port-forward svc/signal 6901:6901
-   # Access http://localhost:6901
-   ```
-
-### Persistence Issues
-
+### Persistent data loss
 Check PVC status:
+```bash
+kubectl get pvc -n ghostwire
+kubectl describe pvc -n ghostwire ghostwire-ghostwire-0
+```
+
+## Uninstallation
 
 ```bash
-kubectl get pvc
-kubectl describe pvc signal-data-signal-0
+# Remove the release
+helm uninstall ghostwire -n ghostwire
+
+# Delete the PVC (WARNING: This deletes your Signal data!)
+kubectl delete pvc -n ghostwire ghostwire-ghostwire-0
+
+# Delete the namespace
+kubectl delete namespace ghostwire
 ```
-
-## Architecture
-
-```
-User → Ingress → OAuth2 Proxy → Signal VNC (KasmWeb)
-                      ↓
-                  htpasswd auth
-                  WebSocket passthrough
-                  Session management
-```
-
-- **OAuth2 Proxy** handles authentication with htpasswd provider
-- **WebSocket support** ensures VNC streaming works properly
-- **Session affinity** keeps users on the same pod
-- **Extended timeouts** prevent VNC disconnections
-
-## Security Considerations
-
-1. **Change default passwords:**
-   - OAuth2 Proxy cookie secret
-   - VNC password
-   - htpasswd user credentials
-
-2. **Use TLS/HTTPS:**
-   - Enable ingress TLS
-   - Use cert-manager for automated certificates
-
-3. **Restrict access:**
-   - Use ingress with authentication
-   - Consider IP whitelisting
-   - Use strong passwords (bcrypt hash)
-
-4. **Session management:**
-   - Configure appropriate session timeouts
-   - Enable session affinity for VNC stability
-
-## Upgrading
-
-```bash
-# Upgrade with new values
-helm upgrade signal ./chart -f custom-values.yaml
-
-# Upgrade to new chart version
-helm upgrade signal ./chart --version x.y.z
-```
-
-**Note:** StatefulSet spec changes may require manual intervention. Check release notes before upgrading.
-
-## Uninstalling
-
-```bash
-# Delete release
-helm uninstall signal
-
-# Persistent data remains - delete manually if needed
-kubectl delete pvc signal-data-signal-0
-```
-
-## Development
-
-### Testing Locally
-
-```bash
-# Lint chart
-helm lint ./chart
-
-# Template rendering
-helm template signal ./chart -f custom-values.yaml
-
-# Dry run
-helm install signal ./chart --dry-run --debug
-```
-
-### Generate Password
-
-```bash
-# Generate htpasswd entry
-htpasswd -nbB username password
-
-# Generate cookie secret
-openssl rand -base64 32
-```
-
-## Support
-
-- **Chart Repository:** https://github.com/drengskapur/ghostwire
-- **KasmWeb Documentation:** https://www.kasmweb.com/docs
-- **OAuth2 Proxy:** https://oauth2-proxy.github.io/oauth2-proxy/
 
 ## License
 
-This Helm chart is provided as-is for deploying Signal Desktop with KasmWeb.
+This chart is licensed under the MIT License. Signal Desktop is licensed under the AGPLv3.

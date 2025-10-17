@@ -4,19 +4,13 @@ Your Signal desktop application has been deployed as a StatefulSet.
 
 To access Signal:
 
-{{- if .Values.ingress.enabled }}
-
-1. Via Ingress:
-{{- range .Values.ingress.hosts }}
-   http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
-{{- end }}
-{{- else if eq .Values.service.type "LoadBalancer" }}
+{{- if eq .Values.service.type "LoadBalancer" }}
 
 1. Get the LoadBalancer IP:
    kubectl get svc {{ include "ghostwire.fullname" . }} -n {{ .Release.Namespace }}
 
-2. Access Signal VNC interface at:
-   http://<EXTERNAL-IP>:{{ .Values.service.port }}
+2. Access Signal VNC interface at (with on-screen keyboard):
+   http://<EXTERNAL-IP>:{{ .Values.service.port }}?keyboard=1
 
 {{- else if eq .Values.service.type "NodePort" }}
 
@@ -24,26 +18,26 @@ To access Signal:
    export NODE_PORT=$(kubectl get svc {{ include "ghostwire.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath='{.spec.ports[0].nodePort}')
    export NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}')
 
-2. Access Signal VNC interface at:
-   http://$NODE_IP:$NODE_PORT
+2. Access Signal VNC interface at (with on-screen keyboard):
+   http://$NODE_IP:$NODE_PORT?keyboard=1
 
 {{- else }}
 
 1. Port forward to access locally:
    kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "ghostwire.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
 
-2. Access Signal VNC interface at:
-   http://localhost:{{ .Values.service.port }}
+2. Access Signal VNC interface at (with on-screen keyboard):
+   http://localhost:{{ .Values.service.port }}?keyboard=1
 
 {{- end }}
 
 {{- if .Values.auth.enabled }}
 3. VNC login credentials:
-   Username: {{ .Values.auth.username }}
+   Username: kasm_user (hardcoded in KasmVNC)
    Password: {{ .Values.auth.password }}
 
 IMPORTANT NOTES:
-- ⚠️  Change the VNC credentials (auth.username, auth.password) in values.yaml before deploying to production
+- ⚠️  Change the VNC password (auth.password) in values.yaml before deploying to production
 - ℹ️  If authentication fails, browsers cache the credentials. To retry with correct password:
     • Use an Incognito/Private window, OR
     • Clear browser credentials (Ctrl+Shift+Delete), OR
