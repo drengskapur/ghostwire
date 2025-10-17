@@ -1,0 +1,13 @@
+{
+  "files.associations": {
+    "**/templates/**/*.yaml": "helm",
+    "**/templates/**/*.yml": "helm",
+    "**/templates/**/*.tpl": "helm",
+    "Chart.yaml": "yaml",
+    "values.yaml": "yaml"
+  },
+  "yaml.schemas": {
+    "https://json.schemastore.org/chart.json": "Chart.yaml",
+    "https://json.schemastore.org/helmfile.json": "helmfile.yaml"
+  }
+}

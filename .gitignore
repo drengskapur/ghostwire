@@ -1,7 +1,6 @@
 .DS_Store
 .idea/
 .task/
-.vscode/
 
 # Environment files (use Taskfile.yml or CI/CD for config)
 .env*
