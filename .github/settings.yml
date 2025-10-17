@@ -59,7 +59,7 @@ branches:
     protection:
       # Require pull request reviews
       required_pull_request_reviews:
-        required_approving_review_count: 1
+        required_approving_review_count: 0  # Allow maintainer to self-merge
         dismiss_stale_reviews: true
         require_code_owner_reviews: false
         require_last_push_approval: false
@@ -72,7 +72,7 @@ branches:
           - "Helm Test"
 
       # Additional restrictions
-      enforce_admins: false
+      enforce_admins: false  # Allow maintainers to push directly for hotfixes
       required_linear_history: false
       allow_force_pushes: false
       allow_deletions: false
