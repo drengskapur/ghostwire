@@ -181,13 +181,13 @@ jobs:
           # Pull the chart we just pushed
           helm pull oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${CHART_NAME} --version ${CHART_VERSION}
 
-          # Re-package with latest tag
+          # Re-package with latest tag (semver-compatible)
           tar -xzf ${CHART_NAME}-${CHART_VERSION}.tgz
-          sed -i "s/^version:.*/version: latest/" ${CHART_NAME}/Chart.yaml
+          sed -i "s/^version:.*/version: 0.0.0-latest/" ${CHART_NAME}/Chart.yaml
           helm package ${CHART_NAME}
 
           # Push with latest tag
-          PUSH_OUTPUT=$(helm push ${CHART_NAME}-latest.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
+          PUSH_OUTPUT=$(helm push ${CHART_NAME}-0.0.0-latest.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
           echo "$PUSH_OUTPUT"
 
           DIGEST=$(echo "$PUSH_OUTPUT" | grep Digest | awk '{print $2}')
@@ -321,13 +321,13 @@ jobs:
           # Pull the chart we just pushed
           helm pull oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${CHART_NAME} --version ${VERSION}
 
-          # Re-package with latest-stable tag
+          # Re-package with latest-stable tag (semver-compatible)
           tar -xzf ${CHART_NAME}-${VERSION}.tgz
-          sed -i "s/^version:.*/version: latest-stable/" ${CHART_NAME}/Chart.yaml
+          sed -i "s/^version:.*/version: 0.0.0-lateststable/" ${CHART_NAME}/Chart.yaml
           helm package ${CHART_NAME}
 
           # Push with latest-stable tag
-          PUSH_OUTPUT=$(helm push ${CHART_NAME}-latest-stable.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
+          PUSH_OUTPUT=$(helm push ${CHART_NAME}-0.0.0-lateststable.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
           echo "$PUSH_OUTPUT"
 
           DIGEST=$(echo "$PUSH_OUTPUT" | grep Digest | awk '{print $2}')
