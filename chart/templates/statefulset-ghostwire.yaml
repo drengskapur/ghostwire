@@ -37,7 +37,7 @@ spec:
       initContainers:
       - name: setup-tls
         image: cgr.dev/chainguard/busybox:latest
-        command: ['/bin/ash', '-c']
+        command: ['/bin/sh', '-c']
         args:
         - |
           mkdir -p /home/kasm-user/.vnc
