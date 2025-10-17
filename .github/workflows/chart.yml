@@ -1,0 +1,291 @@
+name: Chart
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'chart/**'
+      - '.github/workflows/chart.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'chart/**'
+      - '.github/workflows/chart.yml'
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  CHART_PATH: chart
+  CHART_REGISTRY_PATH: charts
+
+jobs:
+  lint-and-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.3.0
+        with:
+          version: '3.14.0'
+
+      - name: Install helm-schema plugin
+        run: |
+          helm plugin install https://github.com/losisin/helm-values-schema-json --version v2.1.0
+          helm schema --version
+
+      - name: Install jq for schema post-processing
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Verify schema is up-to-date
+        run: |
+          cd ${{ env.CHART_PATH }}
+
+          # Generate schema
+          helm schema --no-additional-properties --indent 2
+
+          # Apply jq post-processing (must match Taskfile.yml)
+          jq '
+            # Allow arbitrary annotations and labels at top level
+            (.properties.commonLabels | select(. != null)) |= del(.additionalProperties) |
+            (.properties.commonAnnotations | select(. != null)) |= del(.additionalProperties) |
+
+            # Allow flexible pod labels and annotations
+            (.properties.server.properties.podLabels | select(. != null)) |= del(.additionalProperties) |
+            (.properties.server.properties.podAnnotations | select(. != null)) |= del(.additionalProperties) |
+
+            # Allow flexible arrays for extensibility
+            (.properties.server.properties.extraEnvVars | select(. != null)) |= del(.additionalProperties) |
+            (.properties.server.properties.extraVolumes | select(. != null)) |= del(.additionalProperties) |
+            (.properties.server.properties.sidecars | select(. != null)) |= del(.additionalProperties) |
+            (.properties.server.properties.initContainers | select(. != null)) |= del(.additionalProperties) |
+
+            # Federation Hub flexible fields
+            (.properties.federationHub.properties.podLabels | select(. != null)) |= del(.additionalProperties) |
+            (.properties.federationHub.properties.podAnnotations | select(. != null)) |= del(.additionalProperties) |
+            (.properties.federationHub.properties.extraEnvVars | select(. != null)) |= del(.additionalProperties) |
+            (.properties.federationHub.properties.extraVolumes | select(. != null)) |= del(.additionalProperties) |
+            (.properties.federationHub.properties.sidecars | select(. != null)) |= del(.additionalProperties) |
+
+            # Federation Hub database flexible fields
+            (.properties.federationHub.properties.database.properties.podLabels | select(. != null)) |= del(.additionalProperties) |
+            (.properties.federationHub.properties.database.properties.podAnnotations | select(. != null)) |= del(.additionalProperties) |
+            (.properties.federationHub.properties.database.properties.extraEnvVars | select(. != null)) |= del(.additionalProperties) |
+            (.properties.federationHub.properties.database.properties.extraVolumes | select(. != null)) |= del(.additionalProperties) |
+            (.properties.federationHub.properties.database.properties.sidecars | select(. != null)) |= del(.additionalProperties) |
+
+            # Allow extraDeploy for custom resources
+            (.properties.extraDeploy | select(. != null)) |= del(.additionalProperties) |
+
+            # Ensure imagePullSecrets are strings (secret names)
+            (.properties.global.properties.imagePullSecrets.items | select(. != null)) = { "type": "string" } |
+
+            # Allow Overwatch subchart to have its own schema - recursively remove additionalProperties
+            (.properties.overwatch | select(. != null)) |= walk(if type == "object" and has("additionalProperties") then del(.additionalProperties) else . end)
+          ' values.schema.json > values.schema.json.tmp && mv values.schema.json.tmp values.schema.json
+
+          # Check if schema changed
+          if ! git diff --exit-code values.schema.json; then
+            echo "❌ ERROR: values.schema.json is out of date!"
+            echo "💡 Please run 'task generate' locally and commit the updated schema"
+            exit 1
+          else
+            echo "✅ Schema is up-to-date"
+          fi
+
+      - name: Helm lint
+        run: helm lint ${{ env.CHART_PATH }}
+
+      - name: Helm template
+        run: helm template test ${{ env.CHART_PATH }} > /dev/null
+
+  publish-main:
+    name: Publish Main Branch
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.3.0
+        with:
+          version: '3.14.0'
+
+      - name: Get commit SHA
+        id: commit
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Package Helm chart with main tag
+        run: |
+          CHART_NAME=$(grep '^name:' ${{ env.CHART_PATH }}/Chart.yaml | awk '{print $2}')
+
+          # Set version to main-<sha> for this build
+          sed -i "s/^version:.*/version: main-${{ steps.commit.outputs.sha_short }}/" ${{ env.CHART_PATH }}/Chart.yaml
+
+          helm package ${{ env.CHART_PATH }}
+          echo "chart_name=${CHART_NAME}" >> $GITHUB_OUTPUT
+          echo "chart_version=main-${{ steps.commit.outputs.sha_short }}" >> $GITHUB_OUTPUT
+        id: package
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      - name: Push chart with main tag
+        run: |
+          CHART_NAME="${{ steps.package.outputs.chart_name }}"
+          CHART_VERSION="${{ steps.package.outputs.chart_version }}"
+
+          helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}
+          echo "✅ Published ${CHART_NAME}:${CHART_VERSION}"
+
+      - name: Tag as latest
+        run: |
+          CHART_NAME="${{ steps.package.outputs.chart_name }}"
+          CHART_VERSION="${{ steps.package.outputs.chart_version }}"
+
+          # Pull the chart we just pushed
+          helm pull oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${CHART_NAME} --version ${CHART_VERSION}
+
+          # Re-package with latest tag
+          tar -xzf ${CHART_NAME}-${CHART_VERSION}.tgz
+          sed -i "s/^version:.*/version: latest/" ${CHART_NAME}/Chart.yaml
+          helm package ${CHART_NAME}
+
+          # Push with latest tag
+          helm push ${CHART_NAME}-latest.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}
+          echo "✅ Tagged as ${CHART_NAME}:latest"
+
+  publish-release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.3.0
+        with:
+          version: '3.14.0'
+
+      - name: Install git-cliff
+        run: |
+          wget -qO- https://github.com/orhun/git-cliff/releases/download/v2.10.1/git-cliff-2.10.1-x86_64-unknown-linux-gnu.tar.gz | tar xz --strip-components=1
+          sudo mv git-cliff /usr/local/bin/
+          git-cliff --version
+
+      - name: Calculate next version with git-cliff
+        id: version
+        run: |
+          # Get current version from Chart.yaml
+          CURRENT_VERSION=$(grep '^version:' ${{ env.CHART_PATH }}/Chart.yaml | awk '{print $2}')
+          echo "📌 Current version: ${CURRENT_VERSION}"
+
+          # Use git-cliff to determine next version based on conventional commits
+          NEW_VERSION=$(git-cliff --bumped-version 2>/dev/null | sed 's/^v//')
+
+          if [ "$NEW_VERSION" = "$CURRENT_VERSION" ] || [ "$NEW_VERSION" = "" ]; then
+            # No version bump needed
+            COMMIT_MSG=$(git log -1 --pretty=%s)
+            echo "ℹ️  No version bump needed for: ${COMMIT_MSG}"
+            echo "bump=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "🔼 Bumping version: ${CURRENT_VERSION} → ${NEW_VERSION}"
+          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "bump=true" >> $GITHUB_OUTPUT
+
+      - name: Create git tag
+        if: steps.version.outputs.bump == 'true'
+        run: |
+          git tag "v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
+
+      - name: Package Helm chart with semver
+        if: steps.version.outputs.bump == 'true'
+        run: |
+          CHART_NAME=$(grep '^name:' ${{ env.CHART_PATH }}/Chart.yaml | awk '{print $2}')
+
+          # Update Chart.yaml with semantic version
+          sed -i "s/^version:.*/version: ${{ steps.version.outputs.version }}/" ${{ env.CHART_PATH }}/Chart.yaml
+
+          helm package ${{ env.CHART_PATH }}
+          echo "chart_name=${CHART_NAME}" >> $GITHUB_OUTPUT
+        id: package
+
+      - name: Log in to GitHub Container Registry
+        if: steps.version.outputs.bump == 'true'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      - name: Check if version already exists
+        if: steps.version.outputs.bump == 'true'
+        run: |
+          CHART_NAME="${{ steps.package.outputs.chart_name }}"
+          VERSION=${{ steps.version.outputs.version }}
+
+          # Check if the version already exists in GHCR
+          if helm pull oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${CHART_NAME} --version ${VERSION} 2>/dev/null; then
+            echo "❌ ERROR: Version ${VERSION} already exists in registry!"
+            echo "🚫 Chart versions are immutable and cannot be overwritten."
+            exit 1
+          else
+            echo "✅ Version ${VERSION} does not exist - safe to publish"
+          fi
+
+      - name: Push chart with semver tag
+        if: steps.version.outputs.bump == 'true'
+        run: |
+          CHART_NAME="${{ steps.package.outputs.chart_name }}"
+          VERSION=${{ steps.version.outputs.version }}
+
+          helm push ${CHART_NAME}-${VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}
+          echo "✅ Published ${CHART_NAME}:${VERSION}"
+          echo "🔒 This version is now immutable and cannot be overwritten"
+
+      - name: Tag as latest-stable
+        if: steps.version.outputs.bump == 'true'
+        run: |
+          CHART_NAME="${{ steps.package.outputs.chart_name }}"
+          VERSION=${{ steps.version.outputs.version }}
+
+          # Pull the chart we just pushed
+          helm pull oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${CHART_NAME} --version ${VERSION}
+
+          # Re-package with latest-stable tag
+          tar -xzf ${CHART_NAME}-${VERSION}.tgz
+          sed -i "s/^version:.*/version: latest-stable/" ${CHART_NAME}/Chart.yaml
+          helm package ${CHART_NAME}
+
+          # Push with latest-stable tag
+          helm push ${CHART_NAME}-latest-stable.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}
+          echo "✅ Tagged as ${CHART_NAME}:latest-stable"
+
+      - name: Create GitHub Release
+        if: steps.version.outputs.bump == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CHART_NAME="${{ steps.package.outputs.chart_name }}"
+          VERSION=${{ steps.version.outputs.version }}
+
+          # Generate release notes for this version with git-cliff
+          RELEASE_NOTES=$(git-cliff --unreleased --strip all)
+
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --notes "${RELEASE_NOTES}" \
+            ${CHART_NAME}-${VERSION}.tgz
