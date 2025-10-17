@@ -23,7 +23,7 @@ repository:
     - browser-access
 
   # Repository features
-  private: true
+  private: false
   has_issues: true
   has_projects: false
   has_wiki: false

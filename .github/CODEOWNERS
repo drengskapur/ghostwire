@@ -1,0 +1,31 @@
+# CODEOWNERS file for Ghostwire
+# Each line is a file pattern followed by one or more owners
+
+# Default owners for everything in the repo
+* @drengskapur
+
+# Helm chart ownership
+/chart/ @drengskapur
+/chart/templates/ @drengskapur
+/chart/values.yaml @drengskapur
+/chart/Chart.yaml @drengskapur
+
+# Documentation ownership
+/docs/ @drengskapur
+*.md @drengskapur
+
+# CI/CD workflows
+/.github/workflows/ @drengskapur
+/.github/settings.yml @drengskapur
+
+# Container images
+/images/ @drengskapur
+Dockerfile @drengskapur
+
+# Build and automation
+/Taskfile.yml @drengskapur
+/.gitleaks.toml @drengskapur
+
+# License and legal
+/LICENSE @drengskapur
+/NOTICE @drengskapur
