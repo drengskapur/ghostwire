@@ -85,12 +85,13 @@ tests:
   - it: should disable basic auth when auth.enabled is false
     set:
       auth.enabled: false
+      tls.mode: disabled
     asserts:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
             name: VNCOPTIONS
-            value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -disableBasicAuth"
+            value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -disableBasicAuth -sslOnly 0"
 
   ## Display Configuration
   - it: should set default VNC resolution

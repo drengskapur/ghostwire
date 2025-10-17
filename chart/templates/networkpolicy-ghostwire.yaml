@@ -16,13 +16,21 @@ spec:
     - Ingress
     - Egress
   ingress:
-    {{- if .Values.haproxy.enabled }}
-    # Allow HAProxy to access VNC port
+    {{- if .Values.ingress.enabled }}
+    # Allow ingress controller to access VNC port
     - from:
-      - podSelector:
-          matchLabels:
-            {{- include "ghostwire.selectorLabels" . | nindent 12 }}
-            app.kubernetes.io/component: proxy
+      - namespaceSelector:
+          {{- toYaml .Values.networkPolicy.ingressControllerNamespaceSelector | nindent 10 }}
+        {{- if .Values.networkPolicy.ingressControllerPodSelector }}
+        podSelector:
+          {{- toYaml .Values.networkPolicy.ingressControllerPodSelector | nindent 10 }}
+        {{- end }}
+      ports:
+      - protocol: TCP
+        port: 6901
+    {{- else }}
+    # Allow all ingress when ingress controller not enabled
+    - from: []
       ports:
       - protocol: TCP
         port: 6901

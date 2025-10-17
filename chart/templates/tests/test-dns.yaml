@@ -28,16 +28,6 @@ spec:
             exit 1
           fi
 
-          {{- if .Values.haproxy.enabled }}
-          # Test DNS resolution for HAProxy service
-          if nslookup {{ include "ghostwire.fullname" . }}-haproxy.{{ .Release.Namespace }}.svc.cluster.local &>/dev/null; then
-            echo "✅ HAProxy service DNS resolves"
-          else
-            echo "❌ HAProxy service DNS resolution failed"
-            exit 1
-          fi
-          {{- end }}
-
           # Test DNS resolution for headless service
           if nslookup {{ include "ghostwire.fullname" . }}-0.{{ include "ghostwire.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local &>/dev/null; then
             echo "✅ Headless service DNS resolves"

@@ -53,21 +53,9 @@ tests:
           path: spec.rules[0].http.paths[0].pathType
           value: Prefix
 
-  - it: should route to haproxy service by default
+  - it: should route to ghostwire service
     set:
       ingress.enabled: true
-    asserts:
-      - equal:
-          path: spec.rules[0].http.paths[0].backend.service.name
-          value: RELEASE-NAME-ghostwire-haproxy
-      - equal:
-          path: spec.rules[0].http.paths[0].backend.service.port.number
-          value: 6901
-
-  - it: should route directly to ghostwire when haproxy is disabled
-    set:
-      ingress.enabled: true
-      haproxy.enabled: false
       service.port: 6901
     asserts:
       - equal:

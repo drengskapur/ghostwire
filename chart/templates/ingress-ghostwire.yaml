@@ -12,11 +12,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
     nginx.ingress.kubernetes.io/proxy-buffer-size: "4k"
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
-    {{- if .Values.haproxy.enabled }}
-    nginx.ingress.kubernetes.io/websocket-services: "{{ include "ghostwire.fullname" . }}-haproxy"
-    {{- else }}
     nginx.ingress.kubernetes.io/websocket-services: "{{ include "ghostwire.fullname" . }}"
-    {{- end }}
     nginx.ingress.kubernetes.io/upstream-keepalive-timeout: "600"
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
@@ -45,15 +41,9 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                {{- if $.Values.haproxy.enabled }}
-                name: {{ include "ghostwire.fullname" $ }}-haproxy
-                port:
-                  number: 6901
-                {{- else }}
                 name: {{ include "ghostwire.fullname" $ }}
                 port:
                   number: {{ $.Values.service.port }}
-                {{- end }}
           {{- end }}
     {{- end }}
 {{- end }}

@@ -1,13 +1,10 @@
 suite: test network policies
 templates:
   - networkpolicy-ghostwire.yaml
-  - networkpolicy-haproxy.yaml
 tests:
   ## Network Policy Disabled
   - it: should not create network policies when disabled
-    templates:
-      - networkpolicy-ghostwire.yaml
-      - networkpolicy-haproxy.yaml
+    template: networkpolicy-ghostwire.yaml
     set:
       networkPolicy.enabled: false
     asserts:
@@ -29,21 +26,16 @@ tests:
           path: spec.podSelector.matchLabels["app.kubernetes.io/component"]
           value: app
 
-  - it: should allow ingress from HAProxy when enabled
+  - it: should allow all ingress when ingress controller not enabled
     template: networkpolicy-ghostwire.yaml
     set:
       networkPolicy.enabled: true
-      haproxy.enabled: true
+      ingress.enabled: false
     asserts:
       - contains:
           path: spec.ingress
           content:
-            from:
-              - podSelector:
-                  matchLabels:
-                    app.kubernetes.io/name: ghostwire
-                    app.kubernetes.io/instance: RELEASE-NAME
-                    app.kubernetes.io/component: proxy
+            from: []
             ports:
               - protocol: TCP
                 port: 6901
@@ -64,47 +56,3 @@ tests:
                 port: 443
               - protocol: TCP
                 port: 80
-
-  ## HAProxy Network Policy
-  - it: should create haproxy network policy when enabled
-    template: networkpolicy-haproxy.yaml
-    set:
-      networkPolicy.enabled: true
-      haproxy.enabled: true
-    asserts:
-      - isKind:
-          of: NetworkPolicy
-      - equal:
-          path: metadata.name
-          value: RELEASE-NAME-ghostwire-haproxy
-      - equal:
-          path: spec.podSelector.matchLabels["app.kubernetes.io/component"]
-          value: proxy
-
-  - it: should not create haproxy network policy when haproxy disabled
-    template: networkpolicy-haproxy.yaml
-    set:
-      networkPolicy.enabled: true
-      haproxy.enabled: false
-    asserts:
-      - hasDocuments:
-          count: 0
-
-  - it: should allow egress to Ghostwire from HAProxy
-    template: networkpolicy-haproxy.yaml
-    set:
-      networkPolicy.enabled: true
-      haproxy.enabled: true
-    asserts:
-      - contains:
-          path: spec.egress
-          content:
-            to:
-              - podSelector:
-                  matchLabels:
-                    app.kubernetes.io/name: ghostwire
-                    app.kubernetes.io/instance: RELEASE-NAME
-                    app.kubernetes.io/component: app
-            ports:
-              - protocol: TCP
-                port: 6901

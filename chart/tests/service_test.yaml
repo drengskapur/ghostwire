@@ -1,7 +1,6 @@
 suite: test services
 templates:
   - service-ghostwire.yaml
-  - service-haproxy.yaml
 tests:
   ## Ghostwire Service Tests
   - it: should create a ghostwire Service with default values
@@ -53,44 +52,6 @@ tests:
           path: spec.selector["app.kubernetes.io/component"]
           value: app
 
-  ## HAProxy Service Tests
-  - it: should create HAProxy service when enabled
-    template: service-haproxy.yaml
-    set:
-      haproxy.enabled: true
-    asserts:
-      - isKind:
-          of: Service
-      - equal:
-          path: metadata.name
-          value: RELEASE-NAME-ghostwire-haproxy
-      - equal:
-          path: spec.type
-          value: ClusterIP
-      - equal:
-          path: spec.ports[0].name
-          value: vnc
-      - equal:
-          path: spec.ports[0].port
-          value: 6901
-
-  - it: should not create HAProxy service when disabled
-    template: service-haproxy.yaml
-    set:
-      haproxy.enabled: false
-    asserts:
-      - hasDocuments:
-          count: 0
-
-  - it: should include component selector for haproxy
-    template: service-haproxy.yaml
-    set:
-      haproxy.enabled: true
-    asserts:
-      - equal:
-          path: spec.selector["app.kubernetes.io/component"]
-          value: proxy
-
   ## Standard Labels
   - it: should include standard labels on ghostwire service
     template: service-ghostwire.yaml
@@ -104,15 +65,3 @@ tests:
       - equal:
           path: metadata.labels["app.kubernetes.io/managed-by"]
           value: Helm
-
-  - it: should include standard labels on haproxy service
-    template: service-haproxy.yaml
-    set:
-      haproxy.enabled: true
-    asserts:
-      - equal:
-          path: metadata.labels["app.kubernetes.io/name"]
-          value: ghostwire
-      - equal:
-          path: metadata.labels["app.kubernetes.io/instance"]
-          value: RELEASE-NAME

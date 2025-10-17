@@ -178,10 +178,10 @@ containerSecurityContext:
 ## @param auth.username VNC authentication username
 ## @param auth.password VNC authentication password
 ##
-## ⚠️  SECURITY: Change these credentials for production!
+## ⚠️  SECURITY: Enable authentication for production!
 ##
 auth:
-  enabled: true
+  enabled: false
   username: "kasm_user"
   password: "testpass123"
 
@@ -220,7 +220,7 @@ auth:
 ##     mode: disabled
 ##
 tls:
-  mode: auto  # auto, custom, or disabled
+  mode: disabled  # auto, custom, or disabled
   ## Use existing secret (leave empty to create from inline cert/key below)
   secretName: ""
   ## Inline certificate (only used if secretName is empty and mode is custom)
@@ -343,7 +343,7 @@ networkPolicy:
   enabled: true
   ## Allow internet egress for Signal Desktop functionality
   allowInternetEgress: true
-  ## Ingress controller namespace selector (for ingress access to HAProxy)
+  ## Ingress controller namespace selector (for ingress access to Ghostwire)
   ## Default assumes ingress-nginx in ingress-nginx namespace
   ingressControllerNamespaceSelector:
     name: ingress-nginx
@@ -351,103 +351,3 @@ networkPolicy:
   ## Leave empty to allow all pods from the namespace
   ingressControllerPodSelector: {}
 
-## @section HAProxy Configuration
-## HAProxy provides efficient HTTP/WebSocket proxying with connection pooling
-##
-## ℹ️  HAProxy is OPTIONAL for this deployment:
-##
-## **Enable HAProxy (haproxy.enabled: true) if you want:**
-##   - Explicit SSL/TLS verification control to backend
-##   - Advanced health checks and observability
-##   - Future expansion with multiple backend services
-##   - Current footprint: ~1m CPU, ~66Mi memory
-##
-## **Disable HAProxy (haproxy.enabled: false) for:**
-##   - Simpler architecture (Cloudflared → Ghostwire directly)
-##   - Lower resource usage (saves ~66Mi memory)
-##   - Single-user Signal Desktop (recommended)
-##
-## ✅  AUTOMATIC ROUTING: A "ghostwire-proxy" service automatically routes to the
-##     correct backend (HAProxy or Ghostwire) based on this setting. No manual
-##     configuration changes needed in Cloudflare Tunnel or Ingress!
-##
-##     Always use: http://ghostwire-proxy.namespace.svc.cluster.local:6901
-##
-haproxy:
-  ## @param haproxy.enabled Enable HAProxy for VNC/WebSocket proxying
-  enabled: true
-
-  ## @param haproxy.replicaCount Number of HAProxy replicas
-  replicaCount: 1
-
-  ## @param haproxy.image HAProxy image configuration
-  ## @param haproxy.image.repository HAProxy image repository
-  ## @param haproxy.image.tag HAProxy image tag
-  ## @param haproxy.image.pullPolicy Image pull policy
-  image:
-    repository: haproxytech/haproxy-alpine
-    tag: "2.9"
-    pullPolicy: IfNotPresent
-
-  ## @param haproxy.securityContext Pod security context for HAProxy
-  securityContext:
-    runAsUser: 99  # HAProxy user
-    runAsGroup: 99
-    runAsNonRoot: true
-    fsGroup: 99
-    seccompProfile:
-      type: RuntimeDefault
-
-  ## @param haproxy.containerSecurityContext Container security context for HAProxy
-  containerSecurityContext:
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop:
-      - ALL
-    readOnlyRootFilesystem: false
-
-  ## @param haproxy.serviceAccount Service account configuration for HAProxy
-  serviceAccount:
-    create: true
-    annotations: {}
-
-  ## @param haproxy.ssl SSL/TLS configuration for backend connections
-  ## @param haproxy.ssl.verify SSL verification mode (none, optional, required)
-  ## @param haproxy.ssl.caSecret Name of secret containing CA certificate (tls.crt key)
-  ##
-  ## SSL verification modes:
-  ##   none     - No certificate verification (default, works with self-signed certs)
-  ##   optional - Verify if CA is available, but don't fail if verification fails
-  ##   required - Strict verification, requires valid certificate and CA bundle
-  ##
-  ## For production with custom certificates, use 'required' mode and provide CA secret
-  ssl:
-    verify: none
-    ## Optional: Secret containing CA certificate for backend SSL verification
-    ## If provided, will be mounted and used for verification
-    caSecret: ""
-
-  ## @param haproxy.livenessProbe Liveness probe configuration for HAProxy
-  livenessProbe:
-    enabled: true
-    initialDelaySeconds: 10
-    periodSeconds: 10
-    timeoutSeconds: 3
-    failureThreshold: 3
-
-  ## @param haproxy.readinessProbe Readiness probe configuration for HAProxy
-  readinessProbe:
-    enabled: true
-    initialDelaySeconds: 5
-    periodSeconds: 5
-    timeoutSeconds: 2
-    failureThreshold: 3
-
-  ## @param haproxy.resources Resource limits for HAProxy
-  resources:
-    limits:
-      cpu: 200m
-      memory: 128Mi
-    requests:
-      cpu: 50m
-      memory: 32Mi

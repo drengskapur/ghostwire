@@ -72,13 +72,9 @@ spec:
           value: {{ .Values.auth.password | quote }}
         - name: VNC_RESOLUTION
           value: {{ .Values.display.resolution | quote }}
-        {{- if eq .Values.tls.mode "disabled" }}
-        - name: KASM_SVC_NO_SSL
-          value: "true"
-        {{- end }}
-        {{- if not .Values.auth.enabled }}
+        {{- if or (eq .Values.tls.mode "disabled") (not .Values.auth.enabled) }}
         - name: VNCOPTIONS
-          value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -disableBasicAuth"
+          value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0{{- if not .Values.auth.enabled }} -disableBasicAuth{{- end }}{{- if eq .Values.tls.mode "disabled" }} -sslOnly 0{{- end }}"
         {{- end }}
         {{- with .Values.env }}
         {{- toYaml . | nindent 8 }}
