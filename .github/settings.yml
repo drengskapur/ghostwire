@@ -1,16 +1,238 @@
+# GitHub repository settings managed by Probot Settings
+# https://github.com/probot/settings
+
 repository:
   name: ghostwire
+  description: Cloud-native Signal Desktop for Kubernetes - Browser-based access with infrastructure-level security
+  homepage: https://github.com/drengskapur/ghostwire
+  topics:
+    - kubernetes
+    - helm
+    - signal
+    - signal-desktop
+    - vnc
+    - kasmvnc
+    - cloud-native
+    - oauth2
+    - cert-manager
+    - gitops
+    - statefulset
+    - persistent-storage
+    - electron
+    - remote-desktop
+    - browser-access
+
+  # Repository features
   private: true
   has_issues: true
   has_projects: false
   has_wiki: false
-  has_downloads: false
+  has_downloads: true
   has_pages: false
+
+  # Merge settings
   allow_squash_merge: true
   allow_merge_commit: false
   allow_rebase_merge: true
   allow_auto_merge: true
   delete_branch_on_merge: true
+
+  # Security
   enable_automated_security_fixes: true
   enable_vulnerability_alerts: true
+
+  # Default branch
   default_branch: main
+
+  # Advanced settings
+  allow_forking: true
+  web_commit_signoff_required: false
+
+# Collaborators and teams
+# collaborators:
+#   - username: example-user
+#     permission: push
+
+# Branch protection rules
+branches:
+  - name: main
+    protection:
+      # Require pull request reviews
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: false
+        require_last_push_approval: false
+
+      # Require status checks
+      required_status_checks:
+        strict: true
+        contexts:
+          - "Helm Lint"
+          - "Helm Test"
+
+      # Additional restrictions
+      enforce_admins: false
+      required_linear_history: false
+      allow_force_pushes: false
+      allow_deletions: false
+      required_conversation_resolution: true
+      lock_branch: false
+      allow_fork_syncing: true
+
+# Labels for issue/PR categorization
+labels:
+  # Type labels
+  - name: "type: bug"
+    color: "d73a4a"
+    description: "Something isn't working"
+
+  - name: "type: feature"
+    color: "a2eeef"
+    description: "New feature or request"
+
+  - name: "type: enhancement"
+    color: "84b6eb"
+    description: "Improvement to existing feature"
+
+  - name: "type: documentation"
+    color: "0075ca"
+    description: "Documentation improvements"
+
+  - name: "type: security"
+    color: "ee0701"
+    description: "Security vulnerability or concern"
+
+  - name: "type: performance"
+    color: "5319e7"
+    description: "Performance improvement"
+
+  - name: "type: refactor"
+    color: "fbca04"
+    description: "Code refactoring"
+
+  - name: "type: test"
+    color: "1d76db"
+    description: "Test-related changes"
+
+  # Priority labels
+  - name: "priority: critical"
+    color: "b60205"
+    description: "Critical priority - security or data loss"
+
+  - name: "priority: high"
+    color: "d93f0b"
+    description: "High priority"
+
+  - name: "priority: medium"
+    color: "fbca04"
+    description: "Medium priority"
+
+  - name: "priority: low"
+    color: "0e8a16"
+    description: "Low priority"
+
+  # Status labels
+  - name: "status: needs-triage"
+    color: "ededed"
+    description: "Needs initial review and categorization"
+
+  - name: "status: in-progress"
+    color: "f9d0c4"
+    description: "Currently being worked on"
+
+  - name: "status: blocked"
+    color: "d93f0b"
+    description: "Blocked by external dependency"
+
+  - name: "status: needs-review"
+    color: "fbca04"
+    description: "Waiting for code review"
+
+  - name: "status: needs-testing"
+    color: "c5def5"
+    description: "Needs testing before merge"
+
+  # Component labels
+  - name: "component: helm-chart"
+    color: "1d76db"
+    description: "Helm chart configuration"
+
+  - name: "component: container"
+    color: "0052cc"
+    description: "Container image or Dockerfile"
+
+  - name: "component: ci-cd"
+    color: "bfd4f2"
+    description: "CI/CD workflows and automation"
+
+  - name: "component: docs"
+    color: "0075ca"
+    description: "Documentation"
+
+  - name: "component: tests"
+    color: "d4c5f9"
+    description: "Helm tests or validation"
+
+  # Cloud-native specific
+  - name: "cloud-native: ingress"
+    color: "006b75"
+    description: "Ingress/routing configuration"
+
+  - name: "cloud-native: oauth2"
+    color: "1d76db"
+    description: "OAuth2/authentication integration"
+
+  - name: "cloud-native: cert-manager"
+    color: "0e8a16"
+    description: "Certificate management"
+
+  - name: "cloud-native: service-mesh"
+    color: "5319e7"
+    description: "Service mesh integration"
+
+  - name: "cloud-native: gitops"
+    color: "0052cc"
+    description: "Flux/ArgoCD GitOps"
+
+  # Special labels
+  - name: "good first issue"
+    color: "7057ff"
+    description: "Good for newcomers"
+
+  - name: "help wanted"
+    color: "008672"
+    description: "Extra attention needed"
+
+  - name: "dependencies"
+    color: "0366d6"
+    description: "Dependency updates"
+
+  - name: "breaking-change"
+    color: "b60205"
+    description: "Breaking change - requires major version bump"
+
+  - name: "wontfix"
+    color: "ffffff"
+    description: "Will not be worked on"
+
+  - name: "duplicate"
+    color: "cfd3d7"
+    description: "Duplicate of existing issue"
+
+  - name: "question"
+    color: "d876e3"
+    description: "Question or discussion"
+
+# Milestones
+milestones:
+  - title: "v1.0.0 - Production Ready"
+    description: "First stable release with full cloud-native integration"
+    state: open
+
+  - title: "v0.1.0 - MVP"
+    description: "Minimum viable product - basic functionality working"
+    state: closed
+
+# Issue templates will be in .github/ISSUE_TEMPLATE/
+# PR template will be in .github/pull_request_template.md
