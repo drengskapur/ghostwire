@@ -214,7 +214,7 @@ env: []
 
 ## @param shmSize Shared memory size in MB (for browser performance)
 ##
-shmSize: 256
+shmSize: 512
 
 ## @param envFrom Additional environment variables from secrets/configmaps
 ## Example:
