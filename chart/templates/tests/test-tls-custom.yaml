@@ -1,0 +1,175 @@
+{{- if eq .Values.tls.mode "custom" }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "ghostwire.fullname" . }}-test-tls
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ghostwire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "10"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+  - name: test-tls-cert
+    image: cgr.dev/chainguard/busybox:latest
+    command: ['/bin/sh', '-c']
+    args:
+    - |
+      set -e
+
+      echo "Testing custom TLS certificate installation..."
+
+      # Wait for StatefulSet pod to be ready
+      echo "Waiting for ghostwire-0 pod to be ready..."
+      max_wait=120
+      elapsed=0
+      while [ $elapsed -lt $max_wait ]; do
+        if kubectl get pod {{ include "ghostwire.fullname" . }}-0 -n {{ .Release.Namespace }} >/dev/null 2>&1; then
+          pod_status=$(kubectl get pod {{ include "ghostwire.fullname" . }}-0 -n {{ .Release.Namespace }} -o jsonpath='{.status.phase}')
+          if [ "$pod_status" = "Running" ]; then
+            echo "Pod is running"
+            break
+          fi
+        fi
+        echo "Waiting... ($elapsed/$max_wait seconds)"
+        sleep 5
+        elapsed=$((elapsed + 5))
+      done
+
+      if [ $elapsed -ge $max_wait ]; then
+        echo "ERROR: Pod did not become ready within ${max_wait} seconds"
+        exit 1
+      fi
+
+      # Give initContainer time to complete
+      sleep 10
+
+      # Test 1: Verify certificate file exists
+      echo "Test 1: Checking if certificate file exists..."
+      if kubectl exec {{ include "ghostwire.fullname" . }}-0 -n {{ .Release.Namespace }} -- test -f /home/kasm-user/.vnc/self.pem; then
+        echo "✓ Certificate file exists at /home/kasm-user/.vnc/self.pem"
+      else
+        echo "✗ ERROR: Certificate file not found"
+        exit 1
+      fi
+
+      # Test 2: Verify certificate has correct permissions
+      echo "Test 2: Checking certificate permissions..."
+      perms=$(kubectl exec {{ include "ghostwire.fullname" . }}-0 -n {{ .Release.Namespace }} -- stat -c '%a' /home/kasm-user/.vnc/self.pem)
+      if [ "$perms" = "600" ]; then
+        echo "✓ Certificate has correct permissions: 600"
+      else
+        echo "✗ ERROR: Certificate has wrong permissions: $perms (expected 600)"
+        exit 1
+      fi
+
+      # Test 3: Verify certificate ownership
+      echo "Test 3: Checking certificate ownership..."
+      owner=$(kubectl exec {{ include "ghostwire.fullname" . }}-0 -n {{ .Release.Namespace }} -- stat -c '%u:%g' /home/kasm-user/.vnc/self.pem)
+      if [ "$owner" = "1000:1000" ]; then
+        echo "✓ Certificate has correct ownership: 1000:1000"
+      else
+        echo "✗ ERROR: Certificate has wrong ownership: $owner (expected 1000:1000)"
+        exit 1
+      fi
+
+      # Test 4: Verify certificate contains both key and cert
+      echo "Test 4: Checking certificate content..."
+      cert_content=$(kubectl exec {{ include "ghostwire.fullname" . }}-0 -n {{ .Release.Namespace }} -- cat /home/kasm-user/.vnc/self.pem)
+
+      if echo "$cert_content" | grep -q "BEGIN.*PRIVATE KEY"; then
+        echo "✓ Certificate contains private key"
+      else
+        echo "✗ ERROR: Certificate does not contain private key"
+        exit 1
+      fi
+
+      if echo "$cert_content" | grep -q "BEGIN CERTIFICATE"; then
+        echo "✓ Certificate contains certificate"
+      else
+        echo "✗ ERROR: Certificate does not contain certificate"
+        exit 1
+      fi
+
+      # Test 5: Verify VNC is using TLS (not in HTTP-only mode)
+      echo "Test 5: Checking VNC TLS configuration..."
+      vnc_opts=$(kubectl exec {{ include "ghostwire.fullname" . }}-0 -n {{ .Release.Namespace }} -- printenv VNCOPTIONS || echo "")
+
+      if echo "$vnc_opts" | grep -q "sslOnly 0"; then
+        echo "✗ ERROR: VNC is configured for HTTP-only mode (sslOnly 0 found)"
+        exit 1
+      else
+        echo "✓ VNC is not in HTTP-only mode (TLS enabled)"
+      fi
+
+      echo ""
+      echo "==================================="
+      echo "All TLS certificate tests passed! ✓"
+      echo "==================================="
+    volumeMounts:
+    - name: kubeconfig
+      mountPath: /root/.kube
+      readOnly: true
+  volumes:
+  - name: kubeconfig
+    emptyDir: {}
+  serviceAccountName: {{ include "ghostwire.fullname" . }}-test-tls
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "ghostwire.fullname" . }}-test-tls
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ghostwire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "ghostwire.fullname" . }}-test-tls
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ghostwire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+rules:
+- apiGroups: [""]
+  resources: ["pods", "pods/exec"]
+  verbs: ["get", "list", "create"]
+- apiGroups: [""]
+  resources: ["pods/status"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "ghostwire.fullname" . }}-test-tls
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ghostwire.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "ghostwire.fullname" . }}-test-tls
+subjects:
+- kind: ServiceAccount
+  name: {{ include "ghostwire.fullname" . }}-test-tls
+  namespace: {{ .Release.Namespace }}
+{{- end }}
