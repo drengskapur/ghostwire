@@ -19,6 +19,7 @@ spec:
         - -c
         - |
           echo "Testing basic connectivity to Ghostwire service..."
+
           # Test HTTPS connectivity (KasmVNC serves HTTPS)
           if timeout 5 bash -c "cat < /dev/null > /dev/tcp/{{ include "ghostwire.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local/{{ .Values.service.port }}"; then
             echo "✅ Ghostwire service is reachable on port {{ .Values.service.port }}"
@@ -26,4 +27,5 @@ spec:
             echo "❌ Failed to connect to Ghostwire service on port {{ .Values.service.port }}"
             exit 1
           fi
+
           echo "✅ Connection test passed"
