@@ -1,0 +1,42 @@
+# Ghostwire Terraform Configuration Example
+# Copy this file to terraform.tfvars and fill in your values
+
+# Required Variables
+github_token = "ghp_your_github_personal_access_token_here"
+
+# Deployment Configuration
+name   = "ghostwire1"
+region = "nyc3"
+size   = "s-2vcpu-4gb"
+image  = "ubuntu-24-04-x64"
+
+# SSH Configuration
+ssh_public_key_path = "~/.ssh/id_ed25519.pub"
+
+# Firewall Configuration
+# Restrict these in production!
+ssh_allowed_ips     = ["0.0.0.0/0", "::/0"]
+k8s_api_allowed_ips = ["0.0.0.0/0", "::/0"]
+
+# Additional custom firewall rules (optional)
+# firewall_rules = [
+#   {
+#     protocol         = "tcp"
+#     port_range       = "8080"
+#     source_addresses = ["203.0.113.0/24"]
+#   }
+# ]
+
+# Resource Options
+enable_monitoring = true
+enable_backups    = false
+prevent_destroy   = false
+
+# DigitalOcean Project (optional)
+# project_id = "your-project-id-here"
+
+# Tags
+tags = ["gitops", "k3s", "ghostwire"]
+
+# Custom cloud-init template (optional)
+# cloud_init_template = "./custom-cloud-init.yaml"
