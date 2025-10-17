@@ -1,18 +1,19 @@
-# yaml-language-server: $schema=values.schema.json
-#
 # ┌─────────────────────────────────────────────────────────────────────────────────┐
-# │ Ghostwire - Signal Desktop Helm Chart - Production-Ready Default Values         │
+# │                      GHOSTWIRE - SIGNAL DESKTOP HELM CHART                      │
+# ├─────────────────────────────────────────────────────────────────────────────────┤
 # │                                                                                 │
-# │ 🔴 IMPORTANT: This chart includes default values for initial testing.           │
-# │    For production deployments, you MUST:                                        │
+# │   ⚠️  IMPORTANT: This chart includes default values for initial testing.        │
 # │                                                                                 │
-# │    1. Change ALL default passwords (VNC_PW, cookie secret, htpasswd entries)    │
-# │    2. Use external secret management for credentials                            │
-# │    3. Enable TLS/HTTPS with proper certificates                                 │
-# │    4. Review and adjust resource limits based on your workload                  │
-# │    5. Configure proper storage classes for your environment                     │
+# │   For production deployments, you MUST:                                         │
 # │                                                                                 │
-# │ 📖 See README.md for detailed configuration instructions                        │
+# │     • Change ALL default passwords (VNC_PW, cookie secret, htpasswd entries)    │
+# │     • Use external secret management for credentials                            │
+# │     • Enable TLS/HTTPS with proper certificates                                 │
+# │     • Review and adjust resource limits based on your workload                  │
+# │     • Configure proper storage classes for your environment                     │
+# │                                                                                 │
+# │   📚 See README.md for detailed configuration instructions                      │
+# │                                                                                 │
 # └─────────────────────────────────────────────────────────────────────────────────┘
 
 ## @section Global parameters
@@ -33,10 +34,10 @@ fullnameOverride: ""
 ##
 image:
   repository: kasmweb/signal
-  tag: "1.18.0"
+  tag: "1.18.0-rolling-daily"
   ## Optionally specify image by digest (e.g., sha256:abc123...)
   ## digest: ""
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 ## @param imagePullSecrets Docker registry secret names as an array
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -183,7 +184,7 @@ containerSecurityContext:
 auth:
   enabled: false
   username: "kasm_user"
-  password: "testpass123"
+  password: "CorrectHorseBatteryStaple"
 
 ## @section TLS/SSL Configuration
 ## Custom SSL certificates for KasmVNC HTTPS/WebSocket connections
@@ -331,23 +332,4 @@ readinessProbe:
   timeoutSeconds: 3
   failureThreshold: 5
 
-## @section Network Policy Configuration
-## Network policies for pod-to-pod communication restrictions
-##
-## @param networkPolicy.enabled Enable network policies
-## @param networkPolicy.allowInternetEgress Allow Ghostwire pods to access internet (required for Signal)
-## @param networkPolicy.ingressControllerNamespaceSelector Namespace selector for ingress controller
-## @param networkPolicy.ingressControllerPodSelector Pod selector for ingress controller
-##
-networkPolicy:
-  enabled: true
-  ## Allow internet egress for Signal Desktop functionality
-  allowInternetEgress: true
-  ## Ingress controller namespace selector (for ingress access to Ghostwire)
-  ## Default assumes ingress-nginx in ingress-nginx namespace
-  ingressControllerNamespaceSelector:
-    name: ingress-nginx
-  ## Optional: Pod selector for ingress controller
-  ## Leave empty to allow all pods from the namespace
-  ingressControllerPodSelector: {}
 
