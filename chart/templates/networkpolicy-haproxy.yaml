@@ -16,17 +16,6 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # Allow Cloudflared to access HAProxy
-    {{- if .Values.tunnel.enabled }}
-    - from:
-      - podSelector:
-          matchLabels:
-            {{- include "ghostwire.selectorLabels" . | nindent 12 }}
-            app.kubernetes.io/component: tunnel
-      ports:
-      - protocol: TCP
-        port: 6901
-    {{- end }}
     # Allow Ingress controller to access HAProxy if ingress is enabled
     {{- if .Values.ingress.enabled }}
     - from:

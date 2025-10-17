@@ -1,4 +1,3 @@
-{{- if .Values.tunnel.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -21,4 +20,3 @@ spec:
     {{- else }}
     app.kubernetes.io/component: app
     {{- end }}
-{{- end }}

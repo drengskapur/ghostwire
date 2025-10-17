@@ -42,25 +42,6 @@ To access Signal:
    Username: {{ .Values.auth.username }}
    Password: {{ .Values.auth.password }}
 
-{{- if .Values.tunnel.enabled }}
-
-ℹ️  CLOUDFLARE TUNNEL CONFIGURATION:
-
-Use this service URL in your Cloudflare Tunnel configuration:
-
-  service: http://{{ include "ghostwire.fullname" . }}-proxy.{{ .Release.Namespace }}.svc.cluster.local:6901
-
-This service automatically routes to:
-{{- if .Values.haproxy.enabled }}
-  → HAProxy (current configuration)
-{{- else }}
-  → Ghostwire directly (HAProxy disabled, saves ~66Mi memory)
-{{- end }}
-
-No configuration changes needed when toggling haproxy.enabled! ✅
-
-{{- end }}
-
 IMPORTANT NOTES:
 - ⚠️  Change the VNC credentials (auth.username, auth.password) in values.yaml before deploying to production
 - ℹ️  If authentication fails, browsers cache the credentials. To retry with correct password:
