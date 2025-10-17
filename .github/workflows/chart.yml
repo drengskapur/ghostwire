@@ -136,7 +136,7 @@ jobs:
         run: |
           CHART_NAME=$(grep '^name:' ${{ env.CHART_PATH }}/Chart.yaml | awk '{print $2}')
 
-          # Set version to main-<sha> for this build
+          # Set version to 0.0.0-main.<sha> for this build (semver-compatible)
           sed -i "s/^version:.*/version: 0.0.0-main.${{ steps.commit.outputs.sha_short }}/" ${{ env.CHART_PATH }}/Chart.yaml
 
           helm package ${{ env.CHART_PATH }}
@@ -153,9 +153,13 @@ jobs:
           CHART_NAME="${{ steps.package.outputs.chart_name }}"
           CHART_VERSION="${{ steps.package.outputs.chart_version }}"
 
-          DIGEST=$(helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} | grep Digest | awk '{print $2}')
+          # Capture helm push output to extract digest
+          PUSH_OUTPUT=$(helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
+          echo "$PUSH_OUTPUT"
+
+          DIGEST=$(echo "$PUSH_OUTPUT" | grep Digest | awk '{print $2}')
           echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
-          echo "✅ Published ${CHART_NAME}:${CHART_VERSION}"
+          echo "✅ Published ${CHART_NAME}:${CHART_VERSION} with digest ${DIGEST}"
 
       - name: Sign chart with main tag
         run: |
@@ -176,9 +180,12 @@ jobs:
           helm package ${CHART_NAME}
 
           # Push with latest tag
-          DIGEST=$(helm push ${CHART_NAME}-latest.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} | grep Digest | awk '{print $2}')
+          PUSH_OUTPUT=$(helm push ${CHART_NAME}-latest.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
+          echo "$PUSH_OUTPUT"
+
+          DIGEST=$(echo "$PUSH_OUTPUT" | grep Digest | awk '{print $2}')
           echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
-          echo "✅ Tagged as ${CHART_NAME}:latest"
+          echo "✅ Tagged as ${CHART_NAME}:latest with digest ${DIGEST}"
 
       - name: Sign latest tag
         run: |
@@ -276,9 +283,12 @@ jobs:
           CHART_NAME="${{ steps.package.outputs.chart_name }}"
           VERSION=${{ steps.version.outputs.version }}
 
-          DIGEST=$(helm push ${CHART_NAME}-${VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} | grep Digest | awk '{print $2}')
+          PUSH_OUTPUT=$(helm push ${CHART_NAME}-${VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
+          echo "$PUSH_OUTPUT"
+
+          DIGEST=$(echo "$PUSH_OUTPUT" | grep Digest | awk '{print $2}')
           echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
-          echo "✅ Published ${CHART_NAME}:${VERSION}"
+          echo "✅ Published ${CHART_NAME}:${VERSION} with digest ${DIGEST}"
           echo "🔒 This version is now immutable and cannot be overwritten"
 
       - name: Sign chart with semver tag
@@ -302,9 +312,12 @@ jobs:
           helm package ${CHART_NAME}
 
           # Push with latest-stable tag
-          DIGEST=$(helm push ${CHART_NAME}-latest-stable.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} | grep Digest | awk '{print $2}')
+          PUSH_OUTPUT=$(helm push ${CHART_NAME}-latest-stable.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
+          echo "$PUSH_OUTPUT"
+
+          DIGEST=$(echo "$PUSH_OUTPUT" | grep Digest | awk '{print $2}')
           echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
-          echo "✅ Tagged as ${CHART_NAME}:latest-stable"
+          echo "✅ Tagged as ${CHART_NAME}:latest-stable with digest ${DIGEST}"
 
       - name: Sign latest-stable tag
         if: steps.version.outputs.bump == 'true'
