@@ -68,40 +68,6 @@ service:
   ##
   # loadBalancerIP: "209.38.63.45"
 
-## @section Ingress Configuration
-## Ingress configuration for external access
-##
-## @param ingress.enabled Enable ingress controller resource
-## @param ingress.className Ingress class name (e.g., nginx)
-## @param ingress.annotations Ingress annotations
-## @param ingress.hosts Ingress host configuration
-## @param ingress.tls Ingress TLS configuration
-##
-ingress:
-  enabled: false
-  className: ""
-  ## Additional annotations for the Ingress resource
-  ## Example: Enable TLS with cert-manager
-  ##   cert-manager.io/cluster-issuer: letsencrypt-prod
-  ##   nginx.ingress.kubernetes.io/proxy-body-size: "0"
-  ##
-  annotations: {}
-  ## Ingress host configuration
-  ##
-  hosts:
-    - host: signal.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  ## TLS configuration for HTTPS
-  ## Example:
-  ##   tls:
-  ##     - secretName: signal-tls
-  ##       hosts:
-  ##         - signal.example.com
-  ##
-  tls: []
-
 ## @section Persistent Storage Configuration
 ## Persistent storage for Signal Desktop data
 ##
