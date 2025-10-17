@@ -25,10 +25,10 @@ tests:
           value: signal
       - equal:
           path: spec.template.spec.containers[0].image
-          value: kasmweb/signal:1.18.0
+          value: kasmweb/signal:1.18.0-rolling-daily
       - equal:
           path: spec.template.spec.containers[0].imagePullPolicy
-          value: IfNotPresent
+          value: Always
 
   - it: should use custom image when specified
     set:
@@ -55,7 +55,7 @@ tests:
           path: spec.template.spec.containers[0].env
           content:
             name: VNC_PW
-            value: testpass123
+            value: CorrectHorseBatteryStaple
 
   - it: should set custom VNC auth credentials
     set:

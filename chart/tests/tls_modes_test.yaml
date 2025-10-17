@@ -1,0 +1,101 @@
+suite: test TLS modes
+templates:
+  - statefulset-ghostwire.yaml
+tests:
+  ## TLS Mode: Auto (Default)
+  - it: should use auto TLS mode by default (self-signed cert)
+    set:
+      tls.mode: auto
+      auth.enabled: true
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNCOPTIONS
+      # Auto mode should not mount TLS secret volume (uses built-in cert)
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: tls-certs
+
+  ## TLS Mode: Disabled (HTTP Only)
+  - it: should configure HTTP-only mode when TLS is disabled
+    set:
+      tls.mode: disabled
+      auth.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNCOPTIONS
+            value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -disableBasicAuth -sslOnly 0"
+
+  - it: should set sslOnly 0 flag when TLS disabled but auth enabled
+    set:
+      tls.mode: disabled
+      auth.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNCOPTIONS
+            value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -sslOnly 0"
+
+  ## TLS Mode: Custom Certificate
+  - it: should create TLS secret volume when using custom mode
+    set:
+      tls.mode: custom
+      tls.secretName: my-tls-secret
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: tls-certs
+            secret:
+              secretName: my-tls-secret
+              defaultMode: 256
+      # TLS cert is set up by init container, not mounted in main container
+      - isNotEmpty:
+          path: spec.template.spec.initContainers
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: setup-tls
+
+  ## Image Configuration Tests (Regression test for image tag mismatch errors)
+  - it: should use rolling-daily image by default
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: kasmweb/signal:1.18.0-rolling-daily
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+
+  - it: should allow override to specific version
+    set:
+      image.tag: "1.18.0"
+      image.pullPolicy: IfNotPresent
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: kasmweb/signal:1.18.0
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: IfNotPresent
+
+  ## Combined scenarios that caused issues during development
+  - it: should work with HTTP-only mode and no auth (scenario that initially failed)
+    set:
+      tls.mode: disabled
+      auth.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNCOPTIONS
+            value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -disableBasicAuth -sslOnly 0"
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VNCOPTIONS
+            value: "-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0 -disableBasicAuth -nossl"
