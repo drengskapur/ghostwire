@@ -8,7 +8,7 @@ tests:
     asserts:
       - equal:
           path: metadata.labels["helm.sh/chart"]
-          value: ghostwire-0.8.0
+          value: ghostwire-0.0.0-dev
 
   ## Fullname
   - it: should generate correct fullname
