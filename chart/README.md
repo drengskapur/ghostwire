@@ -2,6 +2,64 @@
 
 Helm chart for running [Signal Desktop](https://signal.org/) in Kubernetes with persistent storage and web-based access.
 
+## Design Philosophy: Cloud-Native Security
+
+**This chart is designed to run without built-in authentication or TLS by default.**
+
+Why? Because in cloud-native environments, authentication and encryption should be handled by infrastructure, not by individual applications:
+
+✅ **Use Kubernetes Ingress** with TLS termination (cert-manager + Let's Encrypt)
+✅ **Use OAuth2 Proxy** or similar for authentication (Google, GitHub, etc.)
+✅ **Use Service Mesh** (Istio, Linkerd) for mTLS between services
+✅ **Use Network Policies** to restrict pod-to-pod communication
+
+**Benefits of this approach:**
+- **Single Sign-On** - Users authenticate once at the ingress, not twice (no double-auth)
+- **Standard Tooling** - Use industry-standard cert-manager, OAuth2-proxy, etc.
+- **Better UX** - No managing/rotating VNC passwords
+- **Centralized Control** - All auth/TLS configuration in one place
+- **No Cert Gymnastics** - Don't need to inject custom certs into VNC pods
+- **Observability** - Centralized auth logs and metrics at ingress
+
+**Example Production Setup:**
+```yaml
+# Ingress with TLS + OAuth2
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ghostwire
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/auth-url: "https://oauth2.example.com/oauth2/auth"
+spec:
+  tls:
+  - hosts:
+    - signal.example.com
+    secretName: ghostwire-tls
+  rules:
+  - host: signal.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ghostwire
+            port:
+              number: 6901
+```
+
+With this setup, Ghostwire runs with `auth.enabled: false` and `tls.mode: disabled`, while the ingress handles TLS termination and OAuth2 authentication.
+
+**When to use built-in auth/TLS:**
+- Local development and testing
+- Air-gapped environments without ingress infrastructure
+- Quick demos and POCs
+
+For production, let Kubernetes infrastructure handle security.
+
+---
+
 ## TL;DR
 
 ```bash
