@@ -9,6 +9,224 @@ This document provides a detailed analysis of the Ghostwire container runtime ar
 
 ---
 
+## Architecture Diagrams
+
+### Container Startup Sequence
+
+```mermaid
+sequenceDiagram
+    participant Init as PID 1<br/>vnc_startup.sh
+    participant DBus as D-Bus Session
+    participant Xvnc as Xvnc Server<br/>(PID 72)
+    participant XFCE as XFCE4 Session<br/>(PID 89)
+    participant Audio as Audio Stack<br/>(PIDs 92,108,115)
+    participant Services as Kasm Services<br/>(PIDs 117-130)
+    participant Signal as Signal Desktop<br/>(PID 148)
+
+    Init->>DBus: Start D-Bus session bus
+    Init->>Xvnc: Launch Xvnc :1<br/>Port 6901
+    Xvnc-->>Xvnc: Generate self.pem<br/>Load .kasmpasswd
+    Init->>XFCE: Start xfce4-session
+    XFCE->>XFCE: Launch xfwm4, xfsettingsd<br/>xfdesktop, Thunar
+    Init->>Audio: Start PulseAudio
+    Audio->>Audio: Launch ffmpeg encoder<br/>Start kasm_audio_out
+    Init->>Services: Launch auxiliary services
+    Services->>Services: Extract StaticX binaries<br/>Start audio_input, upload,<br/>gamepad, printer, smartcard
+    Init->>Signal: Execute custom_startup.sh
+    Signal->>Signal: Launch signal-desktop<br/>--no-sandbox
+    Signal-->>Signal: Create zygotes, renderers<br/>Load Signal data
+    Note over Init,Signal: All services running<br/>Container ready on port 6901
+```
+
+### Network Architecture
+
+```mermaid
+graph TB
+    subgraph "External Access"
+        Client[Web Browser]
+        K8s[Kubernetes Service<br/>Port 6901]
+    end
+
+    subgraph "Container Network Stack"
+        Xvnc[Xvnc Server<br/>:6901 TCP+UDP]
+        AudioOut[kasm_audio_out<br/>:4901 WebSocket<br/>:8081 MPEG-TS]
+        Upload[kasm_upload_server<br/>:4902 HTTPS]
+        AudioIn[kasm_audio_input<br/>:4903 WSS]
+        Gamepad[kasm_gamepad<br/>:4904 WSS]
+    end
+
+    subgraph "Services"
+        Printer[Printer Service<br/>/tmp/printer socket]
+        Smartcard[Smartcard Bridge<br/>/tmp/smartcard socket]
+        FFmpeg[FFmpeg<br/>Audio Encoder]
+        Pulse[PulseAudio]
+    end
+
+    Client -->|HTTPS/WSS| K8s
+    K8s -->|Proxy| Xvnc
+    Xvnc -->|VNC Protocol| Display[X Server :1]
+    Xvnc -.->|TLS Auth| AuthFile[.kasmpasswd]
+
+    Client -.->|Audio Stream| AudioOut
+    FFmpeg -->|HTTP| AudioOut
+    Pulse -->|Capture| FFmpeg
+
+    Client -.->|File Upload| Upload
+    Client -.->|Microphone| AudioIn
+    Client -.->|Controllers| Gamepad
+
+    Display -.->|Print Jobs| Printer
+    Display -.->|Smartcard| Smartcard
+
+    style Xvnc fill:#4CAF50
+    style K8s fill:#2196F3
+    style Client fill:#FF9800
+```
+
+### Process Hierarchy
+
+```mermaid
+graph TD
+    PID1[PID 1: vnc_startup.sh<br/>Entry Point]
+
+    PID1 --> DBus[PID 19: dbus-daemon<br/>Session Bus]
+    PID1 --> Xvnc[PID 72: Xvnc :1<br/>81MB RAM]
+    PID1 --> XFCE[PID 89: xfce4-session<br/>80MB RAM]
+    PID1 --> AudioOut[PID 92: kasm_audio_out<br/>40MB RAM]
+    PID1 --> Pulse[PID 108: pulseaudio<br/>15MB RAM]
+    PID1 --> FFmpeg[PID 115: ffmpeg<br/>46MB RAM]
+    PID1 --> AudioIn[PID 117: audio_input<br/>Parent]
+    PID1 --> UploadSrv[PID 119: upload_server<br/>Parent]
+    PID1 --> GamepadSrv[PID 121: gamepad_server<br/>Parent]
+    PID1 --> PrintSrv[PID 124: printer_service<br/>Parent]
+    PID1 --> SmartSrv[PID 130: smartcard_bridge<br/>Parent]
+    PID1 --> Signal[PID 148: signal-desktop<br/>383MB RAM]
+
+    XFCE --> WM[PID 192: xfwm4]
+    XFCE --> Settings[PID 220: xfsettingsd]
+    XFCE --> Thunar[PID 233: Thunar]
+    XFCE --> Desktop[PID 334: xfdesktop]
+    XFCE --> Notify[PID 476: xfce4-notifyd]
+
+    AudioIn --> AudioInChild[PID 234: staticx<br/>PID 241: worker]
+    UploadSrv --> UploadChild[PID 263: staticx<br/>PID 362: Flask worker]
+    GamepadSrv --> GamepadChild[PID 258: staticx<br/>PID 281: worker]
+    PrintSrv --> PrintChild[PID 256: staticx<br/>PID 272: worker]
+    SmartSrv --> SmartChild[PID 257: staticx<br/>PID 269: worker]
+
+    Signal --> Zygote1[PID 159: zygote]
+    Signal --> Zygote2[PID 160: zygote]
+    Signal --> Network[PID 289: network service<br/>78MB RAM]
+    Signal --> ZygoteGPU[PID 402: zygote GPU]
+    Signal --> Renderer[PID 427: renderer<br/>258MB RAM]
+
+    style PID1 fill:#FF9800
+    style Xvnc fill:#4CAF50
+    style Signal fill:#E91E63
+    style XFCE fill:#2196F3
+```
+
+### Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as Web Browser
+    participant Xvnc as Xvnc Server<br/>Port 6901
+    participant Auth as .kasmpasswd<br/>Password File
+    participant Session as VNC Session
+
+    Client->>Xvnc: HTTPS/WSS Connection
+    Xvnc-->>Client: TLS Handshake<br/>(self.pem certificate)
+    Client->>Xvnc: Username + Password
+    Xvnc->>Auth: Validate Credentials
+    Auth-->>Auth: SHA-256 crypt verify<br/>$5$kasm$...
+
+    alt Valid Credentials
+        Auth-->>Xvnc: ✓ Permissions (wo/r)
+        Xvnc->>Session: Create Session
+        Session-->>Client: VNC Stream Active
+    else Invalid Credentials
+        Auth-->>Xvnc: ✗ Authentication Failed
+        Xvnc-->>Client: 401 Unauthorized
+    end
+
+    Note over Client,Session: Auxiliary services use<br/>same auth token:<br/>kasm_user:password
+```
+
+### Data Flow - Audio Streaming
+
+```mermaid
+graph LR
+    subgraph "Container"
+        App[Application Audio]
+        Pulse[PulseAudio<br/>:pulse socket]
+        FFmpeg[FFmpeg Encoder<br/>MP2 128kbps]
+        AudioOut[kasm_audio_out<br/>:8081 ingest<br/>:4901 WebSocket]
+    end
+
+    subgraph "Browser"
+        Player[JSMpeg Player]
+        Speakers[Audio Output]
+    end
+
+    App -->|Audio Output| Pulse
+    Pulse -->|Capture Default Sink| FFmpeg
+    FFmpeg -->|HTTP<br/>MPEG-TS| AudioOut
+    AudioOut -->|WSS<br/>Encrypted Stream| Player
+    Player --> Speakers
+
+    style AudioOut fill:#4CAF50
+    style FFmpeg fill:#2196F3
+    style Pulse fill:#FF9800
+```
+
+### Filesystem Persistence
+
+```mermaid
+graph TB
+    subgraph "PersistentVolumeClaim"
+        PVC[/home/kasm-user<br/>RWO Volume]
+    end
+
+    subgraph "Critical Paths"
+        Signal[.config/Signal/<br/>MUST PERSIST]
+        VNC[.vnc/<br/>Logs & Config]
+        Uploads[Uploads/<br/>User Files]
+        PDF[PDF/<br/>Print Output]
+        Desktop[Desktop/<br/>User Files]
+    end
+
+    subgraph "Signal Data"
+        IndexDB[IndexedDB/<br/>Messages DB]
+        Blob[blob_storage/<br/>Attachments]
+        Config[config.json<br/>Device Keys]
+        SQL[sql/<br/>Encrypted DB]
+    end
+
+    subgraph "Ephemeral Paths"
+        Tmp[/tmp/staticx-*<br/>Service Binaries]
+        Sockets[/tmp/*.socket<br/>Unix Sockets]
+    end
+
+    PVC --> Signal
+    PVC --> VNC
+    PVC --> Uploads
+    PVC --> PDF
+    PVC --> Desktop
+
+    Signal --> IndexDB
+    Signal --> Blob
+    Signal --> Config
+    Signal --> SQL
+
+    style Signal fill:#E91E63
+    style PVC fill:#4CAF50
+    style IndexDB fill:#FF9800
+    style Config fill:#FF9800
+```
+
+---
+
 ## Table of Contents
 
 1. [Container Startup Sequence](#container-startup-sequence)
