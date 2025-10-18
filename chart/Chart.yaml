@@ -42,16 +42,3 @@ annotations:
   artifacthub.io/signKey: |
     fingerprint: 6DED1D8C4F9A43767394C58A0C80E974927365DE
     url: https://keybase.io/drengskapur/pgp_keys.asc
-  artifacthub.io/changes: |
-    - kind: added
-      description: Initial 1.0.0 release
-    - kind: added
-      description: StatefulSet deployment for Signal Desktop
-    - kind: added
-      description: Persistent storage with PVC support
-    - kind: added
-      description: Browser-based VNC access via Kasm Workspaces
-    - kind: added
-      description: Comprehensive Helm values with schema validation
-    - kind: added
-      description: Support for custom ingress, OAuth2, and TLS integration
