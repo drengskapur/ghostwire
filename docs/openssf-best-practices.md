@@ -92,7 +92,10 @@ Replace `XXXX` with your project ID from the badge URL.
 
 #### Build & Release
 - [x] Reproducible builds (Helm chart packaging)
-- [x] Generated artifacts signed (Cosign for OCI images)
+- [x] Generated artifacts signed:
+  - OCI images signed with Cosign keyless signing
+  - GitHub Releases signed with SLSA provenance attestations
+- [x] Build provenance generated (SLSA attestations via actions/attest-build-provenance)
 - [x] Build process documented
 - [x] Artifact verification instructions (SECURITY.md)
 

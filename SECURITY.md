@@ -73,11 +73,30 @@ The chart uses third-party container images:
 - Base: [kasmweb/signal](https://hub.docker.com/r/kasmweb/signal)
 - Upstream: [Signal Desktop](https://github.com/signalapp/Signal-Desktop)
 
-**Image verification:**
+**Artifact verification:**
 
-- All Helm charts published to OCI registries are signed with Cosign
-- Verify signatures: `cosign verify ghcr.io/drengskapur/charts/ghostwire:1.0.0`
-- PGP key fingerprint: `6DED1D8C4F9A43767394C58A0C80E974927365DE`
+All Helm charts are cryptographically signed and attested:
+
+- **OCI artifacts** (GHCR): Signed with Cosign keyless signing
+  ```bash
+  cosign verify ghcr.io/drengskapur/charts/ghostwire:1.0.0 \
+    --certificate-identity-regexp='^https://github.com/drengskapur/ghostwire/' \
+    --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+  ```
+
+- **GitHub Releases**: Signed with SLSA provenance attestations
+  ```bash
+  gh attestation verify ghostwire-1.0.0.tgz --owner drengskapur
+  ```
+
+- **Manual verification**: Download and verify attestations
+  ```bash
+  # Download release artifact
+  wget https://github.com/drengskapur/ghostwire/releases/download/v1.0.0/ghostwire-1.0.0.tgz
+
+  # Verify provenance attestation
+  gh attestation verify ghostwire-1.0.0.tgz -o drengskapur
+  ```
 
 ### Data Persistence
 
