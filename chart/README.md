@@ -8,22 +8,22 @@
 
 **Get Signal Desktop running in 60 seconds:**
 
+Install the chart:
 ```bash
-# Install
-helm install ghostwire ./chart --create-namespace -n ghostwire
-
-# Access
-kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
-
-# Open browser
-open http://localhost:6901?keyboard=1
+helm install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire --version 1.0.0 --create-namespace -n ghostwire
 ```
 
-**Default credentials (when auth is enabled):**
-- Username: `kasm_user`
-- Password: `CorrectHorseBatteryStaple`
+Access via port-forward:
+```bash
+kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
+```
 
-**⚠️ For production:** Disable built-in auth and use ingress + OAuth2 instead (see [Production Setup](#production-setup))
+Open in browser:
+```
+http://localhost:6901?keyboard=1
+```
+
+**Note:** VNC authentication is disabled by default. For production use, configure ingress with OAuth2 instead of port-forwarding (see [Production Setup](#production-setup)).
 
 ---
 
@@ -67,15 +67,19 @@ Run Signal Desktop in your Kubernetes cluster with:
 
 ### Local Development (port-forward)
 
+Install the chart:
 ```bash
-# Install with defaults (no auth, for local use)
-helm install ghostwire ./chart --create-namespace -n ghostwire
+helm install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire --version 1.0.0 --create-namespace -n ghostwire
+```
 
-# Forward port
+Access via port-forward:
+```bash
 kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
+```
 
-# Open browser
-open http://localhost:6901?keyboard=1
+Open in browser:
+```
+http://localhost:6901?keyboard=1
 ```
 
 ### Production (with ingress + OAuth2)
