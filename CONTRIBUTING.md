@@ -233,12 +233,20 @@ Users must explicitly set service.type=LoadBalancer or configure ingress."
 
 ### PR Requirements
 
-- ✅ Passes all CI checks (lint, tests, security scans)
+**Branch Protection:** The `main` branch is protected. All changes must go through pull requests.
+
+Required for merge:
+- ✅ **1 approving review** from a maintainer
+- ✅ **Passing status checks:**
+  - Build and Test
+  - Scorecard analysis (security)
+- ✅ **All conversations resolved**
 - ✅ Includes tests for new features
 - ✅ Updates documentation
 - ✅ Follows conventional commit format
 - ✅ No merge conflicts with main
-- ✅ Approved by maintainer
+
+**Note:** Stale reviews are automatically dismissed when new commits are pushed.
 
 ---
 
