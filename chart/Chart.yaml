@@ -2,7 +2,7 @@ apiVersion: v2
 name: ghostwire
 description: Cloud-native Signal Desktop for Kubernetes with persistent storage and browser access
 type: application
-version: 1.0.0
+version: 0.0.0-dev
 appVersion: "1.18.0"
 kubeVersion: ">=1.25.0-0"
 keywords:
