@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'chart/**'
-      - '.github/workflows/chart.yml'
+      - '.github/workflows/helm-release.yml'
     tags:
       - 'v*'
   pull_request:
@@ -14,7 +14,7 @@ on:
       - main
     paths:
       - 'chart/**'
-      - '.github/workflows/chart.yml'
+      - '.github/workflows/helm-release.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

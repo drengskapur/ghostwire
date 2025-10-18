@@ -8,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/scorecard.yml'
+      - '.github/workflows/ossf-scorecard.yml'
   workflow_dispatch:
 
 permissions: read-all

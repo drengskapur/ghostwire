@@ -5,7 +5,7 @@ on:
     paths:
       - 'renovate.json'
       - '.github/renovate.json5'
-      - '.github/workflows/renovate-config-validator.yml'
+      - '.github/workflows/validate-config.yml'
   pull_request:
     paths:
       - 'renovate.json'

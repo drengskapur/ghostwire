@@ -6,13 +6,13 @@ on:
       - main
     paths:
       - 'images/tools/**'
-      - '.github/workflows/tools-image.yml'
+      - '.github/workflows/build-tools-image.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'images/tools/**'
-      - '.github/workflows/tools-image.yml'
+      - '.github/workflows/build-tools-image.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
