@@ -34,4 +34,4 @@ RUN apk update && apk add \
     python-3.12
 
 WORKDIR /workspace
-ENTRYPOINT ["/bin/bash", "-l"]
+ENTRYPOINT ["/bin/bash"]
