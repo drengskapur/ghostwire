@@ -68,8 +68,9 @@ This means less configuration overlap and easier integration with tools you alre
 ## Architecture
 
 ```mermaid
-graph TB
+graph LR
     subgraph Infrastructure ["Your Infrastructure"]
+        direction LR
         I1[Ingress]
         I2[OAuth2]
         I3[TLS]
@@ -77,6 +78,7 @@ graph TB
     end
 
     subgraph Ghostwire ["Ghostwire"]
+        direction LR
         G1[Signal Desktop]
         G2[VNC]
         G3[Storage]

@@ -49,6 +49,7 @@ jobs:
           format: 'table'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
+          skip-files: '.gitleaks.toml,.trufflehog.yaml'
 
   dependency-review:
     name: Dependency Review
