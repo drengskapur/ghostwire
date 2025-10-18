@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM cgr.dev/chainguard/wolfi-base:latest
+FROM cgr.dev/chainguard/wolfi-base:latest@sha256:9608820b6ea4da8bcf16989dac37a280f8f1fa0022efc45b5ed4b1ac1f634a79
 
 # OCI Labels and Annotations (OpenContainer Initiative)
 # https://github.com/opencontainers/image-spec/blob/main/annotations.md
@@ -11,7 +11,7 @@ LABEL org.opencontainers.image.title="Ghostwire Tools" \
       org.opencontainers.image.source="https://github.com/drengskapur/ghostwire" \
       org.opencontainers.image.documentation="https://github.com/drengskapur/ghostwire/blob/main/images/tools/README.md" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      org.opencontainers.image.base.name="cgr.dev/chainguard/wolfi-base:latest"
+      org.opencontainers.image.base.name="cgr.dev/chainguard/wolfi-base:latest@sha256:9608820b6ea4da8bcf16989dac37a280f8f1fa0022efc45b5ed4b1ac1f634a79"
 
 RUN apk update && apk add \
     bash \
