@@ -1,0 +1,58 @@
+name: Static Analysis
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    # Run at 6:00 UTC every Monday
+    - cron: '0 6 * * 1'
+
+permissions: {}
+
+jobs:
+  shellcheck:
+    name: ShellCheck Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write  # For uploading SARIF results
+      contents: read          # For checking out code
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@00b27aa7cb85167568cb48a3838b75f4265f2bca # 2.0.0
+        with:
+          scandir: './scripts'
+          severity: warning
+          format: sarif
+        continue-on-error: true
+
+      - name: Upload ShellCheck SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: shellcheck.sarif
+          category: shellcheck
+
+  yaml-lint:
+    name: YAML Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Run yamllint
+        run: |
+          pip install yamllint
+          yamllint -d "{extends: default, rules: {line-length: {max: 120}}}" \
+            .github/workflows/ \
+            chart/ \
+            || true  # Don't fail build, just report
