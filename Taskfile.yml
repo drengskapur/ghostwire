@@ -56,7 +56,10 @@ tasks:
           (.properties.affinity | select(. != null)) |= del(.additionalProperties) |
 
           # Ensure imagePullSecrets are strings (secret names)
-          (.properties.imagePullSecrets.items | select(. != null)) = { "type": "string" }
+          (.properties.imagePullSecrets.items | select(. != null)) = { "type": "string" } |
+
+          # Use JSON Schema Draft 7 for ArtifactHub compatibility
+          ."$schema" = "http://json-schema.org/draft-07/schema#"
         ' values.schema.json > values.schema.json.tmp && mv values.schema.json.tmp values.schema.json
 
         echo "✅ Schema generated: values.schema.json"
