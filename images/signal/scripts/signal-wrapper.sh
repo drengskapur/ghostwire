@@ -44,8 +44,8 @@ while [ $restart_count -lt $MAX_RESTARTS ]; do
     # Wait a moment for window to appear
     sleep 3
     
-    # Maximize window if requested
-    if [ "${MAXIMIZE}" = "true" ]; then
+    # Maximize window if requested (wmctrl may not be available in minimal builds)
+    if [ "${MAXIMIZE}" = "true" ] && command -v wmctrl >/dev/null 2>&1; then
         echo "🔍 Looking for window: ${MAXIMIZE_NAME}"
         for i in {1..10}; do
             if wmctrl -l | grep -q "${MAXIMIZE_NAME}"; then

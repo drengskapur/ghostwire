@@ -30,13 +30,10 @@ RUN apk update && apk add --no-cache \
     htop \
     supervisor \
     openssl \
-    # X11 and display server
-    xorg-server \
+    # X11 and display server (xvfb provides Xvfb binary)
     xvfb \
+    xkeyboard-config \
     xauth \
-    xhost \
-    xrandr \
-    xdpyinfo \
     libx11 \
     libxext \
     libxrender \
@@ -50,20 +47,9 @@ RUN apk update && apk add --no-cache \
     x11vnc \
     # Window manager - OpenBox for single-app mode
     openbox \
-    obconf \
-    tint2 \
     # Desktop utilities
     xterm \
-    feh \
-    xdotool \
-    wmctrl \
-    xclip \
-    xsel \
-    pcmanfm \
     # Fonts
-    font-dejavu \
-    font-liberation \
-    font-ubuntu \
     fontconfig \
     # Python for websockify and noVNC
     python-3.13 \
@@ -73,14 +59,10 @@ RUN apk update && apk add --no-cache \
     pulseaudio \
     pulseaudio-utils \
     alsa-lib \
-    alsa-utils \
     # Build tools for Signal extraction
     binutils \
-    tar \
-    gzip \
     # Utilities
     vim \
-    nano \
     jq \
     git
 
@@ -121,8 +103,8 @@ RUN mkdir -p \
     /home/kasm-user/Uploads
 
 # Create kasm-user (UID 1000 for compatibility)
-RUN groupadd -g 1000 kasm-user && \
-    useradd -m -u 1000 -g 1000 -s /bin/bash kasm-user && \
+RUN addgroup -g 1000 kasm-user && \
+    adduser -D -u 1000 -G kasm-user -h /home/kasm-user -s /bin/bash kasm-user && \
     chown -R 1000:1000 /home/kasm-user
 
 # Copy startup scripts
