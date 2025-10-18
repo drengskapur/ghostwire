@@ -23,44 +23,8 @@ tasks:
 
   schema:
     desc: Generate values.schema.json from values.yaml
-    dir: chart
     cmds:
-      - |
-        echo "🔧 Generating Helm chart schema..."
-        helm schema
-
-        echo "📝 Post-processing schema for flexibility..."
-        # Fix overly restrictive schema for fields that need flexibility
-        jq '
-          # Allow arbitrary annotations and labels
-          (.properties.podAnnotations | select(. != null)) |= del(.additionalProperties) |
-          (.properties.podLabels | select(. != null)) |= del(.additionalProperties) |
-
-          # Allow flexible ingress annotations
-          (.properties.ingress.properties.annotations | select(. != null)) |= del(.additionalProperties) |
-
-          # Allow flexible service account annotations
-          (.properties.serviceAccount.properties.annotations | select(. != null)) |= del(.additionalProperties) |
-
-          # Allow flexible arrays for extensibility
-          (.properties.env | select(. != null)) |= del(.items.additionalProperties) |
-          (.properties.envFrom | select(. != null)) |= del(.items.additionalProperties) |
-
-          # Allow flexible node selector
-          (.properties.nodeSelector | select(. != null)) |= del(.additionalProperties) |
-
-          # Allow flexible tolerations
-          (.properties.tolerations | select(. != null)) |= del(.items.additionalProperties) |
-
-          # Allow flexible affinity rules
-          (.properties.affinity | select(. != null)) |= del(.additionalProperties) |
-
-          # Ensure imagePullSecrets are strings (secret names)
-          (.properties.imagePullSecrets.items | select(. != null)) = { "type": "string" }
-        ' values.schema.json > values.schema.json.tmp && mv values.schema.json.tmp values.schema.json
-
-        echo "✅ Schema generated: values.schema.json"
-        echo "💡 Your IDE can now provide validation and autocomplete for values.yaml"
+      - ./scripts/generate-schema.sh
 
   package:
     desc: Package Helm chart locally for testing
@@ -72,34 +36,12 @@ tasks:
         helm package . --destination /tmp
         echo "✅ Chart packaged: /tmp/{{.CHART_NAME}}-{{.VERSION}}.tgz"
 
+  scan:
+    desc: Run Trivy security scans (vulnerabilities, misconfigurations, secrets)
+    cmds:
+      - ./scripts/trivy-scan.sh
+
   changelog:
     desc: Generate CHANGELOG.md from git history using git-cliff
-    silent: true
     cmds:
-      - |
-        if ! command -v git-cliff &> /dev/null; then
-          echo "⚠️  git-cliff not found. Installing..."
-
-          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-          ARCH=$(uname -m)
-
-          if [ "$ARCH" = "x86_64" ]; then
-            ARCH="x86_64"
-          elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-            ARCH="aarch64"
-          fi
-
-          VERSION="2.10.1"
-          URL="https://github.com/orhun/git-cliff/releases/download/v${VERSION}/git-cliff-${VERSION}-${ARCH}-unknown-${OS}-gnu.tar.gz"
-
-          echo "📥 Downloading git-cliff ${VERSION}..."
-          curl -sL "$URL" | sudo tar xz --strip-components=1 -C /usr/local/bin "git-cliff-${VERSION}/git-cliff"
-
-          echo "✅ git-cliff installed to /usr/local/bin"
-        fi
-
-        echo "📝 Generating CHANGELOG.md..."
-        git-cliff --output CHANGELOG.md
-        echo "✅ CHANGELOG.md generated"
-        echo ""
-        echo "💡 Review: cat CHANGELOG.md"
+      - ./scripts/generate-changelog.sh
