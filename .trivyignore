@@ -1,5 +1,0 @@
-# Trivy ignore file
-# These files contain allowlisted revoked secrets for other scanners
-
-.gitleaks.toml
-.trufflehog.yaml
