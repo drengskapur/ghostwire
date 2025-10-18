@@ -1,0 +1,19 @@
+{
+  "MD013": false,
+  "MD024": false,
+  "MD033": false,
+  "MD041": false,
+  "MD040": true,
+  "MD046": {
+    "style": "fenced"
+  },
+  "MD048": {
+    "style": "backtick"
+  },
+  "MD049": {
+    "style": "asterisk"
+  },
+  "MD050": {
+    "style": "asterisk"
+  }
+}
