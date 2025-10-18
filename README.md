@@ -42,7 +42,10 @@ Access via port-forward:
 kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
 ```
 
-Open in browser: http://localhost:6901?keyboard=1
+Open in browser:
+```
+http://localhost:6901?keyboard=1
+```
 
 **Note:** VNC authentication is disabled by default. For production use, configure ingress with OAuth2 instead of port-forwarding. See [Chart README](chart/README.md).
 
