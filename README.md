@@ -128,7 +128,9 @@ See [values.yaml](chart/values.yaml) for complete options and [values.schema.jso
 - **[Deployment Strategies](docs/deployment-strategies.md)** - StatefulSet design and rollout behavior
 - **[Infrastructure Integration](docs/infrastructure-integration-guide.md)** - Patterns for OAuth2, ingress, cert-manager
 - **[Testing Strategy](docs/testing-strategy.md)** - Testing approach and quality assurance
+- **[Fuzzing Strategy](docs/fuzzing-strategy.md)** - Property-based testing and fuzzing approach
 - **[OpenSSF Best Practices Guide](docs/openssf-best-practices.md)** - Security badge application guide
+- **[Code Review Strategy](docs/code-review-strategy.md)** - Single-maintainer approach and co-maintainer call
 
 ---
 
