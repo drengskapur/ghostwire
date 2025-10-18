@@ -20,7 +20,7 @@ sources:
   - https://github.com/signalapp/Signal-Desktop
   - https://github.com/kasmtech/workspaces-images
 maintainers:
-  - name: Drengskapur
+  - name: drengskapur
     url: https://github.com/drengskapur
 annotations:
   artifacthub.io/category: integration-delivery
