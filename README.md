@@ -9,6 +9,7 @@ Run Signal Desktop in your cluster with browser access and persistent storage
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Helm](https://img.shields.io/badge/Helm-v3-blue)](https://helm.sh)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.25%2B-blue)](https://kubernetes.io)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/ghostwire)](https://artifacthub.io/packages/search?repo=ghostwire)
 
 </div>
 
