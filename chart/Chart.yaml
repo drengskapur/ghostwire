@@ -40,8 +40,8 @@ annotations:
       image: kasmweb/signal:1.18.0-rolling-daily
       whitelisted: false
   artifacthub.io/signKey: |
-    fingerprint: <fingerprint>
-    url: https://keybase.io/<user>/pgp_keys.asc
+    fingerprint: 6DED1D8C4F9A43767394C58A0C80E974927365DE
+    url: https://keybase.io/drengskapur/pgp_keys.asc
   artifacthub.io/changes: |
     - kind: added
       description: Initial 1.0.0 release
