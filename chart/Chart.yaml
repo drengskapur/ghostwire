@@ -4,3 +4,36 @@ description: Cloud-native Signal Desktop for Kubernetes with persistent storage 
 type: application
 version: 0.0.0-dev
 appVersion: "1.18.0-rolling-daily"
+keywords:
+  - signal
+  - messaging
+  - desktop
+  - vnc
+  - kasm
+home: https://github.com/drengskapur/ghostwire
+icon: https://raw.githubusercontent.com/signalapp/Signal-Desktop/main/images/signal-logo-sharing.png
+sources:
+  - https://github.com/drengskapur/ghostwire
+  - https://github.com/signalapp/Signal-Desktop
+  - https://github.com/kasmtech/workspaces-images
+maintainers:
+  - name: Drengskapur
+    url: https://github.com/drengskapur
+annotations:
+  artifacthub.io/category: networking
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/links: |
+    - name: Chart Source
+      url: https://github.com/drengskapur/ghostwire
+    - name: Signal Desktop
+      url: https://signal.org/download/
+  artifacthub.io/images: |
+    - name: signal
+      image: kasmweb/signal:1.18.0-rolling-daily
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release with StatefulSet deployment
+    - kind: added
+      description: Persistent storage for Signal data
+    - kind: added
+      description: VNC browser access via Kasm Workspaces image
