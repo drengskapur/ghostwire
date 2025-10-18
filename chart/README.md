@@ -19,7 +19,7 @@ kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
 ```
 
 Open in browser:
-```
+```text
 http://localhost:6901?keyboard=1
 ```
 
@@ -34,7 +34,7 @@ Unlike traditional VNC deployments that bake security into the application, **Gh
 ### The Cloud-Native Difference
 
 **Traditional Approach** (most VNC/remote desktop solutions):
-```
+```text
 ❌ VNC password → manage/rotate credentials per app
 ❌ Self-signed certs → browser warnings, manual cert injection
 ❌ Double authentication → login to ingress, then VNC password again
@@ -43,7 +43,7 @@ Unlike traditional VNC deployments that bake security into the application, **Gh
 ```
 
 **Ghostwire's Approach** (cloud-native):
-```
+```text
 ✅ No built-in auth → use your existing OAuth2/OIDC provider
 ✅ No built-in TLS → cert-manager + Let's Encrypt at ingress
 ✅ Single sign-on → authenticate once, access everything
@@ -78,7 +78,7 @@ kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
 ```
 
 Open in browser:
-```
+```text
 http://localhost:6901?keyboard=1
 ```
 
@@ -122,7 +122,7 @@ This is the **recommended way** to run Ghostwire in production.
 
 ### Architecture
 
-```
+```text
 Internet → Ingress (TLS + OAuth2) → ClusterIP Service → Ghostwire Pod
            ↓                          ↓
      cert-manager              Network Policy
@@ -345,7 +345,7 @@ spec:
 ### Daily Use
 
 **Production (with ingress)**:
-```
+```text
 https://signal.company.com?keyboard=1
 ```
 - Log in via OAuth2 (once)
@@ -356,7 +356,10 @@ https://signal.company.com?keyboard=1
 ```bash
 kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
 ```
-Then open: `http://localhost:6901?keyboard=1`
+Then open:
+```text
+http://localhost:6901?keyboard=1
+```
 
 ---
 
@@ -562,7 +565,7 @@ nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 
 ### Component Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                      Ingress Layer                      │
 │  (TLS termination, OAuth2, cert-manager, Let's Encrypt) │
@@ -602,24 +605,30 @@ nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 See [docs/container-architecture.md](../../docs/container-architecture.md) for detailed process tree, startup sequence, and 50+ running processes.
 
 **Key processes**:
-- **PID 1**: `vnc_startup.sh` (init)
-- **PID 72**: Xvnc (VNC server, 81MB RAM)
-- **PID 89**: XFCE4 session (80MB RAM)
-- **PID 148**: Signal Desktop (383MB RAM)
-- **Total**: ~1.2GB memory typical usage
+```text
+- PID 1: vnc_startup.sh (init)
+- PID 72: Xvnc (VNC server, 81MB RAM)
+- PID 89: XFCE4 session (80MB RAM)
+- PID 148: Signal Desktop (383MB RAM)
+- Total: ~1.2GB memory typical usage
+```
 
 ### Data Persistence
 
 **Critical paths** (must persist):
-- `/home/kasm-user/.config/Signal/` - All Signal data
-  - `IndexedDB/` - Message database
-  - `blob_storage/` - Attachments
-  - `config.json` - Device keys
-  - `sql/` - Encrypted databases
+```text
+/home/kasm-user/.config/Signal/     - All Signal data
+  ├── IndexedDB/                    - Message database
+  ├── blob_storage/                 - Attachments
+  ├── config.json                   - Device keys
+  └── sql/                          - Encrypted databases
+```
 
 **Ephemeral paths**:
-- `/tmp/staticx-*/` - Service binaries (extracted at runtime)
-- `/tmp/*.socket` - Unix sockets (recreated on start)
+```text
+/tmp/staticx-*/     - Service binaries (extracted at runtime)
+/tmp/*.socket       - Unix sockets (recreated on start)
+```
 
 ---
 
