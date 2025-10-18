@@ -1,0 +1,56 @@
+name: Fuzzing and Property-Based Testing
+
+on:
+  schedule:
+    # Run fuzzing weekly on Sundays at 2:00 UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:  # Allow manual triggers
+
+permissions: {}
+
+jobs:
+  helm-template-fuzzing:
+    name: Helm Template Fuzzing
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4.3.1
+        with:
+          version: '3.14.0'
+
+      - name: Run Helm template fuzzing
+        run: |
+          echo "🔍 Running Helm template property-based testing..."
+          ./scripts/helm-fuzz.sh
+        timeout-minutes: 10
+
+  shell-script-analysis:
+    name: Shell Script Static Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Run ShellCheck deep analysis
+        uses: ludeeus/action-shellcheck@00b27aa7cb85167568cb48a3838b75f4265f2bca # 2.0.0
+        with:
+          scandir: './scripts'
+          severity: style
+          additional_files: 'chart/templates/_helpers.tpl'

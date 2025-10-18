@@ -102,7 +102,51 @@ helm template test chart/ --set ingress.enabled=true
 helm template test chart/ -f tests/test-values.yaml
 ```
 
-### 3. Kubernetes Schema Validation
+### 3. Fuzzing and Property-Based Testing
+
+**Purpose:** Discover edge cases and rendering failures through randomized testing
+
+**Tools:**
+- Custom Helm fuzzing script (`scripts/helm-fuzz.sh`)
+- Property-based test generation
+- ShellCheck deep analysis
+
+**Coverage:**
+- Random valid `values.yaml` configurations
+- Edge cases in template rendering
+- Boundary value testing (min/max replicas, ports, UIDs)
+- Random boolean flag combinations
+- Resource limit permutations
+
+**Pass Criteria:**
+- All fuzzed configurations render without errors
+- Generated manifests are valid YAML
+- No template panics or crashes
+- Success rate: 100% of iterations
+
+**Example:**
+```bash
+# Run fuzzing with default iterations (100)
+./scripts/helm-fuzz.sh
+
+# Run with more iterations for deeper testing
+FUZZ_ITERATIONS=1000 ./scripts/helm-fuzz.sh
+```
+
+**Automated Execution:**
+- GitHub Actions workflow runs weekly (`.github/workflows/fuzzing.yml`)
+- Manual trigger available for on-demand testing
+
+**Why This Approach:**
+
+Traditional fuzzing (OSS-Fuzz, AFL) targets compiled runtime code. Helm charts are declarative templates, so we use **property-based testing** instead:
+- Generate random valid configurations
+- Verify templates always render successfully
+- Catch edge cases that unit tests miss
+
+See [Fuzzing Strategy](fuzzing-strategy.md) for detailed explanation.
+
+### 4. Kubernetes Schema Validation
 
 **Purpose:** Ensure generated manifests are valid Kubernetes resources
 
@@ -126,7 +170,7 @@ helm template test chart/ -f tests/test-values.yaml
 helm template test chart/ | kubectl apply --dry-run=client -f -
 ```
 
-### 4. Security Scanning
+### 5. Security Scanning
 
 **Purpose:** Identify vulnerabilities, misconfigurations, and secrets
 

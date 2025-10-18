@@ -145,6 +145,17 @@ Replace `XXXX` with your project ID from the badge URL.
   - Template validation against Kubernetes schemas
 - [ ] **Static analysis enforcement** - Currently enabled, may need policy documentation
 
+#### Fuzzing
+- [x] **Fuzzing implemented** - Property-based testing for Helm templates
+  - Custom fuzzing script (`scripts/helm-fuzz.sh`)
+  - Weekly automated fuzzing runs (`.github/workflows/fuzzing.yml`)
+  - Generates random valid configurations and tests template rendering
+  - See [Fuzzing Strategy](./fuzzing-strategy.md) for details
+- [ ] **OSS-Fuzz integration** - Not applicable for Helm chart projects
+  - OSS-Fuzz targets compiled runtime code (C, C++, Go, Rust)
+  - Helm charts are declarative templates with no runtime execution
+  - Property-based testing provides equivalent risk reduction
+
 ---
 
 ## Recommended Enhancements
