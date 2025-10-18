@@ -5,6 +5,12 @@ repository:
   name: ghostwire
   description: Cloud-native Signal Desktop for Kubernetes - Browser-based access with infrastructure-level security
   homepage: https://github.com/drengskapur/ghostwire
+
+  # Social preview image (Open Graph)
+  # Note: Probot Settings doesn't support this field
+  # Set manually via: Repository Settings → General → Social preview
+  # Image: brand/hero/ghostwire-hero-1280x640.png
+  # Or use GitHub CLI: gh repo edit --add-topic social-image
   topics:
     - kubernetes
     - helm
