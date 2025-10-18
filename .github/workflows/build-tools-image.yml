@@ -51,7 +51,7 @@ jobs:
 
       - name: Test image
         run: |
-          docker run --rm ${{ env.IMAGE_NAME }}:test bash -c "
+          docker run --rm ${{ env.IMAGE_NAME }}:test -c "
             set -e
             echo '✅ Testing installed tools...'
             kubectl version --client
