@@ -1,3 +1,5 @@
+# Dependabot handles GitHub Actions (native integration, security alerts)
+# Renovate handles Docker and Helm (better at complex versioning and pinning)
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -12,29 +14,3 @@ updates:
     labels:
       - dependencies
       - github-actions
-
-  - package-ecosystem: docker
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 10
-    commit-message:
-      prefix: chore(deps)
-      include: scope
-    labels:
-      - dependencies
-      - docker
-
-  - package-ecosystem: helm
-    directory: /chart
-    schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: chore(deps)
-      include: scope
-    labels:
-      - dependencies
-      - helm

@@ -47,6 +47,7 @@
     "automerge": false
   },
   "ignoreDeps": [],
+  "enabledManagers": ["dockerfile", "docker-compose", "helmv3", "helm-values", "regex"],
   "ignorePaths": [
     "**/node_modules/**",
     "**/vendor/**",
