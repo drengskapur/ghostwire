@@ -7,6 +7,8 @@ on:
     paths:
       - 'chart/**'
       - '.github/workflows/chart.yml'
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
@@ -53,104 +55,16 @@ jobs:
       - name: Run helm unit tests
         run: helm unittest ${{ env.CHART_PATH }} --strict
 
-  publish-main:
-    name: Publish Main Branch
-    runs-on: ubuntu-latest
-    needs: lint-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v4
-        with:
-          version: '3.14.0'
-
-      - name: Install cosign
-        uses: sigstore/cosign-installer@v4.0.0
-
-      - name: Get commit SHA
-        id: commit
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
-      - name: Package Helm chart with main tag
-        run: |
-          CHART_NAME=$(grep '^name:' ${{ env.CHART_PATH }}/Chart.yaml | awk '{print $2}')
-
-          # Set version to 0.0.0-main.<sha> for this build (semver-compatible)
-          sed -i "s/^version:.*/version: 0.0.0-main.${{ steps.commit.outputs.sha_short }}/" ${{ env.CHART_PATH }}/Chart.yaml
-
-          helm package ${{ env.CHART_PATH }}
-          echo "chart_name=${CHART_NAME}" >> $GITHUB_OUTPUT
-          echo "chart_version=0.0.0-main.${{ steps.commit.outputs.sha_short }}" >> $GITHUB_OUTPUT
-        id: package
-
-      - name: Log in to GitHub Container Registry (Helm)
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-
-      - name: Log in to GitHub Container Registry (Docker/Cosign)
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push chart with main tag
-        id: push_main
-        run: |
-          CHART_NAME="${{ steps.package.outputs.chart_name }}"
-          CHART_VERSION="${{ steps.package.outputs.chart_version }}"
-
-          # Capture helm push output to extract digest
-          PUSH_OUTPUT=$(helm push ${CHART_NAME}-${CHART_VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
-          echo "$PUSH_OUTPUT"
-
-          DIGEST=$(echo "$PUSH_OUTPUT" | grep Digest | awk '{print $2}')
-          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
-          echo "✅ Published ${CHART_NAME}:${CHART_VERSION} with digest ${DIGEST}"
-
-      - name: Sign chart with main tag
-        run: |
-          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_main.outputs.digest }}
-
-      - name: Tag as latest
-        id: push_latest
-        run: |
-          CHART_NAME="${{ steps.package.outputs.chart_name }}"
-          CHART_VERSION="${{ steps.package.outputs.chart_version }}"
-
-          # Pull the chart we just pushed
-          helm pull oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${CHART_NAME} --version ${CHART_VERSION}
-
-          # Re-package with latest tag (semver-compatible)
-          tar -xzf ${CHART_NAME}-${CHART_VERSION}.tgz
-          sed -i "s/^version:.*/version: 0.0.0-latest/" ${CHART_NAME}/Chart.yaml
-          helm package ${CHART_NAME}
-
-          # Push with latest tag
-          PUSH_OUTPUT=$(helm push ${CHART_NAME}-0.0.0-latest.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
-          echo "$PUSH_OUTPUT"
-
-          DIGEST=$(echo "$PUSH_OUTPUT" | grep Digest | awk '{print $2}')
-          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
-          echo "✅ Tagged as ${CHART_NAME}:latest with digest ${DIGEST}"
-
-      - name: Sign latest tag
-        run: |
-          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_latest.outputs.digest }}
-
   publish-release:
     name: Publish Release
     runs-on: ubuntu-latest
-    needs: [lint-and-test, publish-main]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: lint-and-test
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
@@ -160,42 +74,14 @@ jobs:
       - name: Install cosign
         uses: sigstore/cosign-installer@v4.0.0
 
-      - name: Install git-cliff
-        run: |
-          wget -qO- https://github.com/orhun/git-cliff/releases/download/v2.10.1/git-cliff-2.10.1-x86_64-unknown-linux-gnu.tar.gz | tar xz --strip-components=1
-          sudo mv git-cliff /usr/local/bin/
-          git-cliff --version
-
-      - name: Calculate next version with git-cliff
+      - name: Extract version from tag
         id: version
         run: |
-          # Get current version from Chart.yaml
-          CURRENT_VERSION=$(grep '^version:' ${{ env.CHART_PATH }}/Chart.yaml | awk '{print $2}')
-          echo "📌 Current version: ${CURRENT_VERSION}"
-
-          # Use git-cliff to determine next version based on conventional commits
-          NEW_VERSION=$(git-cliff --bumped-version 2>/dev/null | sed 's/^v//')
-
-          if [ "$NEW_VERSION" = "$CURRENT_VERSION" ] || [ "$NEW_VERSION" = "" ]; then
-            # No version bump needed
-            COMMIT_MSG=$(git log -1 --pretty=%s)
-            echo "ℹ️  No version bump needed for: ${COMMIT_MSG}"
-            echo "bump=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "🔼 Bumping version: ${CURRENT_VERSION} → ${NEW_VERSION}"
-          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
-          echo "bump=true" >> $GITHUB_OUTPUT
-
-      - name: Create git tag
-        if: steps.version.outputs.bump == 'true'
-        run: |
-          git tag "v${{ steps.version.outputs.version }}"
-          git push origin "v${{ steps.version.outputs.version }}"
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "📌 Release version: ${VERSION}"
 
       - name: Package Helm chart with semver
-        if: steps.version.outputs.bump == 'true'
         run: |
           CHART_NAME=$(grep '^name:' ${{ env.CHART_PATH }}/Chart.yaml | awk '{print $2}')
 
@@ -207,11 +93,9 @@ jobs:
         id: package
 
       - name: Log in to GitHub Container Registry (Helm)
-        if: steps.version.outputs.bump == 'true'
         run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
       - name: Log in to GitHub Container Registry (Docker/Cosign)
-        if: steps.version.outputs.bump == 'true'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -219,7 +103,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if version already exists
-        if: steps.version.outputs.bump == 'true'
         run: |
           CHART_NAME="${{ steps.package.outputs.chart_name }}"
           VERSION=${{ steps.version.outputs.version }}
@@ -234,7 +117,6 @@ jobs:
           fi
 
       - name: Push chart with semver tag
-        if: steps.version.outputs.bump == 'true'
         id: push_semver
         run: |
           CHART_NAME="${{ steps.package.outputs.chart_name }}"
@@ -249,12 +131,10 @@ jobs:
           echo "🔒 This version is now immutable and cannot be overwritten"
 
       - name: Sign chart with semver tag
-        if: steps.version.outputs.bump == 'true'
         run: |
           cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_semver.outputs.digest }}
 
       - name: Tag as latest-stable
-        if: steps.version.outputs.bump == 'true'
         id: push_stable
         run: |
           CHART_NAME="${{ steps.package.outputs.chart_name }}"
@@ -277,12 +157,16 @@ jobs:
           echo "✅ Tagged as ${CHART_NAME}:latest-stable with digest ${DIGEST}"
 
       - name: Sign latest-stable tag
-        if: steps.version.outputs.bump == 'true'
         run: |
           cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_stable.outputs.digest }}
 
+      - name: Install git-cliff
+        run: |
+          wget -qO- https://github.com/orhun/git-cliff/releases/download/v2.10.1/git-cliff-2.10.1-x86_64-unknown-linux-gnu.tar.gz | tar xz --strip-components=1
+          sudo mv git-cliff /usr/local/bin/
+          git-cliff --version
+
       - name: Create GitHub Release
-        if: steps.version.outputs.bump == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -290,7 +174,7 @@ jobs:
           VERSION=${{ steps.version.outputs.version }}
 
           # Generate release notes for this version with git-cliff
-          RELEASE_NOTES=$(git-cliff --unreleased --strip all)
+          RELEASE_NOTES=$(git-cliff --latest --strip all)
 
           gh release create "v${VERSION}" \
             --title "v${VERSION}" \
