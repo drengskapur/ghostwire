@@ -22,7 +22,7 @@ jobs:
       - name: Validate renovate.json
         run: |
           # Install renovate for config validation
-          npm install -g renovate
+          npm install -g renovate@41.152.2
 
           # Validate the config file
           renovate-config-validator
