@@ -10,6 +10,7 @@ Run Signal Desktop in your cluster with browser access and persistent storage
 [![Helm](https://img.shields.io/badge/Helm-v3-blue)](https://helm.sh)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.25%2B-blue)](https://kubernetes.io)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/ghostwire)](https://artifacthub.io/packages/search?repo=ghostwire)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/drengskapur/ghostwire/badge)](https://scorecard.dev/viewer/?uri=github.com/drengskapur/ghostwire)
 
 </div>
 
