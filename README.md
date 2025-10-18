@@ -25,14 +25,18 @@ Deploys Signal Desktop in Kubernetes with:
 
 ## Quick Start
 
+Install the chart:
 ```bash
-# Install the chart
 helm install ghostwire ./chart --create-namespace -n ghostwire
+```
 
-# Access via port-forward
+Access via port-forward:
+```bash
 kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
+```
 
-# Open in browser
+Open in browser:
+```bash
 open http://localhost:6901?keyboard=1
 ```
 
