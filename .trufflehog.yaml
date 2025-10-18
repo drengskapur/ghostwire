@@ -1,10 +1,6 @@
 # TruffleHog configuration for Ghostwire
 # https://github.com/trufflesecurity/trufflehog
 
-# Allowlist for revoked/safe secrets
-allow:
-  # Revoked GitHub PAT - removed and revoked on 2025-10-17
-  # This token appears in git history but is no longer valid
-  - paths:
-      - "**"
-    regexTarget: "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"
+# Note: TruffleHog v3 does not support allowlisting in YAML config
+# Instead, use inline comments: # trufflehog:ignore
+# Or exclude paths entirely with --exclude-paths flag

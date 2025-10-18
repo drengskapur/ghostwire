@@ -32,7 +32,7 @@ jobs:
         with:
           # Scan the entire repository
           path: ./
-          extra_args: --debug --only-verified --config=.trufflehog.yaml
+          extra_args: --debug --only-verified
 
   trivy-repo:
     name: Trivy Repository Scan
