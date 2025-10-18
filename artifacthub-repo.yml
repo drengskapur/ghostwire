@@ -1,10 +1,7 @@
 # ArtifactHub repository metadata
 # https://artifacthub.io/docs/topics/repositories/
 
-repositoryID: # Will be assigned by ArtifactHub
+repositoryID: 2defc5c4-0ea4-41ea-9116-9565f159c7bb
 owners:
   - name: drengskapur
     email: service@drengskapur.com
-
-# OCI registry for Helm charts
-# ArtifactHub will automatically discover charts published to this registry
