@@ -14,3 +14,8 @@ updates:
     labels:
       - dependencies
       - github-actions
+
+  - package-ecosystem: docker
+    directory: /images/tools
+    schedule:
+      interval: daily
