@@ -1,6 +1,12 @@
-# Ghostwire
+<div align="center">
 
-**Cloud-Native Signal Desktop for Kubernetes** - Browser-based access with infrastructure-level security.
+![Ghostwire Logo](brand/logo/ghostwire-logo-horizontal.png)
+
+**Cloud-Native Signal Desktop for Kubernetes**
+
+Browser-based access with infrastructure-level security
+
+</div>
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Helm](https://img.shields.io/badge/Helm-v3-blue)](https://helm.sh)
