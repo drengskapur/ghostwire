@@ -127,6 +127,8 @@ See [values.yaml](chart/values.yaml) for complete options and [values.schema.jso
 - **[Container Architecture](docs/container-architecture.md)** - How the runtime works
 - **[Deployment Strategies](docs/deployment-strategies.md)** - StatefulSet design and rollout behavior
 - **[Infrastructure Integration](docs/infrastructure-integration-guide.md)** - Patterns for OAuth2, ingress, cert-manager
+- **[Testing Strategy](docs/testing-strategy.md)** - Testing approach and quality assurance
+- **[OpenSSF Best Practices Guide](docs/openssf-best-practices.md)** - Security badge application guide
 
 ---
 
