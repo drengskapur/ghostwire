@@ -11,7 +11,7 @@ keywords:
   - vnc
   - kasm
 home: https://github.com/drengskapur/ghostwire
-icon: https://raw.githubusercontent.com/signalapp/Signal-Desktop/main/images/signal-logo-sharing.png
+icon: https://raw.githubusercontent.com/drengskapur/ghostwire/main/brand/icons/ghostwire-icon-512.png
 sources:
   - https://github.com/drengskapur/ghostwire
   - https://github.com/signalapp/Signal-Desktop
