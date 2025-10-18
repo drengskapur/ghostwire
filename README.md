@@ -32,9 +32,14 @@ Deploys Signal Desktop in Kubernetes with:
 
 ## Quick Start
 
+Add the Helm repository:
+```bash
+helm registry login ghcr.io
+```
+
 Install the chart:
 ```bash
-helm install ghostwire ./chart --create-namespace -n ghostwire
+helm install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire --version 1.0.0 --create-namespace -n ghostwire
 ```
 
 Access via port-forward:
