@@ -15,39 +15,73 @@
   "automerge": false,
   "platformAutomerge": false,
   "rangeStrategy": "pin",
-  "assignees": ["@drengskapur"],
-  "reviewers": ["@drengskapur"],
-  "schedule": ["after 10pm every weekday", "before 5am every weekday", "every weekend"],
+  "assignees": [
+    "@drengskapur"
+  ],
+  "reviewers": [
+    "@drengskapur"
+  ],
+  "schedule": [
+    "after 10pm every weekday",
+    "before 5am every weekday",
+    "every weekend"
+  ],
   "timezone": "America/New_York",
   "helm-values": {
-    "fileMatch": ["^chart/values\\.yaml$", "^chart/Chart\\.yaml$"]
+    "managerFilePatterns": [
+      "/^chart/values\\.yaml$/",
+      "/^chart/Chart\\.yaml$/"
+    ]
   },
   "packageRules": [
     {
       "description": "Kasmweb Signal Desktop rolling-daily image",
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["kasmweb/signal"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "kasmweb/signal"
+      ],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-rolling-daily$",
-      "labels": ["dependencies", "component: container"],
+      "labels": [
+        "dependencies",
+        "component: container"
+      ],
       "semanticCommitType": "chore",
       "semanticCommitScope": "deps",
       "commitMessageTopic": "kasmweb/signal"
     },
     {
       "description": "Helm chart dependencies in Chart.yaml",
-      "matchManagers": ["helmv3"],
-      "matchFiles": ["chart/Chart.yaml"],
-      "labels": ["dependencies", "component: helm-chart"],
+      "matchManagers": [
+        "helmv3"
+      ],
+      "matchFileNames": [
+        "chart/Chart.yaml"
+      ],
+      "labels": [
+        "dependencies",
+        "component: helm-chart"
+      ],
       "semanticCommitType": "chore",
       "semanticCommitScope": "chart"
     }
   ],
   "vulnerabilityAlerts": {
-    "labels": ["type: security", "priority: high"],
+    "labels": [
+      "type: security",
+      "priority: high"
+    ],
     "automerge": false
   },
   "ignoreDeps": [],
-  "enabledManagers": ["dockerfile", "docker-compose", "helmv3", "helm-values", "regex"],
+  "enabledManagers": [
+    "dockerfile",
+    "docker-compose",
+    "helmv3",
+    "helm-values",
+    "custom.regex"
+  ],
   "ignorePaths": [
     "**/node_modules/**",
     "**/vendor/**",
