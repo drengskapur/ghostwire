@@ -1,0 +1,5 @@
+README.md
+Taskfile.yml
+.git
+.gitignore
+*.local
