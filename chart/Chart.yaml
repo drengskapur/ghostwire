@@ -3,13 +3,16 @@ name: ghostwire
 description: Cloud-native Signal Desktop for Kubernetes with persistent storage and browser access
 type: application
 version: 1.0.0
-appVersion: "1.18.0-rolling-daily"
+appVersion: "1.18.0"
+kubeVersion: ">=1.25.0-0"
 keywords:
   - signal
   - messaging
   - desktop
   - vnc
   - kasm
+  - communication
+  - security
 home: https://github.com/drengskapur/ghostwire
 icon: https://raw.githubusercontent.com/drengskapur/ghostwire/main/brand/icons/ghostwire-icon-512.png
 sources:
@@ -20,20 +23,35 @@ maintainers:
   - name: Drengskapur
     url: https://github.com/drengskapur
 annotations:
-  artifacthub.io/category: networking
+  artifacthub.io/category: integration-delivery
   artifacthub.io/license: Apache-2.0
   artifacthub.io/links: |
     - name: Chart Source
       url: https://github.com/drengskapur/ghostwire
+    - name: Documentation
+      url: https://github.com/drengskapur/ghostwire/blob/main/chart/README.md
     - name: Signal Desktop
       url: https://signal.org/download/
+  artifacthub.io/screenshots: |
+    - title: Signal Desktop Linking
+      url: https://raw.githubusercontent.com/drengskapur/ghostwire/main/docs/images/signal-desktop-linking.png
   artifacthub.io/images: |
     - name: signal
       image: kasmweb/signal:1.18.0-rolling-daily
+      whitelisted: false
+  artifacthub.io/signKey: |
+    fingerprint: <fingerprint>
+    url: https://keybase.io/<user>/pgp_keys.asc
   artifacthub.io/changes: |
     - kind: added
-      description: Initial release with StatefulSet deployment
+      description: Initial 1.0.0 release
     - kind: added
-      description: Persistent storage for Signal data
+      description: StatefulSet deployment for Signal Desktop
     - kind: added
-      description: VNC browser access via Kasm Workspaces image
+      description: Persistent storage with PVC support
+    - kind: added
+      description: Browser-based VNC access via Kasm Workspaces
+    - kind: added
+      description: Comprehensive Helm values with schema validation
+    - kind: added
+      description: Support for custom ingress, OAuth2, and TLS integration
