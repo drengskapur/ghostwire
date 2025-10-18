@@ -1,0 +1,60 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "semanticCommits": "enabled",
+  "commitMessagePrefix": "chore(deps):",
+  "separateMajorMinor": true,
+  "separateMinorPatch": true,
+  "prHourlyLimit": 2,
+  "prConcurrentLimit": 10,
+  "automerge": false,
+  "platformAutomerge": false,
+  "rangeStrategy": "pin",
+  "assignees": ["@drengskapur"],
+  "reviewers": ["@drengskapur"],
+  "schedule": ["after 10pm every weekday", "before 5am every weekday", "every weekend"],
+  "timezone": "America/New_York",
+  "helm-values": {
+    "fileMatch": ["^chart/values\\.yaml$", "^chart/Chart\\.yaml$"]
+  },
+  "packageRules": [
+    {
+      "description": "Kasmweb Signal Desktop rolling-daily image - auto-merge patch updates",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["kasmweb/signal"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "platformAutomerge": true,
+      "labels": ["dependencies", "component: container"],
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "deps",
+      "commitMessageTopic": "kasmweb/signal",
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-rolling-daily$"
+    },
+    {
+      "description": "Helm chart dependencies in Chart.yaml",
+      "matchManagers": ["helmv3"],
+      "matchFiles": ["chart/Chart.yaml"],
+      "labels": ["dependencies", "component: helm-chart"],
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "chart"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["type: security", "priority: high"],
+    "automerge": false
+  },
+  "ignoreDeps": [],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/vendor/**",
+    "**/.task/**",
+    "**/dist/**",
+    "**/build/**"
+  ]
+}
