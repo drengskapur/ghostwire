@@ -10,8 +10,6 @@ Run Signal Desktop in your cluster with browser access and persistent storage
 [![Helm](https://img.shields.io/badge/Helm-v3-blue)](https://helm.sh)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.25%2B-blue)](https://kubernetes.io)
 
-![Signal Desktop in Kubernetes](docs/images/signal-desktop-linking.png)
-
 </div>
 
 ---
@@ -22,6 +20,12 @@ Deploys Signal Desktop in Kubernetes with:
 - Browser-based VNC access (no client needed)
 - Persistent storage (conversations survive pod restarts)
 - Integration with your existing infrastructure (OAuth2, ingress, cert-manager)
+
+<div align="center">
+
+![Signal Desktop in Kubernetes](docs/images/signal-desktop-linking.png)
+
+</div>
 
 ---
 
