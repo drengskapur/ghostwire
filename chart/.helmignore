@@ -6,6 +6,7 @@
 .hg/
 .hgignore
 .idea/
+.markdownlint.json
 .project
 .svn/
 .vscode/
