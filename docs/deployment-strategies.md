@@ -9,11 +9,13 @@ Ghostwire is a stateful application (Signal Desktop) that presents unique challe
 ### StatefulSet with PersistentVolumeClaim
 
 **Implementation:**
+
 - Single replica StatefulSet (`ghostwire-0`)
 - ReadWriteOnce (RWO) PersistentVolumeClaim for Signal data
 - Data stored in `/home/kasm-user` (SQLite database, encryption keys, messages, media)
 
 **Why StatefulSet:**
+
 1. **Stable pod identity** - `ghostwire-0` always has same name and PVC binding
 2. **Ordered deployment** - Ensures single pod at a time during updates
 3. **Persistent storage binding** - PVC follows the pod through restarts
@@ -59,6 +61,7 @@ Flagger (and similar canary deployment tools) require:
 #### 1. Single PVC with ReadWriteOnce
 
 **Problem:**
+
 ```yaml
 # Primary pod
 ghostwire-primary-abc123:
@@ -76,7 +79,8 @@ ghostwire-canary-xyz789:
 ```
 
 **Result:** Canary pod stuck in `Pending` state with error:
-```
+
+```text
 Multi-Attach error for volume "signal-data-ghostwire-0"
 Volume is already exclusively attached to one node and can't be attached to another
 ```
@@ -86,12 +90,14 @@ Volume is already exclusively attached to one node and can't be attached to anot
 Even with ReadWriteMany (RWX) storage (NFS, CephFS):
 
 **Problem:**
+
 - Signal Desktop uses SQLite for message/state storage
 - SQLite doesn't support concurrent writers
 - Two pods accessing same database = corruption risk
 
 **Example failure scenario:**
-```
+
+```text
 Pod 1: BEGIN TRANSACTION; UPDATE messages SET status='read'...
 Pod 2: BEGIN TRANSACTION; UPDATE messages SET status='read'...
 Pod 1: COMMIT;
@@ -101,12 +107,14 @@ Pod 2: COMMIT; -- ❌ Database locked or corrupted
 #### 3. Single User Session
 
 Signal Desktop is not a microservice:
+
 - Tied to one phone number/device
 - Single VNC session (one user at a time)
 - No concept of "traffic splitting" - you're either connected or not
 
 **What traffic shifting would mean:**
-```
+
+```text
 10% traffic to canary → 10% of... what? VNC connections are persistent sessions
 50% traffic to canary → User randomly switches between two different Signal instances?
 100% traffic to canary → Just use the new version (same as StatefulSet update)
@@ -117,6 +125,7 @@ Signal Desktop is not a microservice:
 ### 1. Current Approach: StatefulSet Rolling Update ✅ RECOMMENDED
 
 **How it works:**
+
 ```yaml
 apiVersion: apps/v1
 kind: StatefulSet
@@ -127,12 +136,14 @@ spec:
 ```
 
 **Pros:**
+
 - ✅ Simple and reliable
 - ✅ Data integrity guaranteed
 - ✅ Automatic rollback via Helm
 - ✅ Works with existing PVC strategy
 
 **Cons:**
+
 - ❌ Brief downtime during pod replacement (30-90s)
 - ❌ No canary validation before full rollout
 - ❌ No gradual traffic shifting
@@ -142,23 +153,27 @@ spec:
 ### 2. Blue/Green Deployment (Manual)
 
 **How it works:**
+
 1. Deploy "green" version in separate namespace (`ghostwire-green`)
 2. Manually test the green deployment
 3. Switch service/ingress to point to green
 4. Delete blue deployment after validation
 
 **Pros:**
+
 - ✅ Full validation before switching
 - ✅ Instant rollback (switch back to blue)
 - ✅ Zero downtime if done correctly
 
 **Cons:**
+
 - ❌ Requires manual intervention
 - ❌ Double resource usage during transition
 - ❌ Separate PVC (can't easily preserve user data between versions)
 - ❌ More complex to automate
 
 **Example:**
+
 ```bash
 # Deploy green version
 helm install ghostwire-green ./chart -n ghostwire-green
@@ -176,6 +191,7 @@ helm uninstall ghostwire -n ghostwire
 ### 3. Recreate Strategy Deployment
 
 **How it works:**
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -186,16 +202,19 @@ spec:
 ```
 
 **Pros:**
+
 - ✅ Simpler than StatefulSet for some use cases
 - ✅ Faster pod replacement than StatefulSet
 - ✅ Works with RWO PVC
 
 **Cons:**
+
 - ❌ Downtime during updates (same as StatefulSet)
 - ❌ No progressive delivery
 - ❌ Loses StatefulSet benefits (stable identity, ordering)
 
 **Comparison to StatefulSet:**
+
 | Feature | StatefulSet | Deployment (Recreate) |
 |---------|-------------|----------------------|
 | Pod naming | `ghostwire-0` (stable) | `ghostwire-abc123` (random) |
@@ -208,11 +227,13 @@ spec:
 ### 4. Argo Rollouts (Advanced)
 
 **How it works:**
+
 - Similar to Flagger but more flexible
 - Supports "one pod at a time" strategies
 - Can integrate with analysis/metrics
 
 **Configuration:**
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
@@ -225,11 +246,13 @@ spec:
 ```
 
 **Pros:**
+
 - ✅ More control over rollout process
 - ✅ Can pause for manual validation
 - ✅ Built-in analysis and metrics
 
 **Cons:**
+
 - ❌ Still can't run multiple replicas simultaneously (same PVC issue)
 - ❌ Adds complexity (need Argo Rollouts controller)
 - ❌ Overkill for single-replica application
@@ -241,6 +264,7 @@ spec:
 ### Keep StatefulSet + Enhanced Validation
 
 **Strategy:**
+
 1. Use existing StatefulSet with rolling updates
 2. Enhance Helm tests to validate deployments
 3. Use Flux CD health checks and automated rollback
@@ -328,6 +352,7 @@ If requirements change and we need true progressive delivery:
 ### Option A: Multi-User Architecture
 
 **Changes required:**
+
 1. Run multiple Ghostwire instances (each with own Signal account)
 2. Add routing layer to assign users to instances
 3. Use Deployment instead of StatefulSet
@@ -338,6 +363,7 @@ If requirements change and we need true progressive delivery:
 ### Option B: Ephemeral Desktop Pattern
 
 **Changes required:**
+
 1. Make Signal data portable/backup-restore
 2. Treat each deployment as fresh instance
 3. Restore user data from external source (S3, backup PVC)
@@ -350,16 +376,19 @@ If requirements change and we need true progressive delivery:
 **For Ghostwire's current architecture (single-user stateful desktop):**
 
 ✅ **Use StatefulSet with rolling updates**
+
 - Simple, reliable, appropriate for use case
 - Enhanced with Helm tests for validation
 - Flux CD provides automated rollback on failure
 
 ❌ **Don't use Flagger or canary deployments**
+
 - Incompatible with single-replica + RWO PVC architecture
 - Adds complexity without benefits
 - Would require fundamental architecture changes
 
 **Accept the tradeoff:**
+
 - Brief downtime during updates (30-90s) is acceptable
 - Data integrity and simplicity are more valuable
 - Comprehensive testing validates changes before rollout

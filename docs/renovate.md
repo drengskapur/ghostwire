@@ -20,14 +20,16 @@ Ghostwire uses [Renovate](https://docs.renovatebot.com/) for automated dependenc
 
 ### Container Images
 
-**kasmweb/signal**
+#### kasmweb/signal
+
 - Monitors: `kasmweb/signal:*-rolling-daily`
 - Auto-merge: Patch updates only
 - Labels: `dependencies`, `component: container`
 
 ### Helm Dependencies
 
-**Chart.yaml dependencies**
+#### Chart.yaml dependencies
+
 - Monitors: All Helm chart dependencies
 - Labels: `dependencies`, `component: helm-chart`
 
@@ -39,16 +41,19 @@ PRs are created during off-hours to avoid disrupting development:
 - **Weekends**: Any time
 
 **Rate limits:**
+
 - Maximum 2 PRs per hour
 - Maximum 10 concurrent PRs
 
 ## Auto-merge Strategy
 
 **Enabled for:**
+
 - kasmweb/signal patch updates
 - Security updates (Chainguard images)
 
 **Disabled for:**
+
 - Major version bumps
 - Minor version bumps
 - Vulnerability alerts (require manual review)
@@ -67,7 +72,7 @@ Renovate automatically applies labels for easy triage:
 
 Renovate uses [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 chore(deps): update kasmweb/signal to 1.18.1-rolling-daily
 ```
 
@@ -115,7 +120,7 @@ Set `automerge: false` for specific packages in `packageRules`.
 
 ### Renovate Not Creating PRs
 
-1. Check if Renovate App is installed: https://github.com/apps/renovate
+1. Check if Renovate App is installed: <https://github.com/apps/renovate>
 2. Verify config is valid: `renovate-config-validator`
 3. Check repository settings allow PR creation
 4. Review Renovate logs in "Dependency graph" tab

@@ -302,6 +302,7 @@ spec:
 ```
 
 **Note:** KasmVNC doesn't currently expose Prometheus metrics. Monitor via:
+
 - Ingress controller metrics (request latency, errors)
 - Kubernetes metrics (CPU, memory, pod restarts)
 - Service mesh metrics (if using Linkerd/Istio)
@@ -309,6 +310,7 @@ spec:
 ### Grafana Dashboard
 
 Use Kubernetes monitoring dashboards:
+
 - Pod resource usage (CPU/memory)
 - Network traffic (service mesh)
 - Storage (PVC usage)
@@ -465,6 +467,7 @@ priorityClassName: ghostwire-priority
 ---
 
 *See also:*
+
 - [infrastructure-integration-guide.md](infrastructure-integration-guide.md) for overview
 - [Chart README](../chart/README.md) for configuration options
 - [Deployment Strategies](deployment-strategies.md) for architecture details

@@ -33,28 +33,33 @@ This isn't just a logo. It's a **visual theorem proving your architectural philo
 ## Why This Works
 
 ### 1. Open Source Positioning
+
 - GitHub's top OSS projects (Kubernetes, Docker, Terraform) use **simple, bold, memorable icons**
 - Overly complex 3D renders don't scale well across contexts (favicon, terminal, docs)
 - **Single iconic shape** = instant recognition at any size
 
 ### 2. Technical Credibility
+
 - Minimalist geometric design signals **engineering excellence** (not marketing fluff)
 - The DevOps/cloud-native community respects **restraint and precision**
 - References Signal's established brand without copying it
 
 ### 3. The "Ghostwire" Name Brilliance
+
 - A **single wire that IS the ghost** perfectly encapsulates the name
 - "Wire" = network/communication infrastructure
 - "Ghost" = invisible, ephemeral, secure
 - The metaphor is **literal and visual**
 
 ### 4. Badass Factor
+
 - **Tron-like glowing line aesthetic** = inherently cool and technical
 - Dark background = serious, no-nonsense, operator-grade
 - Electric blue glow = energy, power, cutting-edge
 - Simplicity = confidence (doesn't need to try hard)
 
 ### 5. Practical Execution
+
 - Works perfectly at 16x16px (favicon) and 4K (hero)
 - Looks sharp on light mode (reverse to dark line) AND dark mode
 - Easy to animate (line drawing animation, glow pulse)
@@ -66,26 +71,31 @@ This isn't just a logo. It's a **visual theorem proving your architectural philo
 ## Color Palette
 
 ### Primary Colors
+
 - **Electric Blue:** `#00D9FF` - The wire, primary brand color, icon glow
 - **Deep Black:** `#000000` - Pure black background for maximum contrast
 - **Bright Cyan:** `#00FFE5` - Title text, highlight accent (brighter than primary)
 
 ### Secondary (Brand Accents)
+
 - **Signal Blue:** `#3A76F0` - For Signal messaging references, outer glow layers
 - **Kubernetes Blue:** `#326CE5` - For infrastructure elements, subtle details
 - **Muted Cyan:** `#5A8EA8` - Tagline/supporting text (50% darker than primary)
 
 ### Atmospheric & Depth
+
 - **Dark Navy:** `#0A0E27` - Vignette backgrounds, radial gradient edges, subtle depth
 - **Charcoal:** `#1A1A1A` - Text on light backgrounds (rarely used)
 - **Soft Cyan:** `#88E5FF` - Secondary highlights, hover states, UI accents
 
 ### Lighting & Effects (Professional Enhancement)
+
 - **Pure White:** `#FFFFFF` - Specular highlights, hotspot cores (15-20% opacity)
 - **Glow Blue:** `#3A76F0` - Outer glow effect layers (60% opacity, 12-20px blur)
 - **Atmospheric Blue:** `#001428` - Background fog/haze (5% opacity for depth)
 
 ### Contrast Hierarchy Guidelines
+
 - **Focal points** (icons, primary CTAs): Use `#00FFE5` (brightest)
 - **Primary text** (titles, headers): Use `#00D9FF` (standard)
 - **Secondary text** (taglines, body): Use `#5A8EA8` (muted, 40% contrast difference)
@@ -98,7 +108,8 @@ This isn't just a logo. It's a **visual theorem proving your architectural philo
 ### Icon (512x512px minimum)
 
 **Composition:**
-```
+
+```text
 Pure black background (#000000)
 Single continuous electric blue wire (#00D9FF with bloom)
 Line weight: 3-4px, rounded caps/joins
@@ -113,6 +124,7 @@ Style: Clean vector line art with outer glow (20px, 60% opacity)
 ```
 
 **Technical specs:**
+
 - Format: SVG (primary), PNG with transparency (fallback)
 - Minimum size: 512x512px
 - Recognizable at: 16x16px (favicon)
@@ -122,7 +134,8 @@ Style: Clean vector line art with outer glow (20px, 60% opacity)
 ### Hero Banner (1280x640px)
 
 **Scene:**
-```
+
+```text
 The wire ghost centered, larger scale
 Background: Pure black with subtle radial gradient (dark blue #0A0E27 at edges)
 
@@ -138,6 +151,7 @@ Composition: Centered with plenty of negative space, breathes
 ```
 
 **Technical specs:**
+
 - Format: PNG (high-res), WebP (optimized)
 - Resolution: Minimum 1280x640px, ideally 2560x1280px for retina
 - GitHub social preview: 1280x640px exactly
@@ -148,6 +162,7 @@ Composition: Centered with plenty of negative space, breathes
 ## Design Elements
 
 ### The Wire
+
 - **One continuous line** - represents infrastructure connectivity
 - **Rounded caps and joins** - smooth, professional
 - **3-4px stroke weight** - visible at all sizes
@@ -155,23 +170,27 @@ Composition: Centered with plenty of negative space, breathes
 - **Motion blur effect** (optional) - suggests data flow
 
 ### The Ghost Form
+
 - **Abstract silhouette** - not literal cartoon ghost
 - **Rounded head** - approachable yet professional
 - **Flowing bottom** - ethereal, dissolving into particles
 - **Translucent/wireframe** - transparency = security principle
 
 ### Signal Integration
+
 - **3 ascending wave dots/lines** - Signal's iconic pattern
 - **Integrated into chest area** - heart of communication
 - **Same wire thickness** - visual consistency
 - **Glows with same intensity** - unified element
 
 ### Kubernetes Elements
+
 - **Hexagon in negative space** - subtle, not forced
 - **Grid topology background** (hero only) - infrastructure context
 - **Barely visible** - hint, not dominate
 
 ### Particle System
+
 - **Wire frays into particles at terminus** - ephemeral, ghost-like
 - **Cyan glowing particles** (#00FFE5)
 - **Scattered, dissolving** - suggests encryption/data decay
@@ -182,18 +201,21 @@ Composition: Centered with plenty of negative space, breathes
 ## Typography
 
 ### Headers
+
 - **Font:** Modern geometric sans-serif (Inter, SF Pro, Manrope)
 - **Weight:** Medium to Bold (500-700)
 - **Style:** Clean, technical, professional
 - **Color:** Electric blue (#00D9FF) on dark, charcoal (#1A1A1A) on light
 
 ### Body Text
+
 - **Font:** Sans-serif (Inter, system-ui) or monospace for technical docs
 - **Weight:** Regular (400), medium (500) for emphasis
 - **Line height:** 1.6-1.8 for readability
 - **Color:** White/light gray on dark, charcoal on light
 
 ### Code/Technical
+
 - **Font:** Monospace (JetBrains Mono, Fira Code, SF Mono)
 - **Style:** Syntax highlighting with blue accent colors
 - **Background:** Dark navy (#0A0E27) with subtle borders
@@ -203,6 +225,7 @@ Composition: Centered with plenty of negative space, breathes
 ## Visual Style Guidelines
 
 ### Do's ✅
+
 - Use high contrast (deep blacks, brilliant blues)
 - Employ transparency and glow effects strategically
 - Keep designs scalable and legible at all sizes
@@ -213,6 +236,7 @@ Composition: Centered with plenty of negative space, breathes
 - Add subtle atmospheric effects (fog, rays)
 
 ### Don'ts ❌
+
 - No literal ghost cartoons or emoji-style graphics
 - No overly complex gradients that don't scale
 - No text/wordmarks embedded in icon versions
@@ -227,6 +251,7 @@ Composition: Centered with plenty of negative space, breathes
 ## Usage Contexts
 
 ### Required Assets
+
 1. **Icon (Square)**
    - 512x512px SVG/PNG
    - 256x256px PNG
@@ -243,6 +268,7 @@ Composition: Centered with plenty of negative space, breathes
    - Dark and light variants
 
 ### Use Cases
+
 - GitHub repository social preview (1280x640px)
 - Artifact Hub package icon (square, various sizes)
 - README header/hero image
@@ -257,6 +283,7 @@ Composition: Centered with plenty of negative space, breathes
 ## Visual References & Inspiration
 
 ### Art Style
+
 - **One-line drawing art** - Luke Chioules' continuous line portraits
 - **Neon sign tubing** - Single continuous glowing tube aesthetic
 - **Oscilloscope waveforms** - Technical, precise, flowing
@@ -264,6 +291,7 @@ Composition: Centered with plenty of negative space, breathes
 - **Cyberpunk holograms** - Wireframe projections
 
 ### Brand Inspiration
+
 - **Signal** - Blue communication aesthetic, secure messaging
 - **Kubernetes** - Hexagons, cloud-native infrastructure
 - **Tailscale** - Friendly-yet-technical, clean design
@@ -272,6 +300,7 @@ Composition: Centered with plenty of negative space, breathes
 - **Vercel** - Geometric precision, high contrast
 
 ### Cinematic/Mood
+
 - **Tron Legacy** - Digital world, glowing lines, blue/black
 - **Blade Runner 2049** - Atmospheric lighting, volumetric fog
 - **Ghost in the Shell** - Cyber-infrastructure visualization
@@ -285,11 +314,12 @@ Composition: Centered with plenty of negative space, breathes
 
 **For icon generation:**
 
-```
+```text
 Minimalist abstract logo: single continuous glowing electric blue wire (#00D9FF) drawn in one unbroken line forming an elongated ghost silhouette against pure black background, NO FACE, smooth rounded top flowing into narrow elegant body, Signal messenger three ascending wave dots integrated mid-body as part of the continuous line, subtle Kubernetes hexagon formed by negative space, wire terminus frays into dispersing cyan particles at bottom (asymmetric, random scatter), neon tube aesthetic with bright outer glow, 4px stroke weight, rounded caps and joins, professional technical illustration, high contrast, clean vector style, vertical composition, --ar 1:1 --style raw
 ```
 
 **Key requirements:**
+
 - ❌ **NO FACE** - No eyes, no mouth, no facial features
 - ✅ **Single continuous line** - One unbroken wire path
 - ✅ **Elongated vertical** - Narrow elegant body, not squat
@@ -300,7 +330,7 @@ Minimalist abstract logo: single continuous glowing electric blue wire (#00D9FF)
 
 If the AI generates literal/cute ghosts, use this more geometric version:
 
-```
+```text
 Abstract minimalist icon: electric blue glowing wireframe (#00D9FF) suggesting ghost form through geometric abstraction, vertical flowing shape with rounded apex, three ascending signal wave elements integrated into continuous line path, subtle angular Kubernetes hexagon in negative space, wire dissolves into scattered cyan particles below, pure black background, neon sign aesthetic with bright cyan glow effect, professional technical logo, high contrast, clean vector linework, no facial features, --ar 1:1 --v 6
 ```
 
@@ -308,7 +338,7 @@ Abstract minimalist icon: electric blue glowing wireframe (#00D9FF) suggesting g
 
 **For 1280x640 GitHub social preview:**
 
-```
+```text
 Cinematic minimalist render, single continuous glowing electric blue wireframe ghost floating in pure black void, electric blue wire (#00D9FF) with intense outer glow, Signal wave pattern integrated, particles dispersing at bottom, faint Kubernetes hexagon grid floor below, volumetric god rays from above, subtle motion blur, chromatic aberration on highlights, dark atmospheric fog, professional technical visualization, high contrast, neon aesthetic, octane render, 8K --ar 16:9 --style raw
 ```
 
@@ -318,7 +348,8 @@ Cinematic minimalist render, single continuous glowing electric blue wireframe g
 
 ### Attempt #1 - Analysis
 
-**What Worked ✅**
+#### What Worked ✅
+
 - Single continuous wire execution
 - Electric blue neon glow (#00D9FF range)
 - Pure black background, high contrast
@@ -326,7 +357,8 @@ Cinematic minimalist render, single continuous glowing electric blue wireframe g
 - Clean line weight, scalable
 - Kubernetes hexagon integrated
 
-**Critical Issues ❌**
+#### Critical Issues ❌
+
 1. **Too literal/cute** - Eyes and face make it cartoon-like, not abstract
 2. **Signal integration missing** - No visible Signal wave pattern
 3. **Line complexity** - Multiple separate elements, not one continuous wire
@@ -338,6 +370,7 @@ Cinematic minimalist render, single continuous glowing electric blue wireframe g
 ### Iteration Guidelines
 
 When generating assets, iterate until you achieve:
+
 - **Abstract form** - Geometric ghost suggestion, not literal
 - **Single wire path** - One continuous unbroken line
 - **Signal waves visible** - Three ascending dots/lines clearly integrated
@@ -350,17 +383,20 @@ When generating assets, iterate until you achieve:
 ## Brand Evolution
 
 ### Phase 1: Launch (Current)
+
 - Single icon design (the wire ghost)
 - GitHub README hero image
 - Basic color palette established
 
 ### Phase 2: Growth
+
 - Animated SVG version (line drawing animation)
 - Icon variants (loading states, status indicators)
 - Sticker/swag designs
 - Conference presentation templates
 
 ### Phase 3: Ecosystem
+
 - Community derivative guidelines
 - Integration partner badge system
 - Themed documentation templates
@@ -372,7 +408,7 @@ When generating assets, iterate until you achieve:
 
 Recommended asset structure:
 
-```
+```text
 /brand/
   /icons/
     ghostwire-icon.svg          # Vector source
@@ -395,6 +431,7 @@ Recommended asset structure:
 ## License & Usage
 
 The Ghostwire brand assets are:
+
 - **Copyright:** 2025 Drengskapur LLC and The Ghostwire Authors
 - **License:** Apache 2.0 (same as project)
 - **Usage:** Free to use in context of Ghostwire project
@@ -410,6 +447,7 @@ When using Ghostwire branding, please credit:
 ## Contact
 
 For brand asset requests, partnership inquiries, or custom variations:
+
 - **GitHub:** [github.com/drengskapur/ghostwire](https://github.com/drengskapur/ghostwire)
 - **Issues:** [Brand assets request template](https://github.com/drengskapur/ghostwire/issues/new)
 

@@ -9,10 +9,12 @@ This container provides a comprehensive set of tools for debugging Kubernetes de
 ## Installed Tools
 
 ### Kubernetes
+
 - `kubectl` - Kubernetes command-line tool
 - `helm` - Kubernetes package manager
 
 ### Networking
+
 - `curl` - Transfer data with URLs
 - `wget` - Network downloader
 - `iputils` - IP utilities (ping, traceroute)
@@ -22,6 +24,7 @@ This container provides a comprehensive set of tools for debugging Kubernetes de
 - `nmap` - Network exploration and security auditing
 
 ### Development
+
 - `bash` - GNU Bourne-Again Shell
 - `vim` - Text editor
 - `git` - Version control
@@ -29,6 +32,7 @@ This container provides a comprehensive set of tools for debugging Kubernetes de
 - `jq` - JSON processor
 
 ### Container & System
+
 - `docker-cli` - Docker command-line interface
 - `procps` - Process utilities (ps, top)
 - `htop` - Interactive process viewer
@@ -132,6 +136,7 @@ docker buildx build \
 ## Base Image
 
 Built on [Chainguard's Wolfi base image](https://images.chainguard.dev/directory/image/wolfi-base/overview) for:
+
 - Minimal attack surface
 - No CVEs in base image
 - Regular security updates

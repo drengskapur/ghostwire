@@ -25,11 +25,14 @@ Please read and abide by our Code of Conduct: [CODE_OF_CONDUCT.md](./CODE_OF_CON
 
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
+
    ```bash
    git clone https://github.com/YOUR-USERNAME/ghostwire.git
    cd ghostwire
    ```
+
 3. **Add upstream remote**:
+
    ```bash
    git remote add upstream https://github.com/drengskapur/ghostwire.git
    ```
@@ -98,23 +101,27 @@ git checkout -b feature/your-feature
 ### Types of Contributions
 
 **Helm Chart Improvements:**
+
 - New chart features or configuration options
 - Enhanced templates
 - Improved defaults or documentation
 - Security hardening
 
 **Documentation:**
+
 - Fixing typos or improving clarity
 - Adding examples or tutorials
 - Architecture documentation
 - Integration guides
 
 **Bug Fixes:**
+
 - Fixing chart rendering issues
 - Correcting template logic
 - Resolving deployment problems
 
 **CI/CD:**
+
 - Workflow improvements
 - Automated testing enhancements
 - Release automation
@@ -127,7 +134,7 @@ We use [Conventional Commits](https://www.conventionalcommits.org/) for automate
 
 ### Commit Message Format
 
-```
+```text
 <type>(<scope>): <short description>
 
 <optional longer description>
@@ -184,12 +191,14 @@ Users must explicitly set service.type=LoadBalancer or configure ingress."
 ### Before Submitting
 
 1. **Update your branch** with latest changes:
+
    ```bash
    git fetch upstream
    git rebase upstream/main
    ```
 
 2. **Run tests**:
+
    ```bash
    task test
    ```
@@ -206,6 +215,7 @@ Users must explicitly set service.type=LoadBalancer or configure ingress."
 ### Submitting the PR
 
 1. **Push to your fork**:
+
    ```bash
    git push origin feature/your-feature
    ```
@@ -270,6 +280,7 @@ kubectl delete namespace test
 ### Security Testing
 
 Security scans run automatically on PRs:
+
 - TruffleHog (secret scanning)
 - Gitleaks (credential detection)
 - Trivy (vulnerability scanning)
@@ -281,6 +292,7 @@ Security scans run automatically on PRs:
 ### Chart README
 
 Update `chart/README.md` when adding/changing:
+
 - Configuration parameters
 - Examples
 - Prerequisites
@@ -289,6 +301,7 @@ Update `chart/README.md` when adding/changing:
 ### Architecture Documentation
 
 Update `docs/` for:
+
 - Architecture changes
 - New integration patterns
 - Deployment strategy changes
@@ -304,6 +317,7 @@ Update `docs/` for:
 ## Release Process
 
 Releases are automated:
+
 1. Merge PR to `main`
 2. GitHub Actions runs:
    - Version bump (based on conventional commits)
@@ -314,6 +328,7 @@ Releases are automated:
    - GitHub Release creation
 
 Manual releases (maintainers only):
+
 ```bash
 # Tag release
 git tag -a v0.1.0 -m "Release v0.1.0"

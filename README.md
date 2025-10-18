@@ -2,7 +2,7 @@
 
 ![Ghostwire Logo](brand/logo/ghostwire-logo-horizontal.png)
 
-**Cloud-Native Signal Desktop for Kubernetes**
+## Cloud-Native Signal Desktop for Kubernetes
 
 Run Signal Desktop in your cluster with browser access and persistent storage
 
@@ -18,6 +18,7 @@ Run Signal Desktop in your cluster with browser access and persistent storage
 ## What This Does
 
 Deploys Signal Desktop in Kubernetes with:
+
 - Browser-based VNC access (no client needed)
 - Persistent storage (conversations survive pod restarts)
 - Integration with your existing infrastructure (OAuth2, ingress, cert-manager)
@@ -33,17 +34,20 @@ Deploys Signal Desktop in Kubernetes with:
 ## Quick Start
 
 Install the chart:
+
 ```bash
 helm install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire --version 1.0.0 --create-namespace -n ghostwire
 ```
 
 Access via port-forward:
+
 ```bash
 kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
 ```
 
 Open in browser:
-```
+
+```text
 http://localhost:6901?keyboard=1
 ```
 
@@ -58,11 +62,13 @@ Most VNC-in-Kubernetes solutions bundle their own authentication, TLS terminatio
 Ghostwire takes a different approach: **delegate infrastructure concerns to infrastructure**.
 
 **What we don't include:**
+
 - Built-in authentication (use OAuth2-proxy or similar)
 - Built-in TLS (use cert-manager)
 - Custom ingress configuration (use your existing ingress controller)
 
 **What we do well:**
+
 - Run Signal Desktop reliably in a container
 - Persist your data correctly (StatefulSet + PVC)
 - Expose VNC via standard Service
@@ -126,6 +132,7 @@ See [values.yaml](chart/values.yaml) for complete options and [values.schema.jso
 ## Contributing
 
 Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+
 - Development environment setup
 - Testing requirements
 - Commit message conventions

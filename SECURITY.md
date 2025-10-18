@@ -17,7 +17,7 @@ Instead, report them via GitHub's private vulnerability reporting:
 2. Click "Report a vulnerability"
 3. Fill out the advisory form with details
 
-Alternatively, email security reports to: **security@drengskapur.com**
+Alternatively, email security reports to: **<security@drengskapur.com>**
 
 ### What to Include
 
@@ -40,6 +40,7 @@ We follow coordinated disclosure and will credit reporters in security advisorie
 ### Default Credentials
 
 The chart ships with default VNC credentials for convenience:
+
 - Username: `kasm_user`
 - Password: `CorrectHorseBatteryStaple`
 
@@ -68,10 +69,12 @@ By default, the chart creates a ClusterIP service. To expose externally:
 ### Container Security
 
 The chart uses third-party container images:
+
 - Base: [kasmweb/signal](https://hub.docker.com/r/kasmweb/signal)
 - Upstream: [Signal Desktop](https://github.com/signalapp/Signal-Desktop)
 
 **Image verification:**
+
 - All Helm charts published to OCI registries are signed with Cosign
 - Verify signatures: `cosign verify ghcr.io/drengskapur/charts/ghostwire:1.0.0`
 - PGP key fingerprint: `6DED1D8C4F9A43767394C58A0C80E974927365DE`
@@ -79,11 +82,13 @@ The chart uses third-party container images:
 ### Data Persistence
 
 Signal data is stored in a PersistentVolumeClaim:
+
 - Contains encryption keys, message history, and credentials
 - Survives pod restarts and redeployments
 - **Backup this volume** - losing it requires re-linking the device
 
 Ensure your storage class provides:
+
 - Encryption at rest
 - Regular snapshots
 - Access controls
@@ -91,6 +96,7 @@ Ensure your storage class provides:
 ### Kubernetes Security Context
 
 The chart runs containers with restrictive security contexts by default:
+
 - Non-root user (UID 1000)
 - Read-only root filesystem where possible
 - Capability dropping
@@ -137,6 +143,7 @@ This Helm chart does not make specific compliance claims. Users are responsible 
 ## Security Updates
 
 Security fixes are released as:
+
 - Patch versions for backports (e.g., 1.0.1)
 - Minor versions for non-breaking mitigations (e.g., 1.1.0)
 - Major versions for breaking security changes (e.g., 2.0.0)

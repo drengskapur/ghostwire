@@ -246,10 +246,12 @@ graph TB
 ### Phase 1: Initialization (PID 1)
 
 **Entry Point**: `/dockerstartup/vnc_startup.sh`
+
 - Launched by `/bin/bash /dockerstartup/vnc_startup.sh /dockerstartup/kasm_startup.sh --wait`
 - Executes as `kasm-user` (UID 1000, GID 1000)
 
 **Startup Script Flow**:
+
 ```bash
 1. D-Bus session bus initialization
 2. X server (Xvnc) startup
@@ -264,6 +266,7 @@ graph TB
 **Xvnc Process**: Multi-threaded VNC server with integrated X server
 
 **Key Launch Parameters**:
+
 ```bash
 /usr/bin/Xvnc :1 \
   -depth 24 \
@@ -283,6 +286,7 @@ graph TB
 ```
 
 **Display Configuration**:
+
 - Display: `:1` (DISPLAY environment variable)
 - Default resolution: `1024x768` (configurable via `VNC_RESOLUTION`)
 - Max resolution: `1920x1080`
@@ -292,6 +296,7 @@ graph TB
 ### Phase 3: Window Manager (PID 89, 192)
 
 **XFCE4 Session Components**:
+
 1. `xfce4-session` (PID 89) - Session manager
 2. `xfwm4` (PID 192) - Window manager with compositing
 3. `xfsettingsd` (PID 220) - Settings daemon
@@ -300,7 +305,8 @@ graph TB
 6. `xfce4-notifyd` (PID 476) - Notification daemon
 
 **Startup Output**:
-```
+
+```text
 ------------------ Xfce4 window manager startup------------------
 Starting XFCE
 /usr/bin/startxfce4: X server already running on display :1
@@ -311,12 +317,15 @@ Starting XFCE
 ### Phase 4: Audio Services (PIDs 92, 108, 115)
 
 **Audio Stack**:
+
 1. **PulseAudio** (PID 108) - Audio server
+
    ```bash
    pulseaudio --start
    ```
 
 2. **Kasm Audio Out** (PID 92) - Audio streaming server
+
    ```bash
    /dockerstartup/jsmpeg/kasm_audio_out-linux \
      kasmaudio 8081 4901 \
@@ -324,12 +333,14 @@ Starting XFCE
      /home/kasm-user/.vnc/self.pem \
      kasm_user:CorrectHorseBatteryStaple
    ```
+
    - Listens on port 8081 (MPEG-TS stream ingestion)
    - WebSocket server on port 4901 (audio streaming to browser)
    - Uses self-signed TLS certificate
    - Requires authentication token
 
 3. **FFmpeg Audio Encoder** (PID 115) - Audio capture and encoding
+
    ```bash
    ffmpeg -v verbose \
      -f pulse \
@@ -344,6 +355,7 @@ Starting XFCE
      -muxdelay 0.001 \
      http://127.0.0.1:8081/kasmaudio
    ```
+
    - Captures from PulseAudio default sink
    - Sample rate: 44.1 kHz
    - Codec: MP2 at 128 kbps
@@ -352,6 +364,7 @@ Starting XFCE
 ### Phase 5: KasmVNC Auxiliary Services
 
 **Service Overview**:
+
 | Service | PID | Port | Purpose |
 |---------|-----|------|---------|
 | Audio Input | 117/234/241 | 4903 | Microphone streaming from browser |
@@ -361,12 +374,14 @@ Starting XFCE
 | Smartcard Bridge | 130/257/269 | Unix socket | Smartcard/PKCS#11 support |
 
 **Implementation Details**:
+
 - All services use **StaticX** packaging (self-extracting to `/tmp/staticx-*`)
 - TLS-enabled with self-signed certificates
 - Token-based authentication: `kasm_user:CorrectHorseBatteryStaple`
 - Services run as multiple processes (parent + child)
 
 **Audio Input Server**:
+
 ```bash
 /dockerstartup/audio_input/kasm_audio_input_server \
   --ssl \
@@ -376,6 +391,7 @@ Starting XFCE
 ```
 
 **Upload Server**:
+
 ```bash
 /dockerstartup/upload_server/kasm_upload_server \
   --ssl \
@@ -383,16 +399,19 @@ Starting XFCE
   --port 4902 \
   --upload_dir /home/kasm-user/Uploads
 ```
+
 - Flask-based Python application
 - HTTPS on port 4902
 - Files uploaded to `/home/kasm-user/Uploads`
 
 **Printer Service**:
+
 ```bash
 /dockerstartup/printer/kasm_printer_service \
   --directory /home/kasm-user/PDF \
   --relay /tmp/printer
 ```
+
 - Monitors Unix socket `/tmp/printer`
 - Saves PDFs to `/home/kasm-user/PDF`
 - Python-based service
@@ -400,12 +419,14 @@ Starting XFCE
 ### Phase 6: Signal Desktop Application (PID 148)
 
 **Launch Command**:
+
 ```bash
 signal-desktop --no-sandbox
 ```
 
 **Process Tree**:
-```
+
+```text
 148: signal-desktop (main process)
 ├── 159: zygote (no sandbox)
 ├── 160: zygote (no sandbox)
@@ -415,6 +436,7 @@ signal-desktop --no-sandbox
 ```
 
 **Key Characteristics**:
+
 - Based on Electron/Chromium
 - Runs with `--no-sandbox` flag (required in containerized environment)
 - Multi-process architecture (zygotes, renderers, utility processes)
@@ -423,21 +445,25 @@ signal-desktop --no-sandbox
 **User Data Directory**: `/home/kasm-user/.config/Signal`
 
 **Startup Behavior**:
+
 - Launched by `/dockerstartup/custom_startup.sh`
 - Auto-restart loop if process exits
 - Window maximization via `/dockerstartup/maximize_window.sh`
 - Environment variables:
+
   ```bash
   MAXIMIZE=true
   MAXIMIZE_NAME=Signal
   ```
 
 **Startup Errors (Expected/Non-Fatal)**:
-```
+
+```text
 ERROR:dbus/bus.cc:408] Failed to connect to the bus: /run/dbus/system_bus_socket
 ERROR:zygote_host_impl_linux.cc:283] Failed to adjust OOM score: Permission denied
 ERROR:viz_main_impl.cc:189] Exiting GPU process due to errors during initialization
 ```
+
 - D-Bus system bus unavailable (only session bus needed)
 - OOM score adjustment denied (requires CAP_SYS_ADMIN)
 - GPU initialization fails (falls back to software rendering)
@@ -448,7 +474,7 @@ ERROR:viz_main_impl.cc:189] Exiting GPU process due to errors during initializat
 
 ### Complete Process Tree
 
-```
+```text
 PID 1: /bin/bash /dockerstartup/vnc_startup.sh
 │
 ├─── PID 19: dbus-daemon (session bus)
@@ -522,7 +548,7 @@ PID 1: /bin/bash /dockerstartup/vnc_startup.sh
 
 ### Resource Usage Snapshot
 
-```
+```text
 USER         PID %CPU %MEM    VSZ   RSS
 kasm-user      1  0.1  0.0 120636  3968  (vnc_startup.sh)
 kasm-user     72  1.1  0.3 425368 81060  (Xvnc)
@@ -543,7 +569,7 @@ kasm-user    427  4.7  0.9 1283631212 257936  (renderer)
 
 ### Home Directory Layout (`/home/kasm-user`)
 
-```
+```text
 /home/kasm-user/
 ├── .bashrc                     # Bash configuration
 ├── .cache/                     # Application cache
@@ -595,7 +621,8 @@ kasm-user    427  4.7  0.9 1283631212 257936  (renderer)
 ### Application Directories
 
 **Signal Desktop Binary**: `/opt/Signal/`
-```
+
+```text
 /opt/Signal/
 ├── chrome_100_percent.pak      # Chrome UI assets
 ├── chrome_200_percent.pak      # High-DPI assets
@@ -620,7 +647,8 @@ kasm-user    427  4.7  0.9 1283631212 257936  (renderer)
 ```
 
 **KasmVNC Startup Scripts**: `/dockerstartup/`
-```
+
+```text
 /dockerstartup/
 ├── audio_input/                # Audio input server binaries
 ├── custom_startup.sh           # Application-specific startup
@@ -652,10 +680,12 @@ kasm-user    427  4.7  0.9 1283631212 257936  (renderer)
 ### Temporary Directories
 
 **StaticX Extraction**: `/tmp/staticx-*/`
+
 - Each Kasm service extracts to a unique temporary directory
 - Contains unpacked binary and dependencies
 - Examples:
-  ```
+
+  ```text
   /tmp/staticx-kPBinD/    → kasm_audio_input_server
   /tmp/staticx-CkbbDG/    → kasm_upload_server
   /tmp/staticx-MGFlfN/    → kasm_gamepad_server
@@ -664,6 +694,7 @@ kasm-user    427  4.7  0.9 1283631212 257936  (renderer)
   ```
 
 **Unix Sockets**:
+
 - `/tmp/printer` - Printer relay socket
 - `/tmp/smartcard` - Smartcard relay socket
 - `/tmp/scoped_dir*/SingletonSocket` - Signal singleton socket
@@ -685,6 +716,7 @@ kasm-user    427  4.7  0.9 1283631212 257936  (renderer)
 | 5901 | TCP | Xvnc (RFB) | Legacy VNC protocol (not exposed) |
 
 **Primary Access Point**: Port 6901 (HTTP/HTTPS + WebSocket)
+
 - Serves KasmVNC web client from `/usr/share/kasmvnc/www`
 - Handles VNC protocol over WebSocket
 - TLS enabled by default (unless `tls.mode: disabled`)
@@ -712,17 +744,20 @@ netstat -tulpn output:
 **Location**: `/home/kasm-user/.kasmpasswd`
 
 **Format**: Colon-separated fields
-```
+
+```text
 username:hashed_password:permissions
 ```
 
 **Example**:
-```
+
+```text
 kasm_user:$5$kasm$liEQvAlcV49V2ZmUDqwFKcz9v2.HmvNFrvVKxBp2kW9:wo
 kasm_viewer:$5$kasm$liEQvAlcV49V2ZmUDqwFKcz9v2.HmvNFrvVKxBp2kW9:r
 ```
 
 **Fields**:
+
 1. `username` - Login username
 2. `hashed_password` - SHA-256 crypt hash (`$5$` prefix)
 3. `permissions` - Access control flags:
@@ -730,6 +765,7 @@ kasm_viewer:$5$kasm$liEQvAlcV49V2ZmUDqwFKcz9v2.HmvNFrvVKxBp2kW9:r
    - `r` - Read-only (view-only mode)
 
 **Password Hash Algorithm**: SHA-256 crypt (`$5$`)
+
 - Salt: `kasm`
 - Generated via: `mkpasswd -m sha-256 -S kasm <password>`
 
@@ -745,6 +781,7 @@ kasm_viewer:$5$kasm$liEQvAlcV49V2ZmUDqwFKcz9v2.HmvNFrvVKxBp2kW9:r
 ### Authentication Tokens
 
 **Kasm Services Token**: `kasm_user:CorrectHorseBatteryStaple`
+
 - Used by audio, upload, gamepad, and printer services
 - Passed via `--auth-token` parameter
 - Format: `username:password` (plain text in args)
@@ -753,7 +790,7 @@ kasm_viewer:$5$kasm$liEQvAlcV49V2ZmUDqwFKcz9v2.HmvNFrvVKxBp2kW9:r
 
 ### Authentication Flow
 
-```
+```text
 Client → HTTPS/WSS Port 6901
   ↓
 Xvnc checks KasmPasswordFile
@@ -766,6 +803,7 @@ Session established with permission level (wo/r)
 ### Disabling Authentication
 
 Set `auth.enabled: false` in Helm chart:
+
 - Skips password file creation
 - Allows anonymous access to VNC
 - **WARNING**: Only use behind secure ingress/VPN
@@ -782,7 +820,8 @@ Set `auth.enabled: false` in Helm chart:
 **Permissions**: `600` (owner read/write only)
 
 **Certificate Details**:
-```
+
+```text
 Subject: C=US, ST=VA, L=None, O=None, OU=DoFu, CN=kasm, emailAddress=none@none.none
 Issuer:  C=US, ST=VA, L=None, O=None, OU=DoFu, CN=kasm, emailAddress=none@none.none
 Not Before: Oct 17 22:43:02 2025 GMT
@@ -790,6 +829,7 @@ Not After:  Oct 15 22:43:02 2035 GMT (10-year validity)
 ```
 
 **Generation**: Automatically created at container startup by KasmVNC
+
 - Self-signed (subject == issuer)
 - RSA 2048-bit key
 - 10-year expiration
@@ -797,12 +837,14 @@ Not After:  Oct 15 22:43:02 2035 GMT (10-year validity)
 ### Custom TLS Certificates
 
 **Helm Chart TLS Modes**:
+
 1. `auto` (default) - Use auto-generated self-signed cert (above)
 2. `custom` - Use certificate from Kubernetes secret
 3. `disabled` - HTTP only, no TLS
 
 **Custom Certificate Installation**:
 When `tls.mode: custom`, an initContainer runs:
+
 ```bash
 # Runs as kasm-user (UID 1000)
 mkdir -p /home/kasm-user/.vnc
@@ -811,6 +853,7 @@ chmod 600 /home/kasm-user/.vnc/self.pem
 ```
 
 **Certificate Usage**:
+
 - Xvnc: `-cert` and `-key` parameters
 - Audio services: `--cert` and `-certkey` parameters
 - Upload server: Certificate path configuration
@@ -819,11 +862,13 @@ chmod 600 /home/kasm-user/.vnc/self.pem
 ### TLS Protocols and Ciphers
 
 **Xvnc TLS Configuration**:
+
 - Supports TLS 1.2+ (inherited from OpenSSL)
 - Default ciphers from OpenSSL
 - `sslOnly 0` parameter: Allows both HTTP and HTTPS (for flexibility)
 
 **Production Recommendation**:
+
 - Use `sslOnly 1` for production
 - Deploy custom certificate from Let's Encrypt or internal CA
 - Ensure certificate CN/SAN matches ingress hostname
@@ -852,6 +897,7 @@ VNCOPTIONS="-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_Clip
 ```
 
 **Option Breakdown**:
+
 - `-PreferBandwidth` - Prioritize compression over CPU usage
 - `-DynamicQualityMin=4` - Minimum JPEG quality (1-9 scale)
 - `-DynamicQualityMax=7` - Maximum JPEG quality
@@ -912,6 +958,7 @@ KASMVNC_AUTO_RECOVER=true       # Auto-recover from crashes
 ```bash
 SDL_GAMECONTROLLERCONFIG=030000005e040000be02000014010000,XInput Controller,platform:Linux,a:b0,b:b1,...
 ```
+
 - Preconfigured Xbox/XInput controller mapping
 
 ### Kubernetes Service Discovery
@@ -942,6 +989,7 @@ DEBIAN_FRONTEND=noninteractive
 **Script**: `/dockerstartup/custom_startup.sh`
 
 **Key Configuration**:
+
 ```bash
 START_COMMAND="signal-desktop"
 PGREP="signal-desktop"
@@ -951,12 +999,14 @@ MAXIMIZE_NAME="Signal"
 ```
 
 **Startup Logic**:
+
 1. Wait for desktop environment to be ready (`/usr/bin/desktop_ready`)
 2. Launch window maximization script in background
 3. Start Signal Desktop with `--no-sandbox` flag
 4. If process exits, restart automatically (infinite loop)
 
 **Process Monitoring**:
+
 ```bash
 while true; do
   if ! pgrep -x signal-desktop > /dev/null; then
@@ -971,6 +1021,7 @@ done
 **Critical Directory**: `/home/kasm-user/.config/Signal`
 
 **Must Persist**:
+
 - `IndexedDB/` - Message history (SQLite database)
 - `sql/` - Encrypted message database
 - `config.json` - Device registration and keys
@@ -982,12 +1033,14 @@ done
 ### Signal Desktop Configuration
 
 **User Data Location**:
+
 ```bash
 NODE_CONFIG_DIR=/opt/Signal/resources/app.asar/config
 userData=/home/kasm-user/.config/Signal
 ```
 
 **Environment Variables**:
+
 ```bash
 NODE_ENV=production
 NODE_CONFIG={}
@@ -1002,6 +1055,7 @@ SIGNAL_ENABLE_HTTP=undefined
 **Purpose**: Automatically maximize Signal window on startup
 
 **Mechanism**:
+
 - Uses `wmctrl` to find window by name
 - Matches `MAXIMIZE_NAME="Signal"`
 - Applies maximize state
@@ -1009,11 +1063,13 @@ SIGNAL_ENABLE_HTTP=undefined
 ### Chromium Sandbox Disabled
 
 **Rationale**: Running in container environment
+
 - `--no-sandbox` flag required
 - Container provides isolation boundary
 - Avoids need for `CAP_SYS_ADMIN` or SUID sandbox
 
 **Security Trade-off**:
+
 - Weaker isolation within container
 - Acceptable in trusted container environments
 - Host kernel still provides security boundary
@@ -1077,6 +1133,7 @@ SIGNAL_ENABLE_HTTP=undefined
 ### Advanced Features
 
 **Recording and Playback**: KasmRX protocol support
+
 - Session recording capability
 - Playback of recorded sessions
 
@@ -1097,6 +1154,7 @@ SIGNAL_ENABLE_HTTP=undefined
 ### Data Loss Prevention (DLP)
 
 **Configurable Controls**:
+
 - `DLP_ClipDelay` - Clipboard delay (seconds)
 - `DLP_ClipAcceptMax` - Max clipboard size (incoming)
 - `DLP_ClipSendMax` - Max clipboard size (outgoing)
@@ -1105,7 +1163,8 @@ SIGNAL_ENABLE_HTTP=undefined
 - `DLP_RegionAllowRelease` - Release restrictions
 
 **Current Configuration** (disabled DLP):
-```
+
+```text
 -DLP_ClipDelay 0
 -DLP_ClipAcceptMax 0
 -DLP_ClipSendMax 0
@@ -1130,6 +1189,7 @@ SIGNAL_ENABLE_HTTP=undefined
 ### Critical Files for Persistence
 
 Must be included in PersistentVolume:
+
 - `/home/kasm-user/.config/Signal/` - All Signal data
 - `/home/kasm-user/.gnupg/` - GPG keys (optional)
 - `/home/kasm-user/.pki/` - SSL certificates (optional)
@@ -1146,6 +1206,7 @@ Must be included in PersistentVolume:
 ### Troubleshooting
 
 **Common Issues**:
+
 - **GPU errors**: Expected, falls back to software rendering
 - **D-Bus system bus errors**: Expected, only session bus needed
 - **OOM score adjustment failures**: Permission denied (non-fatal)
@@ -1153,6 +1214,7 @@ Must be included in PersistentVolume:
 - **Clipboard not working**: Check DLP settings
 
 **Log Locations**:
+
 - VNC server: `/home/kasm-user/.vnc/ghostwire-dev-0:1.log`
 - Signal Desktop: `/home/kasm-user/.config/Signal/logs/`
 - Kubernetes pod logs: `kubectl logs -n <namespace> <pod-name>`

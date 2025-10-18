@@ -32,6 +32,7 @@ This approach allows Signal Desktop to run as a first-class Kubernetes workload 
 - PV provisioner support in the underlying infrastructure (for persistent Signal data)
 
 **Optional (for production):**
+
 - Ingress controller (nginx, Traefik, etc.) for HTTPS access
 - cert-manager for automatic TLS certificate management
 - OAuth2-proxy or similar for authentication
@@ -76,18 +77,21 @@ See [Production Setup](#production-setup) for ingress configuration with TLS and
 **Ghostwire's Philosophy:** Security is handled by Kubernetes infrastructure, not the application.
 
 **Traditional VNC deployments:**
+
 - VNC password authentication (credential management burden)
 - Self-signed certificates (browser warnings)
 - Per-app TLS configuration (certificate gymnastics)
 - Fragmented logs and metrics
 
 **Ghostwire's cloud-native approach:**
+
 - Authentication at ingress (OAuth2-proxy, Dex, Keycloak)
 - TLS at ingress (cert-manager + Let's Encrypt)
 - Network isolation (NetworkPolicy, service mesh)
 - Centralized observability (all auth logs in ingress)
 
 This results in:
+
 - ✅ Single sign-on across all applications
 - ✅ Automatic certificate rotation
 - ✅ Consistent security policies
@@ -317,6 +321,7 @@ Signal Desktop (Electron) can be memory-intensive, especially with large convers
 The [KasmVNC Signal Desktop image](https://github.com/kasmtech/workspaces-images) stores Signal data at the `/home/kasm-user/.config/Signal/` path of the container. Persistent Volume Claims are used to keep the data across deployments.
 
 **StatefulSet behavior:**
+
 - Each replica gets its own PVC (named `signal-data-<release>-<ordinal>`)
 - Signal Desktop is tied to a phone number, so `replicaCount: 1` is enforced
 - Deleting the StatefulSet does NOT delete the PVC by default
@@ -492,6 +497,7 @@ kubectl logs -n ghostwire ghostwire-0 | grep -E "(ERROR|signal-desktop)"
 ```
 
 Common issues:
+
 - Insufficient memory → Increase `resources.limits.memory`
 - GPU initialization errors → Expected (falls back to software rendering)
 - D-Bus errors → Expected (only session bus needed)
@@ -499,16 +505,19 @@ Common issues:
 ### VNC Shows Blank Screen
 
 1. Verify pod is running:
+
    ```bash
    kubectl get pod -n ghostwire ghostwire-0
    ```
 
 2. Check resource usage:
+
    ```bash
    kubectl top pod -n ghostwire ghostwire-0
    ```
 
 3. Increase shared memory if browser crashes:
+
    ```bash
    helm upgrade ghostwire oci://ghcr.io/drengskapur/charts/ghostwire --set shmSize=1024 --reuse-values
    ```
@@ -539,6 +548,7 @@ kubectl describe pvc -n ghostwire signal-data-ghostwire-0
 ```
 
 Common causes:
+
 - PVC not bound → Check StorageClass availability
 - Pod deleted with PVC → Verify `helm uninstall` didn't delete PVC
 - Node failure → Check PV access mode and node availability

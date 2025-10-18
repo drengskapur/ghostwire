@@ -1,12 +1,13 @@
 # Infrastructure Integration Guide
 
-**Ghostwire's Cloud-Native Architecture**
+## Ghostwire's Cloud-Native Architecture
 
 Ghostwire follows cloud-native best practices by **delegating infrastructure concerns** to your existing Kubernetes infrastructure layer. This guide shows you how to integrate Ghostwire with common infrastructure components.
 
 ## Design Philosophy
 
 The Ghostwire Helm chart intentionally **does not include**:
+
 - Built-in ingress configuration
 - Embedded TLS/certificate management
 - Application-level authentication
@@ -16,6 +17,7 @@ The Ghostwire Helm chart intentionally **does not include**:
 **Why?** Because you already have infrastructure for these!
 
 Instead of duplicating or conflicting with your existing:
+
 - Ingress controller (nginx, Traefik, Istio, etc.)
 - Certificate manager (cert-manager, Let's Encrypt, etc.)
 - Authentication provider (OAuth2-proxy, Keycloak, Authentik, etc.)
@@ -46,14 +48,17 @@ Ghostwire provides **integration patterns** you can apply using your existing to
 ### For Different Roles
 
 **Platform Engineers:**
+
 - See [integration-patterns.md](integration-patterns.md) for infrastructure layer integration patterns
 - See [infrastructure-layer-options.md](infrastructure-layer-options.md) for detailed implementation options
 
 **Application Teams:**
+
 - See [integration-examples.md](integration-examples.md) for ready-to-use YAML examples
 - See chart [README.md](../chart/README.md) for quickstart
 
 **Security Teams:**
+
 - See [infrastructure-layer-options.md](infrastructure-layer-options.md#security) for security hardening options
 - See [integration-patterns.md](integration-patterns.md#network) for network isolation patterns
 
@@ -64,6 +69,7 @@ Ghostwire provides **integration patterns** you can apply using your existing to
 ### ✅ Included in Ghostwire Chart
 
 **Application Layer:**
+
 - Signal Desktop container runtime
 - StatefulSet with persistent storage
 - Service for internal routing
@@ -73,6 +79,7 @@ Ghostwire provides **integration patterns** you can apply using your existing to
 - VNC server configuration
 
 **Cloud-Native Defaults:**
+
 - No built-in auth (use your OAuth2 provider)
 - No built-in TLS (use your cert-manager)
 - ClusterIP service (expose via your ingress)
@@ -81,6 +88,7 @@ Ghostwire provides **integration patterns** you can apply using your existing to
 ### 🔧 You Integrate (Your Infrastructure)
 
 **Infrastructure Layer:**
+
 - Ingress controller + routing rules
 - TLS certificates (cert-manager, external CA, etc.)
 - Authentication (OAuth2-proxy, Keycloak, etc.)
@@ -91,6 +99,7 @@ Ghostwire provides **integration patterns** you can apply using your existing to
 - Service mesh (Linkerd, Istio, etc.) - optional
 
 **Why this separation?**
+
 - ✅ No vendor lock-in
 - ✅ Use your existing tools
 - ✅ Consistent with other apps in your cluster
@@ -104,11 +113,13 @@ Ghostwire provides **integration patterns** you can apply using your existing to
 ### Scenario 1: Production Deployment with OAuth2 + Let's Encrypt
 
 **What you need:**
+
 1. Ingress controller (nginx/Traefik/etc.)
 2. cert-manager with Let's Encrypt issuer
 3. OAuth2-proxy deployment
 
 **Integration:**
+
 ```yaml
 # Your infrastructure (not in Ghostwire chart)
 apiVersion: networking.k8s.io/v1
@@ -138,11 +149,13 @@ spec:
 ### Scenario 2: Air-Gapped / Internal Network
 
 **What you need:**
+
 1. Internal CA or self-signed certs
 2. Internal authentication (LDAP, SAML, etc.)
 3. No external dependencies
 
 **Integration:**
+
 - Enable Ghostwire's built-in VNC auth: `auth.enabled=true`
 - Use custom TLS: `tls.mode=custom`
 - Deploy without external ingress
@@ -152,11 +165,13 @@ spec:
 ### Scenario 3: Service Mesh Integration
 
 **What you need:**
+
 1. Linkerd/Istio installed
 2. Automatic mTLS between services
 3. Observability via mesh
 
 **Integration:**
+
 ```yaml
 # Add mesh annotations (your infrastructure)
 podAnnotations:
@@ -171,7 +186,7 @@ podAnnotations:
 
 ## Architecture Diagram
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │ Your Infrastructure Layer                                   │
 │                                                              │
@@ -203,6 +218,7 @@ podAnnotations:
 ```
 
 **Clean separation of concerns:**
+
 - Ghostwire = Application runtime
 - Your infrastructure = Routing, security, observability
 
@@ -222,6 +238,7 @@ podAnnotations:
 **Common question:** "Why not include optional ingress/networkpolicy templates in the chart?"
 
 **Answer:**
+
 - Every organization has **different** ingress controllers, auth providers, and security policies
 - Including templates would require maintaining compatibility with dozens of tools
 - Your infrastructure team already knows how to configure your ingress/auth/monitoring
@@ -229,16 +246,18 @@ podAnnotations:
 - **Cloud-native principle:** Apps expose services, infrastructure handles routing/security
 
 **Result:**
+
 - ✅ Simpler, more focused chart
 - ✅ No maintenance burden for tool-specific integrations
 - ✅ Works with any infrastructure stack
 - ✅ No "our way or the highway"
 
 **This guide provides:**
+
 - 📚 Integration patterns for common tools
 - 📋 Ready-to-use examples you can customize
 - 🎯 Clear boundaries between app and infrastructure
 
 ---
 
-*Last updated: October 2025*
+Last updated: October 2025
