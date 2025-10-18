@@ -268,19 +268,71 @@ Composition: Centered with plenty of negative space, breathes
 
 ---
 
-## AI Generator Prompt
+## AI Generator Prompts
 
-For DALL-E, Midjourney, Stable Diffusion, or similar:
+### Primary Prompt (Recommended - v2.0)
+
+**For icon generation:**
 
 ```
-Minimalist vector icon, single continuous glowing electric blue wire (#00D9FF) forming an abstract ghost silhouette against pure black background, wire integrates Signal messenger wave pattern (3 ascending dots), clean line art style, 4px stroke width with rounded caps, outer glow effect, particles dispersing at bottom, Kubernetes hexagon formed by negative space, neon sign aesthetic, professional technical illustration, high contrast, octane render lighting on vector art, 8K --ar 1:1 --style raw
+Minimalist abstract logo: single continuous glowing electric blue wire (#00D9FF) drawn in one unbroken line forming an elongated ghost silhouette against pure black background, NO FACE, smooth rounded top flowing into narrow elegant body, Signal messenger three ascending wave dots integrated mid-body as part of the continuous line, subtle Kubernetes hexagon formed by negative space, wire terminus frays into dispersing cyan particles at bottom (asymmetric, random scatter), neon tube aesthetic with bright outer glow, 4px stroke weight, rounded caps and joins, professional technical illustration, high contrast, clean vector style, vertical composition, --ar 1:1 --style raw
 ```
 
-**For hero banner:**
+**Key requirements:**
+- ❌ **NO FACE** - No eyes, no mouth, no facial features
+- ✅ **Single continuous line** - One unbroken wire path
+- ✅ **Elongated vertical** - Narrow elegant body, not squat
+- ✅ **Signal waves visible** - Three ascending dots/lines integrated
+- ✅ **Abstract geometric** - Not literal cartoon ghost
+
+### Alternative: More Abstract Approach
+
+If the AI generates literal/cute ghosts, use this more geometric version:
+
+```
+Abstract minimalist icon: electric blue glowing wireframe (#00D9FF) suggesting ghost form through geometric abstraction, vertical flowing shape with rounded apex, three ascending signal wave elements integrated into continuous line path, subtle angular Kubernetes hexagon in negative space, wire dissolves into scattered cyan particles below, pure black background, neon sign aesthetic with bright cyan glow effect, professional technical logo, high contrast, clean vector linework, no facial features, --ar 1:1 --v 6
+```
+
+### Hero Banner Prompt
+
+**For 1280x640 GitHub social preview:**
 
 ```
 Cinematic minimalist render, single continuous glowing electric blue wireframe ghost floating in pure black void, electric blue wire (#00D9FF) with intense outer glow, Signal wave pattern integrated, particles dispersing at bottom, faint Kubernetes hexagon grid floor below, volumetric god rays from above, subtle motion blur, chromatic aberration on highlights, dark atmospheric fog, professional technical visualization, high contrast, neon aesthetic, octane render, 8K --ar 16:9 --style raw
 ```
+
+---
+
+## Design Iteration Examples
+
+### Attempt #1 - Analysis
+
+**What Worked ✅**
+- Single continuous wire execution
+- Electric blue neon glow (#00D9FF range)
+- Pure black background, high contrast
+- Particle dispersal at bottom
+- Clean line weight, scalable
+- Kubernetes hexagon integrated
+
+**Critical Issues ❌**
+1. **Too literal/cute** - Eyes and face make it cartoon-like, not abstract
+2. **Signal integration missing** - No visible Signal wave pattern
+3. **Line complexity** - Multiple separate elements, not one continuous wire
+4. **Proportions** - Too wide/squat, lacks elegant tactical edge
+5. **Hexagon too prominent** - Kubernetes should be subtle hint
+
+**Score: 6.5/10** (Beautiful execution, but misses brand alignment)
+
+### Iteration Guidelines
+
+When generating assets, iterate until you achieve:
+- **Abstract form** - Geometric ghost suggestion, not literal
+- **Single wire path** - One continuous unbroken line
+- **Signal waves visible** - Three ascending dots/lines clearly integrated
+- **Vertical elegance** - Narrow, elongated, tactical
+- **No facial features** - Eyes/mouth make it too cute
+- **Asymmetric particles** - Random scatter, not decorative symmetry
 
 ---
 
