@@ -65,20 +65,31 @@ This isn't just a logo. It's a **visual theorem proving your architectural philo
 
 ## Color Palette
 
-### Primary
-- **Electric Blue:** `#00D9FF` - The wire, primary brand color
-- **Deep Black:** `#000000` - Background, sophistication
-- **Glow Blue:** `#3A76F0` - Outer glow (60% opacity, 20px blur)
+### Primary Colors
+- **Electric Blue:** `#00D9FF` - The wire, primary brand color, icon glow
+- **Deep Black:** `#000000` - Pure black background for maximum contrast
+- **Bright Cyan:** `#00FFE5` - Title text, highlight accent (brighter than primary)
 
-### Secondary (accents)
-- **Signal Blue:** `#3A76F0` - For Signal messaging references
-- **Kubernetes Blue:** `#326CE5` - For infrastructure elements
-- **Particle Cyan:** `#00FFE5` - For dispersing particle effects
+### Secondary (Brand Accents)
+- **Signal Blue:** `#3A76F0` - For Signal messaging references, outer glow layers
+- **Kubernetes Blue:** `#326CE5` - For infrastructure elements, subtle details
+- **Muted Cyan:** `#5A8EA8` - Tagline/supporting text (50% darker than primary)
 
-### Supporting
-- **Dark Navy:** `#0A0E27` - Subtle backgrounds, depth
-- **Charcoal:** `#1A1A1A` - Text on light backgrounds
-- **Soft Cyan:** `#88E5FF` - Highlights, hover states
+### Atmospheric & Depth
+- **Dark Navy:** `#0A0E27` - Vignette backgrounds, radial gradient edges, subtle depth
+- **Charcoal:** `#1A1A1A` - Text on light backgrounds (rarely used)
+- **Soft Cyan:** `#88E5FF` - Secondary highlights, hover states, UI accents
+
+### Lighting & Effects (Professional Enhancement)
+- **Pure White:** `#FFFFFF` - Specular highlights, hotspot cores (15-20% opacity)
+- **Glow Blue:** `#3A76F0` - Outer glow effect layers (60% opacity, 12-20px blur)
+- **Atmospheric Blue:** `#001428` - Background fog/haze (5% opacity for depth)
+
+### Contrast Hierarchy Guidelines
+- **Focal points** (icons, primary CTAs): Use `#00FFE5` (brightest)
+- **Primary text** (titles, headers): Use `#00D9FF` (standard)
+- **Secondary text** (taglines, body): Use `#5A8EA8` (muted, 40% contrast difference)
+- **Backgrounds**: Use `#000000` → `#0A0E27` radial gradient for vignette effect
 
 ---
 
