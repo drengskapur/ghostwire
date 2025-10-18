@@ -134,6 +134,8 @@ See [values.yaml](chart/values.yaml) for complete options and [values.schema.jso
 
 ## Contributing
 
+**Looking for Co-Maintainers!** This project is actively seeking additional maintainers to help with code review, issue triage, and feature development. If you're interested, please see [Code Review Strategy](docs/code-review-strategy.md) and reach out via [GitHub Discussions](https://github.com/drengskapur/ghostwire/discussions).
+
 Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
 - Development environment setup
