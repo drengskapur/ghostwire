@@ -47,11 +47,7 @@ Open in browser:
 open http://localhost:6901?keyboard=1
 ```
 
-**Default credentials:**
-- Username: `kasm_user`
-- Password: `CorrectHorseBatteryStaple`
-
-For production use, configure ingress with OAuth2 instead of port-forwarding. See [Chart README](chart/README.md).
+**Note:** VNC authentication is disabled by default. For production use, configure ingress with OAuth2 instead of port-forwarding. See [Chart README](chart/README.md).
 
 ---
 
