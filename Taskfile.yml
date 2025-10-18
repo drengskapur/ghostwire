@@ -27,7 +27,7 @@ tasks:
     cmds:
       - |
         echo "🔧 Generating Helm chart schema..."
-        helm schema --no-additional-properties --indent 2
+        helm schema
 
         echo "📝 Post-processing schema for flexibility..."
         # Fix overly restrictive schema for fields that need flexibility
@@ -56,10 +56,7 @@ tasks:
           (.properties.affinity | select(. != null)) |= del(.additionalProperties) |
 
           # Ensure imagePullSecrets are strings (secret names)
-          (.properties.imagePullSecrets.items | select(. != null)) = { "type": "string" } |
-
-          # Use JSON Schema Draft 7 for ArtifactHub compatibility
-          ."$schema" = "http://json-schema.org/draft-07/schema#"
+          (.properties.imagePullSecrets.items | select(. != null)) = { "type": "string" }
         ' values.schema.json > values.schema.json.tmp && mv values.schema.json.tmp values.schema.json
 
         echo "✅ Schema generated: values.schema.json"

@@ -1,0 +1,11 @@
+# Helm Schema Plugin Configuration
+# https://github.com/losisin/helm-values-schema-json
+
+# Use JSON Schema Draft 7 for ArtifactHub compatibility
+draft: 7
+
+# Default additionalProperties to false for stricter validation
+no-additional-properties: true
+
+# Use 2-space indentation to match our style
+indent: 2
