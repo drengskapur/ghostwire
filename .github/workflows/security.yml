@@ -23,12 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 0 # Full history for comprehensive scanning
 
       - name: TruffleHog OSS
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@fd007c74a0603e5e9c66cdc1c1dec6ce1e2bc05d # main
         with:
           # Scan the entire repository
           path: ./
@@ -39,10 +39,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@b6643a29c2ef6e1b78c1916f9c7b619fc3ab3f9b # master
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -58,10 +58,10 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@455294851b49b8f84a6baa6abdd5a22f16f2f729 # v4
         with:
           fail-on-severity: high
           # Allow licenses: Apache-2.0, MIT, BSD-3-Clause
