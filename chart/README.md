@@ -55,11 +55,11 @@ Unlike traditional VNC deployments that bake security into the application, **Gh
 
 Run Signal Desktop in your Kubernetes cluster with:
 
-- **🔐 Infrastructure-Level Security** - OAuth2, cert-manager, service mesh integration
-- **💾 Persistent Storage** - Conversations survive pod restarts (StatefulSet + PVC)
-- **🌐 Browser Access** - No VNC client needed (KasmVNC web client)
-- **📱 Mobile-Friendly** - On-screen keyboard support (`?keyboard=1` URL parameter)
-- **☁️ Cloud-Native** - Leverages platform capabilities instead of reinventing them
+- **Infrastructure-Level Security** - OAuth2, cert-manager, service mesh integration
+- **Persistent Storage** - Conversations survive pod restarts (StatefulSet + PVC)
+- **Browser Access** - No VNC client needed (KasmVNC web client)
+- **Mobile-Friendly** - On-screen keyboard support (`?keyboard=1` URL parameter)
+- **Cloud-Native** - Leverages platform capabilities instead of reinventing them
 
 ---
 
