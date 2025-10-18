@@ -17,7 +17,7 @@ Thank you for your interest in contributing to Ghostwire! This document provides
 
 ## Code of Conduct
 
-Be respectful, inclusive, and constructive. We're all here to build something great together.
+Please read and abide by our Code of Conduct: [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
 
 ---
 
