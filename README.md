@@ -10,6 +10,8 @@ Run Signal Desktop in your cluster with browser access and persistent storage
 [![Helm](https://img.shields.io/badge/Helm-v3-blue)](https://helm.sh)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.25%2B-blue)](https://kubernetes.io)
 
+![Signal Desktop in Kubernetes](docs/images/signal-desktop-linking.png)
+
 </div>
 
 ---
