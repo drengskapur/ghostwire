@@ -1,3 +1,5 @@
-node_modules/
-vendor/
 .github/
+LICENSE
+node_modules/
+NOTICE
+vendor/
