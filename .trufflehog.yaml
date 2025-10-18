@@ -5,5 +5,6 @@
 allow:
   # Revoked GitHub PAT - removed and revoked on 2025-10-17
   # This token appears in git history but is no longer valid
-  - path: "**"
-    regex: "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"
+  - paths:
+      - "**"
+    regexTarget: "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"
