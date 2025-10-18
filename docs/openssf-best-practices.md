@@ -96,6 +96,22 @@ Replace `XXXX` with your project ID from the badge URL.
 - [x] Build process documented
 - [x] Artifact verification instructions (SECURITY.md)
 
+### ⚠️ Single-Maintainer Limitations
+
+#### Code Review (High Priority)
+- **Status:** Infrastructure in place, but 0/10 score due to single maintainer
+- **Issue:** Cannot approve own PRs; all recent commits show no external review
+- **Mitigation:**
+  - Branch protection requires reviews (ready for contributors)
+  - Comprehensive automated testing compensates
+  - Security scanning provides additional validation
+  - See [Code Review Strategy](./code-review-strategy.md) for details
+- **Solution:** Recruit co-maintainers from community
+  - Post in GitHub Discussions calling for co-maintainers
+  - Engage quality contributors
+  - Highlight in README
+- **Timeline:** Score will improve as review history accumulates
+
 ### 🔄 May Need Clarification/Enhancement
 
 #### Documentation
