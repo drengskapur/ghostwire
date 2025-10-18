@@ -1,0 +1,122 @@
+version: '3'
+
+vars:
+  REGISTRY: ghcr.io
+  ORG: drengskapur
+  IMAGE_NAME: ghostwire
+  VERSION:
+    sh: git describe --tags --always --dirty 2>/dev/null || echo "dev"
+  PLATFORMS: linux/amd64
+  FULL_IMAGE: "{{.REGISTRY}}/{{.ORG}}/{{.IMAGE_NAME}}:{{.VERSION}}"
+  LATEST_IMAGE: "{{.REGISTRY}}/{{.ORG}}/{{.IMAGE_NAME}}:latest"
+  BUILDER_NAME: ghostwire-builder
+  SIGNAL_VERSION: 7.0.0
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  setup-buildx:
+    desc: Create buildx builder instance
+    cmds:
+      - docker buildx create --name {{.BUILDER_NAME}} --use --bootstrap || docker buildx use {{.BUILDER_NAME}}
+      - docker buildx inspect --bootstrap
+    status:
+      - docker buildx inspect {{.BUILDER_NAME}} 2>/dev/null
+
+  build:
+    desc: Build and push ghostwire image
+    deps: [setup-buildx]
+    cmds:
+      - |
+        docker buildx build \
+          --platform {{.PLATFORMS}} \
+          --build-arg SIGNAL_VERSION={{.SIGNAL_VERSION}} \
+          --tag {{.FULL_IMAGE}} \
+          --tag {{.LATEST_IMAGE}} \
+          --push \
+          -f Dockerfile \
+          .
+      - echo "Built and pushed {{.FULL_IMAGE}}"
+      - echo "Built and pushed {{.LATEST_IMAGE}}"
+
+  build-local:
+    desc: Build image for local testing (amd64 only)
+    deps: [setup-buildx]
+    cmds:
+      - |
+        docker buildx build \
+          --platform linux/amd64 \
+          --build-arg SIGNAL_VERSION={{.SIGNAL_VERSION}} \
+          --tag {{.IMAGE_NAME}}:local \
+          --load \
+          -f Dockerfile \
+          .
+      - echo "Built {{.IMAGE_NAME}}:local"
+
+  test:
+    desc: Run local ghostwire image for testing
+    cmds:
+      - |
+        docker run --rm -d \
+          --name ghostwire-test \
+          -p 5901:5901 \
+          -p 6901:6901 \
+          -v ghostwire-data:/home/ghostwire/.config/Signal \
+          {{.IMAGE_NAME}}:local
+      - |
+        echo ""
+        echo "========================================="
+        echo "Ghostwire test container started!"
+        echo "========================================="
+        echo "Access noVNC: http://localhost:6901"
+        echo "VNC direct:   localhost:5901"
+        echo "Data volume:  ghostwire-data"
+        echo ""
+        echo "View logs:    task logs"
+        echo "Stop test:    task stop"
+        echo "========================================="
+
+  stop:
+    desc: Stop test container
+    cmds:
+      - docker stop ghostwire-test || true
+      - echo "Test container stopped"
+
+  logs:
+    desc: View logs from test container
+    cmds:
+      - docker logs -f ghostwire-test
+
+  shell:
+    desc: Get a shell in the test container
+    cmds:
+      - docker exec -it ghostwire-test /bin/bash
+
+  clean:
+    desc: Clean up builder and local images
+    cmds:
+      - docker buildx rm {{.BUILDER_NAME}} || true
+      - docker rmi {{.IMAGE_NAME}}:local || true
+      - echo "Cleaned up builder and local images"
+
+  clean-data:
+    desc: Remove Signal Desktop test data volume
+    cmds:
+      - docker volume rm ghostwire-data || true
+      - echo "Removed data volume"
+
+  lint:
+    desc: Lint Dockerfile
+    cmds:
+      - command -v hadolint >/dev/null 2>&1 && hadolint Dockerfile || echo "hadolint not installed, skipping"
+      - command -v yamllint >/dev/null 2>&1 && yamllint Taskfile.yml || echo "yamllint not installed, skipping"
+
+  dev:
+    desc: Build and run for local development
+    cmds:
+      - task: build-local
+      - task: stop
+      - task: test
