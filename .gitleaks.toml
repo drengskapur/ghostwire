@@ -13,6 +13,12 @@ regexes = [
   '''your-github-username''',
 ]
 
+# Revoked tokens (safe to ignore)
+commits = [
+  # Revoked GitHub PAT - removed and revoked on 2025-10-17
+  "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",
+]
+
 paths = [
   # Don't scan git history or dependencies
   '''\.git/''',

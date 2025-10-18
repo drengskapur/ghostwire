@@ -1,0 +1,9 @@
+# TruffleHog configuration for Ghostwire
+# https://github.com/trufflesecurity/trufflehog
+
+# Allowlist for revoked/safe secrets
+allow:
+  # Revoked GitHub PAT - removed and revoked on 2025-10-17
+  # This token appears in git history but is no longer valid
+  - path: "**"
+    regex: "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"
