@@ -68,6 +68,7 @@ This means less configuration overlap and easier integration with tools you alre
 ## Architecture
 
 ```mermaid
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#fff','primaryTextColor':'#000','primaryBorderColor':'#000','lineColor':'#000','secondaryColor':'#fff','tertiaryColor':'#fff'}}}%%
 graph LR
     subgraph Infrastructure ["Your Infrastructure"]
         direction LR
