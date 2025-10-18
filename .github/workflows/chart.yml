@@ -47,6 +47,12 @@ jobs:
       - name: Helm template
         run: helm template test ${{ env.CHART_PATH }} > /dev/null
 
+      - name: Install helm-unittest plugin
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest
+
+      - name: Run helm unit tests
+        run: helm unittest ${{ env.CHART_PATH }} --strict
+
   publish-main:
     name: Publish Main Branch
     runs-on: ubuntu-latest
