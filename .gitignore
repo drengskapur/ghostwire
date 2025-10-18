@@ -1,12 +1,8 @@
 .DS_Store
-.idea/
-.task/
-
-# Environment files (use Taskfile.yml or CI/CD for config)
 .env*
 .envrc
-
-# Helm artifacts
+.idea/
+.task/
 *.tgz
 chart/*.tgz
 chart/charts/
