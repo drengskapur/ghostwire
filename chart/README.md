@@ -10,7 +10,7 @@
 
 Install the chart:
 ```bash
-helm install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire --version 1.0.0 --create-namespace -n ghostwire
+helm install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire --version 0.0.0-latest-stable --create-namespace -n ghostwire
 ```
 
 Access via port-forward:
@@ -69,7 +69,7 @@ Run Signal Desktop in your Kubernetes cluster with:
 
 Install the chart:
 ```bash
-helm install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire --version 1.0.0 --create-namespace -n ghostwire
+helm install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire --version 0.0.0-latest-stable --create-namespace -n ghostwire
 ```
 
 Access via port-forward:
