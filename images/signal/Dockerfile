@@ -33,6 +33,7 @@ RUN apk update && apk add --no-cache \
     # X11 and display server (xvfb provides Xvfb binary)
     xvfb \
     xkeyboard-config \
+    xkbcomp \
     xauth \
     libx11 \
     libxext \
