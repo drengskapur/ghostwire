@@ -67,17 +67,22 @@ This means less configuration overlap and easier integration with tools you alre
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────┐
-│ Your Infrastructure                     │
-│ (Ingress, OAuth2, TLS, Network Policy)  │
-└──────────────────┬──────────────────────┘
-                   │
-                   ↓
-┌─────────────────────────────────────────┐
-│ Ghostwire                               │
-│ (Signal Desktop + VNC + Storage)        │
-└─────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph Infrastructure ["Your Infrastructure"]
+        I1[Ingress]
+        I2[OAuth2]
+        I3[TLS]
+        I4[Network Policy]
+    end
+
+    subgraph Ghostwire ["Ghostwire"]
+        G1[Signal Desktop]
+        G2[VNC]
+        G3[Storage]
+    end
+
+    Infrastructure --> Ghostwire
 ```
 
 Clean separation: the chart handles the application runtime, your platform handles everything else.
