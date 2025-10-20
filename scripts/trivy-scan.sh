@@ -13,7 +13,12 @@ if ! command -v trivy &> /dev/null; then
   # Install to ~/.local/bin to avoid needing sudo
   TRIVY_VERSION="v0.67.2"
   mkdir -p ~/.local/bin
-  curl -sfL "https://raw.githubusercontent.com/aquasecurity/trivy/${TRIVY_VERSION}/contrib/install.sh" | sh -s -- -b ~/.local/bin "${TRIVY_VERSION}"
+  
+  # Download and verify install script
+  curl -sSL "https://raw.githubusercontent.com/aquasecurity/trivy/${TRIVY_VERSION}/contrib/install.sh" -o /tmp/trivy-install.sh
+  echo "2304dcc0c1883e802d376eae1b514c923b7427a7d88091dfcaf83967e6f55a7c /tmp/trivy-install.sh" | sha256sum -c
+  sh /tmp/trivy-install.sh -b ~/.local/bin "${TRIVY_VERSION}"
+  rm /tmp/trivy-install.sh
 
   # Add to PATH if not already there
   if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then

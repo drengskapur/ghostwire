@@ -50,7 +50,9 @@ jobs:
 
       - name: Install k3d
         run: |
-          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+          curl -sSL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh -o /tmp/k3d-install.sh
+          echo "0f6bd9a3ab8ea8625843b21657a6538f117975bb2823b73200dc8b92ccc626de /tmp/k3d-install.sh" | sha256sum -c
+          bash /tmp/k3d-install.sh
           k3d version
 
       - name: Install kubectl

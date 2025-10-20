@@ -8,14 +8,15 @@ name: Bot PR Automation
     branches:
       - main
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
 
 jobs:
   automate-bot-prs:
     name: Automate Bot PRs
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     if: |
       github.actor == 'dependabot[bot]' ||
       github.actor == 'renovate[bot]' ||

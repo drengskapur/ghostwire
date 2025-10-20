@@ -54,7 +54,8 @@ jobs:
 
       - name: Run yamllint
         run: |
-          pip install yamllint==1.37.1
+          pip install yamllint==1.37.1 --require-hashes --only-binary=:all: \
+            --hash=sha256:45e2e5c54d2e27e64eeb1456cc2e7d45bb7e8b0c04e2e27ffc32e1a17f2ef5bb
           yamllint .github/workflows/ chart/
 
   analyze:

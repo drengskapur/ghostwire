@@ -128,7 +128,7 @@ const { chromium } = require("playwright");
     process.exit(1);
 });
 EOF
-            npm install playwright
+            npm install playwright@1.56.1 --save-exact
             node test.js
         '
 
