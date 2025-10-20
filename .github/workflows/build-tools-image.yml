@@ -27,11 +27,13 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
-    # Auto-run for trusted contributors, or allow manual trigger for external PRs
+    # Auto-run for trusted contributors and bots, or allow manual trigger for external PRs
     if: |
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
       github.event.pull_request.head.repo.full_name == github.repository ||
+      github.actor == 'dependabot[bot]' ||
+      github.actor == 'renovate[bot]' ||
       github.event.pull_request.author_association == 'MEMBER' ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
       github.event.pull_request.author_association == 'OWNER'
