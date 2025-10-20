@@ -82,24 +82,30 @@ This means less configuration overlap and easier integration with tools you alre
 ## Architecture
 
 ```mermaid
-%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#000','primaryTextColor':'#fff','primaryBorderColor':'#fff','lineColor':'#fff','secondaryColor':'#000','tertiaryColor':'#000'}}}%%
-graph LR
-    subgraph Infrastructure ["Your Infrastructure"]
-        direction LR
-        I1[Ingress]
-        I2[OAuth2]
-        I3[TLS]
-        I4[Network Policy]
-    end
+architecture-beta
+    group internet(cloud)[Internet]
+    group cloud(cloud)[Cloud Provider]
+    group k8s(cloud)[Kubernetes Cluster] in cloud
+    group ns_infra(cloud)[Namespace: ingress-nginx] in k8s
+    group ns_app(cloud)[Namespace: ghostwire] in k8s
 
-    subgraph Ghostwire ["Ghostwire"]
-        direction LR
-        G1[Signal Desktop]
-        G2[VNC]
-        G3[Storage]
-    end
+    service user(internet)[User] in internet
+    service lb(internet)[Load Balancer] in cloud
+    service ingress(server)[NGINX Ingress] in ns_infra
+    service oauth(server)[OAuth2 Proxy] in ns_infra
+    service svc(server)[Service: ghostwire] in ns_app
+    service statefulset(server)[StatefulSet] in ns_app
+    service pod(server)[Pod: ghostwire-0] in statefulset
+    service pv(disk)[PersistentVolume] in cloud
+    service pvc(disk)[PVC: ghostwire-data] in ns_app
 
-    Infrastructure --> Ghostwire
+    user:R -- L:lb
+    lb:R -- L:ingress
+    ingress:R -- L:oauth
+    oauth:R -- L:svc
+    svc:R -- L:pod
+    pod:B -- T:pvc
+    pvc:B -- T:pv
 ```
 
 Clean separation: the chart handles the application runtime, your platform handles everything else.
