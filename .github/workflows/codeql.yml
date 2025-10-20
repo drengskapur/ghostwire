@@ -36,15 +36,7 @@ jobs:
         with:
           scandir: './scripts'
           severity: warning
-          format: sarif
-        continue-on-error: true
-
-      - name: Upload ShellCheck SARIF
-        if: always() && hashFiles('shellcheck.sarif') != ''
-        uses: github/codeql-action/upload-sarif@16140ae1a102900babc80a33c44059580f687047 # v4.30.9
-        with:
-          sarif_file: shellcheck.sarif
-          category: shellcheck
+          format: gcc
 
   yaml-lint:
     name: YAML Lint
