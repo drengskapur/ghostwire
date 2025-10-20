@@ -58,10 +58,11 @@ jobs:
           python-version: '3.x'
           cache: 'pip'
           cache-dependency-path: 'requirements.txt'
-          pip-install: -r requirements.txt
 
-      - name: Run yamllint
-        run: yamllint .github/workflows/ chart/
+      - name: Install and run yamllint
+        run: |
+          pip install -r requirements.txt
+          yamllint .github/workflows/ chart/
 
   analyze:
     name: CodeQL Analyze (${{ matrix.language }})
