@@ -1,22 +1,39 @@
-name: Auto-Update Bot PRs
+---
+name: Bot PR Automation
 
-on:
+'on':
+  pull_request:
+    types: [opened, synchronize]
   push:
     branches:
       - main
-  pull_request:
-    types: [opened, synchronize]
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  auto-update:
-    name: Auto-Update Bot PR Branches
+  automate-bot-prs:
+    name: Automate Bot PRs
     runs-on: ubuntu-latest
+    if: |
+      github.actor == 'dependabot[bot]' ||
+      github.actor == 'renovate[bot]' ||
+      github.event_name == 'push'
     steps:
-      - name: Update bot PRs
+      - name: Enable auto-merge for bot PRs
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --auto \
+            --squash \
+            --delete-branch
+
+      - name: Update bot PR branches when main changes
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
