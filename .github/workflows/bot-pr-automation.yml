@@ -19,6 +19,7 @@ jobs:
     if: |
       github.actor == 'dependabot[bot]' ||
       github.actor == 'renovate[bot]' ||
+      github.actor == 'step-security-bot' ||
       github.event_name == 'push'
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -47,7 +48,7 @@ jobs:
             --repo "${{ github.repository }}" \
             --state open \
             --json number,author,headRefName \
-            --jq '.[] | select(.author.login == "dependabot[bot]" or .author.login == "renovate[bot]") | .number' \
+            --jq '.[] | select(.author.login == "dependabot[bot]" or .author.login == "renovate[bot]" or .author.login == "step-security-bot") | .number' \
           | while read -r pr_number; do
             echo "Updating PR number ${pr_number}..."
             if gh pr view "${pr_number}" --repo "${{ github.repository }}" --json mergeable --jq '.mergeable' | grep -q "CONFLICTING"; then
