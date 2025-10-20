@@ -63,13 +63,6 @@ repository:
 branches:
   - name: main
     protection:
-      # Require pull request reviews
-      required_pull_request_reviews:
-        required_approving_review_count: 0  # Allow maintainer to self-merge
-        dismiss_stale_reviews: true
-        require_code_owner_reviews: false
-        require_last_push_approval: false
-
       # Require status checks
       required_status_checks:
         strict: true
