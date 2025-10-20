@@ -1,0 +1,29 @@
+name: Auto-Trigger Bot PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  trigger-checks:
+    name: Trigger Checks for Bot PRs
+    runs-on: ubuntu-latest
+    if: |
+      github.actor == 'dependabot[bot]' ||
+      github.actor == 'renovate[bot]'
+    steps:
+      - name: Close and reopen PR to trigger workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Wait a moment to ensure PR is fully created
+          sleep 3
+          
+          # Close and reopen to trigger all required checks
+          gh pr close ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --comment "Auto-triggering required checks"
+          sleep 2
+          gh pr reopen ${{ github.event.pull_request.number }} --repo ${{ github.repository }}
