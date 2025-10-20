@@ -35,6 +35,28 @@
   },
   "packageRules": [
     {
+      "description": "Auto-merge critical vulnerabilities (CVSS 9.0+)",
+      "matchDatasources": ["docker", "github-actions", "helmv3"],
+      "vulnerabilitySeverity": ["CRITICAL"],
+      "automerge": true,
+      "automergeType": "pr",
+      "prPriority": 10,
+      "labels": ["security", "priority: critical", "auto-merge"],
+      "semanticCommitType": "fix",
+      "semanticCommitScope": "security"
+    },
+    {
+      "description": "Auto-merge high vulnerabilities (CVSS 8.0-8.9)",
+      "matchDatasources": ["docker", "github-actions", "helmv3"],
+      "vulnerabilitySeverity": ["HIGH"],
+      "automerge": true,
+      "automergeType": "pr",
+      "prPriority": 8,
+      "labels": ["security", "priority: high", "auto-merge"],
+      "semanticCommitType": "fix",
+      "semanticCommitScope": "security"
+    },
+    {
       "description": "Kasmweb Signal Desktop rolling-daily image",
       "matchDatasources": [
         "docker"
@@ -68,11 +90,10 @@
     }
   ],
   "vulnerabilityAlerts": {
-    "labels": [
-      "type: security",
-      "priority: high"
-    ],
-    "automerge": false
+    "enabled": true,
+    "labels": ["type: security", "priority: high"],
+    "automerge": false,
+    "assignees": ["@drengskapur"]
   },
   "ignoreDeps": [],
   "enabledManagers": [
