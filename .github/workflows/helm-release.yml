@@ -10,9 +10,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'chart/**'
-      - '.github/workflows/helm-release.yml'
   workflow_dispatch:
 
 concurrency:
