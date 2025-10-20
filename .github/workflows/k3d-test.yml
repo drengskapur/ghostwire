@@ -1,0 +1,101 @@
+name: K3D Integration Test
+
+on:
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  k3d-playwright-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      
+      - name: Cache Docker images
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: /tmp/docker-images
+          key: docker-images-${{ runner.os }}-${{ hashFiles('**/values.yaml') }}
+          restore-keys: |
+            docker-images-${{ runner.os }}-
+      
+      - name: Load cached Docker images
+        run: |
+          mkdir -p /tmp/docker-images
+          if [ -f /tmp/docker-images/playwright.tar ]; then
+            echo "Loading cached Playwright image..."
+            docker load -i /tmp/docker-images/playwright.tar
+          fi
+          if [ -f /tmp/docker-images/kasmvnc.tar ]; then
+            echo "Loading cached KasmVNC image..."
+            docker load -i /tmp/docker-images/kasmvnc.tar
+          fi
+      
+      - name: Install k3d
+        run: |
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+          k3d version
+      
+      - name: Install kubectl
+        uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede # v4.0.1
+      
+      - name: Install Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4.3.1
+        with:
+          version: latest
+      
+      - name: Pull and cache Docker images
+        run: |
+          # Pull Playwright image if not cached
+          if ! docker images --format "{{.Repository}}:{{.Tag}}" | grep -q "playwright:v1.56.1-noble"; then
+            echo "Pulling Playwright image..."
+            docker pull mcr.microsoft.com/playwright:v1.56.1-noble
+          fi
+          
+          # Pull KasmVNC image if not cached
+          if ! docker images --format "{{.Repository}}:{{.Tag}}" | grep -q "kasmweb/signal:1.18.0-rolling-daily"; then
+            echo "Pulling KasmVNC image..."
+            docker pull kasmweb/signal:1.18.0-rolling-daily
+          fi
+          
+          # Save images for next run
+          mkdir -p /tmp/docker-images
+          docker save mcr.microsoft.com/playwright:v1.56.1-noble -o /tmp/docker-images/playwright.tar
+          docker save kasmweb/signal:1.18.0-rolling-daily -o /tmp/docker-images/kasmvnc.tar
+      
+      - name: Run k3d + Playwright test
+        run: ./scripts/test-k3d-playwright.sh
+        timeout-minutes: 15
+      
+      - name: Upload screenshot artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ghostwire-vnc-screenshot
+          path: test-results/screenshots/ghostwire-vnc.png
+          if-no-files-found: warn
+          retention-days: 30
+      
+      - name: Show pod logs on failure
+        if: failure()
+        run: |
+          kubectl get pods -n ghostwire || true
+          kubectl describe pods -n ghostwire || true
+          kubectl logs -n ghostwire -l app.kubernetes.io/name=ghostwire --tail=100 || true

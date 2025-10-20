@@ -6,3 +6,4 @@
 *.tgz
 chart/*.tgz
 chart/charts/
+test-results/
