@@ -70,7 +70,6 @@ jobs:
             helm version --short
             jq --version
             curl --version
-            nmap --version
             echo '✅ All tools working correctly'
           "
 
