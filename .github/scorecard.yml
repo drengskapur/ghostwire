@@ -1,0 +1,13 @@
+# Scorecard configuration
+# https://github.com/ossf/scorecard-action#configuration
+
+# Suppress specific findings
+suppressions:
+  - id: PinnedDependenciesID
+    paths:
+      - .devcontainer/Dockerfile
+    reason: |
+      npm install commands in Dockerfiles cannot be pinned by hash.
+      The package is pinned to a specific version (playwright@1.40.0) which is
+      the recommended practice for Dockerfiles. This is a devcontainer image
+      only used for development, not production deployments.
