@@ -1,6 +1,9 @@
 ---
 extends: default
 
+ignore: |
+  chart/templates/
+
 rules:
   line-length: disable
   trailing-spaces: enable
@@ -10,3 +13,5 @@ rules:
   truthy:
     allowed-values: ['true', 'false']
     check-keys: false
+  braces:
+    max-spaces-inside: 1
