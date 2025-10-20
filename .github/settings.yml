@@ -67,8 +67,8 @@ branches:
       required_status_checks:
         strict: true
         contexts:
-          - "Helm Lint"
-          - "Helm Test"
+          - "Lint and Test"
+          - "Build and Test"
 
       # Merge queue configuration
       required_merge_queue:
