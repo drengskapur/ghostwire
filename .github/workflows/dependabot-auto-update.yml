@@ -1,0 +1,30 @@
+name: Dependabot Auto Update
+
+on:
+  # Run when PRs are updated (base branch changes)
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  update-dependabot-pr:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+      
+      - name: Auto-update PR branch
+        run: |
+          gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --json mergeable --jq .mergeable | grep -q "BEHIND" && \
+          gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body "@dependabot rebase" || \
+          echo "PR is not behind base branch"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
