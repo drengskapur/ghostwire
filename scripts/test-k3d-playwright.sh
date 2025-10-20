@@ -39,10 +39,20 @@ main() {
     kubectl create namespace "${NAMESPACE}"
 
     log "Installing Ghostwire via Helm..."
-    helm upgrade --install ghostwire ./chart \
-        --namespace "${NAMESPACE}" \
-        --wait --timeout=5m \
-        --debug
+    if [ "${USE_OCI:-false}" = "true" ]; then
+        log "Using OCI registry with latest-stable tag..."
+        helm upgrade --install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire \
+            --version 0.0.0-latest-stable \
+            --namespace "${NAMESPACE}" \
+            --wait --timeout=5m \
+            --debug
+    else
+        log "Using local chart directory..."
+        helm upgrade --install ghostwire ./chart \
+            --namespace "${NAMESPACE}" \
+            --wait --timeout=5m \
+            --debug
+    fi
 
     log "Waiting for Ghostwire pod to be ready..."
     kubectl wait --for=condition=Ready pod \
