@@ -7,6 +7,12 @@ on:
       - completed
     branches: [main]
   workflow_dispatch:
+    inputs:
+      chart_version:
+        description: 'Chart version to test'
+        required: false
+        default: '0.0.0-latest'
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -45,7 +51,23 @@ jobs:
         with:
           version: latest
 
+      - name: Determine chart version to test
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            # Test latest-stable after release workflow completes
+            echo "version=0.0.0-latest-stable" >> $GITHUB_OUTPUT
+            echo "Testing latest-stable after release"
+          else
+            # Use provided version or default to -latest
+            VERSION="${{ inputs.chart_version || '0.0.0-latest' }}"
+            echo "version=${VERSION}" >> $GITHUB_OUTPUT
+            echo "Testing ${VERSION}"
+          fi
+
       - name: Run k3d + Playwright test
+        env:
+          CHART_VERSION: ${{ steps.version.outputs.version }}
         run: ./scripts/test-k3d-playwright.sh
         timeout-minutes: 15
 

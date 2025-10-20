@@ -120,10 +120,64 @@ jobs:
           chart_ref="${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_latest.outputs.digest }}"
           cosign sign --yes "${chart_ref}"
 
+  integration-test:
+    name: K3D Integration Test
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+
+      - name: Install k3d
+        run: |
+          curl -sSL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh -o /tmp/k3d-install.sh
+          echo "0f6bd9a3ab8ea8625843b21657a6538f117975bb2823b73200dc8b92ccc626de /tmp/k3d-install.sh" | sha256sum -c
+          bash /tmp/k3d-install.sh
+          k3d version
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede # v4.0.1
+
+      - name: Install Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4.3.1
+        with:
+          version: latest
+
+      - name: Test local chart with k3d
+        run: |
+          # Override script to use local chart instead of OCI
+          export USE_LOCAL_CHART=true
+          ./scripts/test-k3d-playwright.sh
+        timeout-minutes: 15
+
+      - name: Upload screenshot artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ghostwire-vnc-screenshot-pre-release
+          path: test-results/screenshots/ghostwire-vnc.png
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Show pod logs on failure
+        if: failure()
+        run: |
+          kubectl get pods -n ghostwire || true
+          kubectl describe pods -n ghostwire || true
+          kubectl logs -n ghostwire -l app.kubernetes.io/name=ghostwire --tail=100 || true
+
   publish-release:
     name: Publish Release
     runs-on: ubuntu-latest
-    needs: lint-and-test
+    needs: [lint-and-test, integration-test]
     if: github.event_name == 'workflow_dispatch'
     permissions:
       contents: write      # For creating GitHub releases
