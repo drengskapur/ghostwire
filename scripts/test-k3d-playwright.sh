@@ -90,8 +90,9 @@ main() {
         -v "${SCREENSHOT_DIR}:/screenshots" \
         -v "${SCRIPT_DIR}/playwright-test.js:/test.js:ro" \
         -e GHOSTWIRE_URL="${GHOSTWIRE_URL}" \
+        -w /tmp \
         mcr.microsoft.com/playwright:v1.56.1-noble \
-        bash -c "npm init -y && npm install playwright@1.56.1 && node /test.js"
+        bash -c "npm install --no-save playwright@1.56.1 && node /test.js"
 
     log "✅ Test completed successfully"
     log "Screenshot saved to: ${SCREENSHOT_DIR}/ghostwire-vnc.png"
