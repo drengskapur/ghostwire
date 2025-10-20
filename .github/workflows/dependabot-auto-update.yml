@@ -13,18 +13,24 @@ jobs:
   update-dependabot-pr:
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
-    
+
     steps:
       - name: Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata@v2
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-      
+
       - name: Auto-update PR branch
         run: |
-          gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --json mergeable --jq .mergeable | grep -q "BEHIND" && \
-          gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body "@dependabot rebase" || \
-          echo "PR is not behind base branch"
+          pr_num="${{ github.event.pull_request.number }}"
+          repo="${{ github.repository }}"
+          if gh pr view "${pr_num}" --repo "${repo}" \
+             --json mergeable --jq .mergeable | grep -q "BEHIND"; then
+            gh pr comment "${pr_num}" --repo "${repo}" \
+              --body "@dependabot rebase"
+          else
+            echo "PR is not behind base branch"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
