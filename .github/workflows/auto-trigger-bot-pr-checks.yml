@@ -22,7 +22,7 @@ jobs:
         run: |
           # Wait a moment to ensure PR is fully created
           sleep 3
-          
+
           # Close and reopen to trigger all required checks
           gh pr close ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --comment "Auto-triggering required checks"
           sleep 2
