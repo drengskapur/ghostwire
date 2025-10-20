@@ -17,6 +17,9 @@ permissions:
 jobs:
   k3d-playwright-test:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      options: --init --ipc=host
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
