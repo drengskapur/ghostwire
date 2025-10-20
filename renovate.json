@@ -64,10 +64,10 @@
       "minimumReleaseAge": null
     },
     {
-      "description": "Automerge major updates with extended stability period",
+      "description": "Major updates require manual approval",
       "matchUpdateTypes": ["major"],
-      "automerge": true,
-      "minimumReleaseAge": "7 days"
+      "automerge": false,
+      "dependencyDashboardApproval": true
     },
     {
       "description": "Kasmweb Signal Desktop rolling-daily image",
