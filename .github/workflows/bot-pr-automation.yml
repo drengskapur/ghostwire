@@ -1,0 +1,59 @@
+---
+name: Bot PR Automation
+
+'on':
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automate-bot-prs:
+    name: Automate Bot PRs
+    runs-on: ubuntu-latest
+    if: |
+      github.actor == 'dependabot[bot]' ||
+      github.actor == 'renovate[bot]' ||
+      github.event_name == 'push'
+    steps:
+      - name: Enable auto-merge for bot PRs
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} \
+            --auto \
+            --squash \
+            --delete-branch
+
+      - name: Update bot PR branches when main changes
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Get all open bot PRs
+          gh pr list \
+            --repo "${{ github.repository }}" \
+            --state open \
+            --json number,author,headRefName \
+            --jq '.[] | select(.author.login == "dependabot[bot]" or .author.login == "renovate[bot]") | .number' \
+          | while read -r pr_number; do
+            echo "Updating PR number ${pr_number}..."
+            if gh pr view "${pr_number}" --repo "${{ github.repository }}" --json mergeable --jq '.mergeable' | grep -q "CONFLICTING"; then
+              echo "PR number ${pr_number} has conflicts, skipping..."
+              continue
+            fi
+            # Update the branch with latest main
+            head_sha=$(gh pr view "${pr_number}" --repo "${{ github.repository }}" --json headRefOid --jq '.headRefOid')
+            gh api \
+              --method PUT \
+              "/repos/${{ github.repository }}/pulls/${pr_number}/update-branch" \
+              -f expected_head_sha="${head_sha}" \
+              || echo "Failed to update PR number ${pr_number}, may already be up to date"
+          done

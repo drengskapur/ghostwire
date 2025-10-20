@@ -63,19 +63,24 @@ repository:
 branches:
   - name: main
     protection:
-      # Require pull request reviews
-      required_pull_request_reviews:
-        required_approving_review_count: 0  # Allow maintainer to self-merge
-        dismiss_stale_reviews: true
-        require_code_owner_reviews: false
-        require_last_push_approval: false
-
       # Require status checks
       required_status_checks:
         strict: true
         contexts:
-          - "Helm Lint"
-          - "Helm Test"
+          - "Lint and Test"
+          - "Build and Test"
+
+      # Merge queue configuration
+      required_merge_queue:
+        enabled: true
+        # Merge method for the queue
+        merge_method: squash
+        # No minimum time - merge as soon as checks pass
+        min_merge_time: 0
+        # Maximum entries in the queue
+        max_entries: 10
+        # Check required status checks in the queue
+        check_response_timeout_minutes: 360
 
       # Additional restrictions
       enforce_admins: false  # Allow maintainers to push directly for hotfixes
