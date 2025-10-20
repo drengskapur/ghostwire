@@ -54,7 +54,7 @@ jobs:
 
       - name: Run yamllint
         run: |
-          pip install yamllint
+          pip install yamllint==1.35.1
           yamllint .github/workflows/ chart/
 
   analyze:
