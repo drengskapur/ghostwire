@@ -28,9 +28,9 @@
   ],
   "timezone": "America/New_York",
   "helm-values": {
-    "fileMatch": [
-      "^chart/values\\.yaml$",
-      "^chart/Chart\\.yaml$"
+    "managerFilePatterns": [
+      "/^chart/values\\.yaml$/",
+      "/^chart/Chart\\.yaml$/"
     ]
   },
   "packageRules": [
