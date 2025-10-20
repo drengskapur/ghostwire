@@ -116,14 +116,15 @@ jobs:
           file: ${{ env.IMAGE_CONTEXT }}/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
+          tags: >
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:0.0.0-main.${{ steps.commit.outputs.sha_short }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Sign main tag
         run: |
-          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ steps.push_main.outputs.digest }}
+          cosign sign --yes \
+            "${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ steps.push_main.outputs.digest }}"
 
       - name: Build and push latest tag
         id: push_latest
@@ -140,5 +141,6 @@ jobs:
 
       - name: Sign latest tag
         run: |
-          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ steps.push_latest.outputs.digest }}
+          cosign sign --yes \
+            "${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ steps.push_latest.outputs.digest }}"
           echo "✅ Published ${{ env.IMAGE_NAME }}:latest"
