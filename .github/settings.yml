@@ -70,6 +70,18 @@ branches:
           - "Helm Lint"
           - "Helm Test"
 
+      # Merge queue configuration
+      required_merge_queue:
+        enabled: true
+        # Merge method for the queue
+        merge_method: squash
+        # Minimum time in queue before merge (minutes)
+        min_merge_time: 5
+        # Maximum entries in the queue
+        max_entries: 5
+        # Check required status checks in the queue
+        check_response_timeout_minutes: 360
+
       # Additional restrictions
       enforce_admins: false  # Allow maintainers to push directly for hotfixes
       required_linear_history: false
