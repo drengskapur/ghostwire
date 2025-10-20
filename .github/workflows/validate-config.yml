@@ -7,12 +7,10 @@ permissions: {}
   push:
     paths:
       - 'renovate.json'
-      - '.github/renovate.json5'
       - '.github/workflows/validate-config.yml'
   pull_request:
     paths:
       - 'renovate.json'
-      - '.github/renovate.json5'
 
 jobs:
   validate:
@@ -32,8 +30,9 @@ jobs:
       - name: Validate Renovate config
         uses: renovatebot/github-action@aec779d4f7845f8431ddf403cf9659d4702ddde0 # v43.0.18
         with:
-          configurationFile: .github/renovate.json5
+          configurationFile: renovate.json
           renovate-version: 41.152.2
+          token: ${{ secrets.GITHUB_TOKEN }}
         env:
           LOG_LEVEL: debug
           RENOVATE_CONFIG_MIGRATION: true
