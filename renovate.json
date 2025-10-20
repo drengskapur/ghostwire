@@ -46,15 +46,15 @@
       "semanticCommitScope": "security"
     },
     {
-      "description": "Auto-merge high vulnerabilities (CVSS 8.0-8.9)",
+      "description": "Prioritize high vulnerabilities (CVSS 7.0-8.9) but require manual review",
       "matchDatasources": ["docker", "github-actions", "helmv3"],
       "vulnerabilitySeverity": ["HIGH"],
-      "automerge": true,
-      "automergeType": "pr",
+      "automerge": false,
       "prPriority": 8,
-      "labels": ["security", "priority: high", "auto-merge"],
+      "labels": ["security", "priority: high"],
       "semanticCommitType": "fix",
-      "semanticCommitScope": "security"
+      "semanticCommitScope": "security",
+      "assignees": ["@drengskapur"]
     },
     {
       "description": "Kasmweb Signal Desktop rolling-daily image",
