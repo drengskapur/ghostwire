@@ -27,11 +27,13 @@ jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
-    # Auto-run for trusted contributors, or allow manual trigger for external PRs
+    # Auto-run for trusted contributors and bots, or allow manual trigger for external PRs
     if: |
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
       github.event.pull_request.head.repo.full_name == github.repository ||
+      github.actor == 'dependabot[bot]' ||
+      github.actor == 'renovate[bot]' ||
       github.event.pull_request.author_association == 'MEMBER' ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
       github.event.pull_request.author_association == 'OWNER'
@@ -68,7 +70,6 @@ jobs:
             helm version --short
             jq --version
             curl --version
-            nmap --version
             echo '✅ All tools working correctly'
           "
 
@@ -115,14 +116,15 @@ jobs:
           file: ${{ env.IMAGE_CONTEXT }}/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
+          tags: >
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:0.0.0-main.${{ steps.commit.outputs.sha_short }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Sign main tag
         run: |
-          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ steps.push_main.outputs.digest }}
+          cosign sign --yes \
+            "${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ steps.push_main.outputs.digest }}"
 
       - name: Build and push latest tag
         id: push_latest
@@ -139,5 +141,6 @@ jobs:
 
       - name: Sign latest tag
         run: |
-          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ steps.push_latest.outputs.digest }}
+          cosign sign --yes \
+            "${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}@${{ steps.push_latest.outputs.digest }}"
           echo "✅ Published ${{ env.IMAGE_NAME }}:latest"
