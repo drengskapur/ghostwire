@@ -38,9 +38,9 @@ main() {
     log "Creating namespace..."
     kubectl create namespace "${NAMESPACE}"
 
-    log "Installing Ghostwire via Helm (OCI registry with latest-stable)..."
+    log "Installing Ghostwire via Helm (OCI registry with latest)..."
     helm upgrade --install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire \
-        --version 0.0.0-latest-stable \
+        --version 0.0.0-latest \
         --namespace "${NAMESPACE}" \
         --wait --timeout=5m \
         --debug

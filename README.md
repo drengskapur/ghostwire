@@ -37,7 +37,7 @@ Deploys Signal Desktop in Kubernetes with:
 Install the chart:
 
 ```bash
-helm install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire --version 0.0.0-latest-stable --create-namespace -n ghostwire
+helm install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire --version 0.0.0-latest --create-namespace -n ghostwire
 ```
 
 Access via port-forward:
