@@ -262,7 +262,7 @@ jobs:
           VERSION=${{ steps.version.outputs.version }}
 
           # Generate release notes for this version with git-cliff
-          RELEASE_NOTES=$(git-cliff --unreleased --strip all)
+          RELEASE_NOTES=$(git-cliff --latest --strip all)
 
           gh release create "v${VERSION}" \
             --title "v${VERSION}" \
