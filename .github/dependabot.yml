@@ -8,6 +8,7 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 10
+    rebase-strategy: auto
     commit-message:
       prefix: chore(deps)
       include: scope
@@ -19,3 +20,10 @@ updates:
     directory: /images/tools
     schedule:
       interval: daily
+    rebase-strategy: auto
+    commit-message:
+      prefix: chore(deps)
+      include: scope
+    labels:
+      - dependencies
+      - docker
