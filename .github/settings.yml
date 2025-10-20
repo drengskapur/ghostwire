@@ -75,10 +75,10 @@ branches:
         enabled: true
         # Merge method for the queue
         merge_method: squash
-        # Minimum time in queue before merge (minutes)
-        min_merge_time: 5
+        # No minimum time - merge as soon as checks pass
+        min_merge_time: 0
         # Maximum entries in the queue
-        max_entries: 5
+        max_entries: 10
         # Check required status checks in the queue
         check_response_timeout_minutes: 360
 
