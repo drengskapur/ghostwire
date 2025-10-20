@@ -216,8 +216,8 @@ display:
 ## @param env Array of additional environment variables
 ##
 env: []
-  # - name: CUSTOM_VAR
-  #   value: "custom_value"
+# - name: CUSTOM_VAR
+#   value: "custom_value"
 
 ## @param shmSize Shared memory size in MB (for browser performance)
 ##
