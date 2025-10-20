@@ -95,8 +95,8 @@ architecture-beta
     service oauth(server)[OAuth2 Proxy] in ns_infra
     service svc(server)[Service] in ns_app
     service pod(server)[Pod] in ns_app
-    service pv(disk)[PersistentVolume] in cloud
-    service pvc(disk)[PersistentVolumeClaim] in ns_app
+    service pv(disk)[PV] in cloud
+    service pvc(disk)[PVC] in ns_app
 
     user:R -- L:lb
     lb:R -- L:ingress
