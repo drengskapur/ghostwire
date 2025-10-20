@@ -2,7 +2,7 @@ name: K3D Integration Test
 
 on:
   workflow_run:
-    workflows: ["Release and Package"]
+    workflows: ["Release and Package", "Static Analysis and CodeQL"]
     types:
       - completed
     branches: [main]
