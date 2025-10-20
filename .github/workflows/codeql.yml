@@ -58,9 +58,7 @@ jobs:
           python-version: '3.x'
           cache: 'pip'
           cache-dependency-path: 'requirements.txt'
-
-      - name: Install yamllint
-        run: pip install -r requirements.txt
+          pip-install: -r requirements.txt
 
       - name: Run yamllint
         run: yamllint .github/workflows/ chart/
