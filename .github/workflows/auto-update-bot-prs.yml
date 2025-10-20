@@ -1,0 +1,41 @@
+name: Auto-Update Bot PRs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-update:
+    name: Auto-Update Bot PR Branches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update bot PRs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Get all open bot PRs
+          gh pr list \
+            --repo ${{ github.repository }} \
+            --state open \
+            --json number,author,headRefName \
+            --jq '.[] | select(.author.login == "dependabot[bot]" or .author.login == "renovate[bot]") | .number' \
+          | while read pr_number; do
+            echo "Updating PR #${pr_number}..."
+            gh pr view ${pr_number} --repo ${{ github.repository }} --json mergeable --jq '.mergeable' | grep -q "CONFLICTING" && {
+              echo "PR #${pr_number} has conflicts, skipping..."
+              continue
+            }
+            # Update the branch with latest main
+            gh api \
+              --method PUT \
+              "/repos/${{ github.repository }}/pulls/${pr_number}/update-branch" \
+              -f expected_head_sha=$(gh pr view ${pr_number} --repo ${{ github.repository }} --json headRefOid --jq '.headRefOid') \
+              || echo "Failed to update PR #${pr_number}, may already be up to date"
+          done
