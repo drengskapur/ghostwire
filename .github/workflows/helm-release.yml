@@ -120,7 +120,7 @@ jobs:
         if: steps.version.outputs.bump == 'true'
         run: |
           VERSION="v${{ steps.version.outputs.version }}"
-          
+
           # Check if tag already exists locally or remotely
           if git rev-parse "${VERSION}" >/dev/null 2>&1; then
             echo "ℹ️  Tag ${VERSION} already exists locally"
