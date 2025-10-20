@@ -86,8 +86,8 @@ architecture-beta
     group internet(cloud)[Internet]
     group cloud(cloud)[Cloud Provider]
     group k8s(cloud)[Kubernetes Cluster] in cloud
-    group ns_infra(cloud)[ingress-nginx] in k8s
-    group ns_app(cloud)[ghostwire] in k8s
+    group ns_infra(cloud)[Ingress Namespace] in k8s
+    group ns_app(cloud)[App Namespace] in k8s
 
     service user(internet)[User] in internet
     service lb(internet)[Load Balancer] in cloud
@@ -95,9 +95,9 @@ architecture-beta
     service oauth(server)[OAuth2 Proxy] in ns_infra
     service svc(server)[Service] in ns_app
     service statefulset(server)[StatefulSet] in ns_app
-    service pod(server)[Pod ghostwire-0] in statefulset
+    service pod(server)[Pod] in statefulset
     service pv(disk)[PersistentVolume] in cloud
-    service pvc(disk)[PVC ghostwire-data] in ns_app
+    service pvc(disk)[PersistentVolumeClaim] in ns_app
 
     user:R -- L:lb
     lb:R -- L:ingress
