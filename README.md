@@ -98,11 +98,11 @@ architecture-beta
     service pv(disk)[PV] in cloud
     service pvc(disk)[PVC] in ns_app
 
-    user:R -- L:lb
-    lb:R -- L:ingress
-    ingress:R -- L:oauth
-    oauth:R -- L:svc
-    svc:R -- L:pod
+    user:B -- T:lb
+    lb:B -- T:ingress
+    ingress:B -- T:oauth
+    oauth:B -- T:svc
+    svc:B -- T:pod
     pod:B -- T:pvc
     pvc:B -- T:pv
 ```
