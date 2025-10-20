@@ -1,0 +1,21 @@
+---
+extends: default
+
+ignore: |
+  chart/templates/
+  chart/templates/tests/
+
+rules:
+  line-length: disable
+  trailing-spaces: enable
+  comments:
+    min-spaces-from-content: 1
+  document-start: disable
+  truthy:
+    allowed-values: ['true', 'false']
+    check-keys: false
+  braces:
+    max-spaces-inside: 1
+  indentation:
+    spaces: consistent
+    indent-sequences: whatever
