@@ -14,6 +14,11 @@ on:
         default: '0.0.0-latest'
         type: string
 
+env:
+  # Determine which chart version to test based on trigger
+  # workflow_run from release = test latest-stable
+  # workflow_run from push = test -latest
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -55,11 +60,21 @@ jobs:
         id: version
         run: |
           if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            # Test latest-stable after release workflow completes
-            echo "version=0.0.0-latest-stable" >> $GITHUB_OUTPUT
-            echo "Testing latest-stable after release"
+            # Check the trigger event of the Release and Package workflow
+            TRIGGER_EVENT="${{ github.event.workflow_run.event }}"
+            echo "Release workflow was triggered by: ${TRIGGER_EVENT}"
+            
+            if [ "${TRIGGER_EVENT}" = "workflow_dispatch" ]; then
+              # Manual release trigger - test latest-stable
+              echo "version=0.0.0-latest-stable" >> $GITHUB_OUTPUT
+              echo "✅ Testing latest-stable after manual release"
+            else
+              # Push trigger - test -latest
+              echo "version=0.0.0-latest" >> $GITHUB_OUTPUT
+              echo "✅ Testing -latest after push to main"
+            fi
           else
-            # Use provided version or default to -latest
+            # Manual workflow_dispatch - use provided version or default to -latest
             VERSION="${{ inputs.chart_version || '0.0.0-latest' }}"
             echo "version=${VERSION}" >> $GITHUB_OUTPUT
             echo "Testing ${VERSION}"
