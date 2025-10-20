@@ -1,12 +1,14 @@
 {
   "name": "Ghostwire Dev Environment",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".",
-    "args": {
-      "VARIANT": "1.23-bookworm"
-    }
-  },
+  "image": "ghcr.io/drengskapur/ghostwire/devcontainer:latest",
+  // Uncomment to build locally instead of using prebuilt image:
+  // "build": {
+  //   "dockerfile": "Dockerfile",
+  //   "context": ".",
+  //   "args": {
+  //     "VARIANT": "1.23-bookworm"
+  //   }
+  // },
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
       "version": "latest",
