@@ -18,6 +18,7 @@ env:
   # Determine which chart version to test based on trigger
   # workflow_run from release = test latest-stable
   # workflow_run from push = test -latest
+  PLACEHOLDER: ""
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -63,7 +64,6 @@ jobs:
             # Check the trigger event of the Release and Package workflow
             TRIGGER_EVENT="${{ github.event.workflow_run.event }}"
             echo "Release workflow was triggered by: ${TRIGGER_EVENT}"
-            
             if [ "${TRIGGER_EVENT}" = "workflow_dispatch" ]; then
               # Manual release trigger - test latest-stable
               echo "version=0.0.0-latest-stable" >> $GITHUB_OUTPUT
