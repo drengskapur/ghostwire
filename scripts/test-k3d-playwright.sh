@@ -84,13 +84,14 @@ main() {
     log "Running Playwright test..."
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     docker run --rm \
+        --init \
+        --ipc=host \
         --network host \
         -v "${SCREENSHOT_DIR}:/screenshots" \
         -v "${SCRIPT_DIR}/playwright-test.js:/test.js:ro" \
         -e GHOSTWIRE_URL="${GHOSTWIRE_URL}" \
-        -w /ms-playwright \
         mcr.microsoft.com/playwright:v1.56.1-noble \
-        bash -c "npm init -y && npm install playwright && node /test.js"
+        bash -c "npm install -g playwright@1.56.1 && node /test.js"
 
     log "✅ Test completed successfully"
     log "Screenshot saved to: ${SCREENSHOT_DIR}/ghostwire-vnc.png"
