@@ -12,9 +12,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'chart/**'
-      - '.github/workflows/helm-release.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
