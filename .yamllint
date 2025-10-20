@@ -16,3 +16,6 @@ rules:
     check-keys: false
   braces:
     max-spaces-inside: 1
+  indentation:
+    spaces: consistent
+    indent-sequences: whatever
