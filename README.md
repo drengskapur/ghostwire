@@ -98,13 +98,13 @@ architecture-beta
     service pv(disk)[PV] in cloud
     service pvc(disk)[PVC] in ns_app
 
-    user:B -- T:lb
-    lb:B -- T:ingress
-    ingress:B -- T:oauth
-    oauth:B -- T:svc
-    svc:B -- T:pod
-    pod:B -- T:pvc
-    pvc:B -- T:pv
+    user:R -- L:lb
+    lb:R -- L:ingress
+    ingress:R -- L:oauth
+    oauth:R -- L:svc
+    svc:R -- L:pod
+    pod:R -- L:pvc
+    pvc:R -- L:pv
 ```
 
 Clean separation: the chart handles the application runtime, your platform handles everything else.
