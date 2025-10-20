@@ -57,9 +57,7 @@ jobs:
         with:
           python-version: '3.x'
           cache: 'pip'
-
-      - name: Install yamllint
-        run: pip install yamllint==1.37.1
+          pip-install: yamllint==1.37.1
 
       - name: Run yamllint
         run: yamllint .github/workflows/ chart/
