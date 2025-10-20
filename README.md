@@ -103,8 +103,8 @@ architecture-beta
     ingress:R -- L:oauth
     oauth:R -- L:svc
     svc:R -- L:pod
-    pod:R -- L:pvc
-    pvc:R -- L:pv
+    pod:B -- T:pvc
+    pvc:B -- T:pv
 ```
 
 Clean separation: the chart handles the application runtime, your platform handles everything else.
