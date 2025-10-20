@@ -2,12 +2,25 @@ ARG VARIANT=1.23-bookworm
 FROM mcr.microsoft.com/devcontainers/go:${VARIANT}
 
 # Install Node.js (needed for Playwright) with pinned version
-ARG NODE_VERSION=20.18.1
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs=${NODE_VERSION}-1nodesource1
+ARG NODE_VERSION=22.12.0
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs
+
+# Install kubectl with pinned version
+ARG KUBECTL_VERSION=v1.31.3
+RUN curl -sSL https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl \
+    && chmod +x /usr/local/bin/kubectl
+
+# Install Helm with pinned version
+ARG HELM_VERSION=v3.16.3
+RUN curl -sSL https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz -o /tmp/helm.tar.gz \
+    && tar -zxf /tmp/helm.tar.gz -C /tmp \
+    && mv /tmp/linux-amd64/helm /usr/local/bin/helm \
+    && chmod +x /usr/local/bin/helm \
+    && rm -rf /tmp/helm.tar.gz /tmp/linux-amd64
 
 # Install k3d with pinned release
-ARG K3D_VERSION=v5.6.0
+ARG K3D_VERSION=v5.7.4
 RUN curl -sSL https://github.com/k3d-io/k3d/releases/download/${K3D_VERSION}/k3d-linux-amd64 -o /usr/local/bin/k3d \
     && chmod +x /usr/local/bin/k3d
 
@@ -20,7 +33,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && chmod +x /usr/local/bin/yq
 
 # Install Playwright with pinned version and browsers
-ARG PLAYWRIGHT_VERSION=1.40.0
+ARG PLAYWRIGHT_VERSION=1.49.1
 RUN npm install -g playwright@${PLAYWRIGHT_VERSION} \
     && npx playwright@${PLAYWRIGHT_VERSION} install --with-deps chromium
 
