@@ -1,8 +1,9 @@
+---
 name: Renovate Config Validator
 
 permissions: {}
 
-on:
+'on':
   push:
     paths:
       - 'renovate.json'
@@ -31,7 +32,7 @@ jobs:
       - name: Validate renovate.json
         run: |
           # Install renovate for config validation
-          npm install -g renovate@41.152.2
+          npm install -g renovate@41.152.2  # yamllint disable-line
 
           # Validate the config file
           renovate-config-validator

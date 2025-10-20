@@ -1,6 +1,7 @@
+---
 name: Security Scanning
 
-on:
+'on':
   push:
     branches:
       - main
@@ -29,13 +30,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
-          fetch-depth: 0 # Full history for comprehensive scanning
+          fetch-depth: 0  # Full history for comprehensive scanning
 
       - name: TruffleHog OSS
         uses: trufflesecurity/trufflehog@ad6fc8fb446b8fafbf7ea8193d2d6bfd42f45690 # v3.90.11
         with:
-          # Scan the entire repository
-          path: ./
+          path: ./  # Scan the entire repository
           extra_args: --debug --only-verified
 
   trivy-repo:
@@ -84,7 +84,8 @@ jobs:
         with:
           fail-on-severity: high
           # Allow licenses: Apache-2.0, MIT, BSD-3-Clause
-          allow-licenses: Apache-2.0, MIT, BSD-2-Clause, BSD-3-Clause, ISC
+          allow-licenses: >
+            Apache-2.0, MIT, BSD-2-Clause, BSD-3-Clause, ISC
 
   security-summary:
     name: Security Scan Summary
