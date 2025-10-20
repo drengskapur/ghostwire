@@ -1,8 +1,0 @@
-{
-  // Extend base config from root
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    "//:renovate.json"
-  ]
-}
