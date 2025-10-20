@@ -38,21 +38,12 @@ main() {
     log "Creating namespace..."
     kubectl create namespace "${NAMESPACE}"
 
-    log "Installing Ghostwire via Helm..."
-    if [ "${USE_OCI:-false}" = "true" ]; then
-        log "Using OCI registry with latest-stable tag..."
-        helm upgrade --install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire \
-            --version 0.0.0-latest-stable \
-            --namespace "${NAMESPACE}" \
-            --wait --timeout=5m \
-            --debug
-    else
-        log "Using local chart directory..."
-        helm upgrade --install ghostwire ./chart \
-            --namespace "${NAMESPACE}" \
-            --wait --timeout=5m \
-            --debug
-    fi
+    log "Installing Ghostwire via Helm (OCI registry with latest-stable)..."
+    helm upgrade --install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire \
+        --version 0.0.0-latest-stable \
+        --namespace "${NAMESPACE}" \
+        --wait --timeout=5m \
+        --debug
 
     log "Waiting for Ghostwire pod to be ready..."
     kubectl wait --for=condition=Ready pod \
@@ -97,8 +88,9 @@ main() {
         -v "${SCREENSHOT_DIR}:/screenshots" \
         -v "${SCRIPT_DIR}/playwright-test.js:/test.js:ro" \
         -e GHOSTWIRE_URL="${GHOSTWIRE_URL}" \
+        -w /ms-playwright \
         mcr.microsoft.com/playwright:v1.56.1-noble \
-        node /test.js
+        bash -c "npm init -y && npm install playwright && node /test.js"
 
     log "✅ Test completed successfully"
     log "Screenshot saved to: ${SCREENSHOT_DIR}/ghostwire-vnc.png"
