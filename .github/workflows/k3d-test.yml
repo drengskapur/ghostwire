@@ -1,10 +1,11 @@
 name: K3D Integration Test
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Release and Package"]
+    types:
+      - completed
     branches: [main]
-  pull_request:
-    branches: [main, develop]
   workflow_dispatch:
 
 concurrency:
@@ -17,6 +18,7 @@ permissions:
 jobs:
   k3d-playwright-test:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
