@@ -7,8 +7,10 @@
 Run Signal Desktop in your cluster with browser access and persistent storage
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/drengskapur/ghostwire)](https://github.com/drengskapur/ghostwire/releases)
 [![Helm](https://img.shields.io/badge/Helm-v3-blue)](https://helm.sh)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.25%2B-blue)](https://kubernetes.io)
+[![Lint and Test](https://github.com/drengskapur/ghostwire/actions/workflows/helm-release.yml/badge.svg)](https://github.com/drengskapur/ghostwire/actions/workflows/helm-release.yml)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/ghostwire)](https://artifacthub.io/packages/search?repo=ghostwire)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/drengskapur/ghostwire/badge)](https://scorecard.dev/viewer/?uri=github.com/drengskapur/ghostwire)
 
