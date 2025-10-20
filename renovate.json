@@ -12,8 +12,8 @@
   "separateMinorPatch": true,
   "prHourlyLimit": 2,
   "prConcurrentLimit": 10,
-  "automerge": false,
-  "platformAutomerge": false,
+  "automerge": true,
+  "platformAutomerge": true,
   "rangeStrategy": "pin",
   "assignees": [
     "@drengskapur"
@@ -34,6 +34,18 @@
     ]
   },
   "packageRules": [
+    {
+      "description": "Automerge patch and minor updates",
+      "matchUpdateTypes": ["patch", "minor", "digest"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Disable automerge for major updates",
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
     {
       "description": "Kasmweb Signal Desktop rolling-daily image",
       "matchDatasources": [
