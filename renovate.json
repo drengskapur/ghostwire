@@ -10,17 +10,23 @@
   "commitMessagePrefix": "chore(deps):",
   "separateMajorMinor": true,
   "separateMinorPatch": true,
-  "prHourlyLimit": 2,
-  "prConcurrentLimit": 10,
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
+  "branchConcurrentLimit": 0,
   "automerge": true,
   "platformAutomerge": true,
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
   "rangeStrategy": "pin",
+  "assignAutomerge": false,
   "assignees": [
     "@drengskapur"
   ],
   "reviewers": [
     "@drengskapur"
   ],
+  "prCreation": "immediate",
+  "rebaseWhen": "behind-base-branch",
   "schedule": [
     "after 10pm every weekday",
     "before 5am every weekday",
@@ -35,16 +41,33 @@
   },
   "packageRules": [
     {
-      "description": "Automerge patch and minor updates",
-      "matchUpdateTypes": ["patch", "minor", "digest"],
+      "description": "Automerge non-major updates with high confidence",
+      "matchUpdateTypes": ["patch", "minor", "digest", "pin", "pinDigest"],
       "automerge": true,
       "automergeType": "pr",
-      "platformAutomerge": true
+      "platformAutomerge": true,
+      "minimumReleaseAge": "3 days"
     },
     {
-      "description": "Disable automerge for major updates",
+      "description": "Automerge GitHub Actions updates immediately",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch", "minor", "digest"],
+      "automerge": true,
+      "minimumReleaseAge": null,
+      "schedule": ["at any time"]
+    },
+    {
+      "description": "Automerge Docker digests immediately",
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["digest", "pinDigest"],
+      "automerge": true,
+      "minimumReleaseAge": null
+    },
+    {
+      "description": "Major updates require manual approval",
       "matchUpdateTypes": ["major"],
-      "automerge": false
+      "automerge": false,
+      "dependencyDashboardApproval": true
     },
     {
       "description": "Kasmweb Signal Desktop rolling-daily image",
@@ -80,10 +103,19 @@
     }
   ],
   "osvVulnerabilityAlerts": true,
+  "dependencyDashboard": true,
+  "dependencyDashboardAutoclose": true,
   "vulnerabilityAlerts": {
     "enabled": true,
     "labels": ["type: security"],
-    "assignees": ["@drengskapur"]
+    "assignees": ["@drengskapur"],
+    "automerge": true,
+    "schedule": ["at any time"]
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "schedule": ["before 5am on monday"]
   },
   "ignoreDeps": [],
   "enabledManagers": [
