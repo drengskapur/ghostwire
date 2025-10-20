@@ -94,8 +94,7 @@ architecture-beta
     service ingress(server)[NGINX Ingress] in ns_infra
     service oauth(server)[OAuth2 Proxy] in ns_infra
     service svc(server)[Service] in ns_app
-    service statefulset(server)[StatefulSet] in ns_app
-    service pod(server)[Pod] in statefulset
+    service pod(server)[Pod] in ns_app
     service pv(disk)[PersistentVolume] in cloud
     service pvc(disk)[PersistentVolumeClaim] in ns_app
 
