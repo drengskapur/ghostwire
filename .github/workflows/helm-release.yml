@@ -107,7 +107,10 @@ jobs:
         id: package
 
       - name: Log in to GitHub Container Registry (Helm)
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+            helm registry login "${{ env.REGISTRY }}" \
+            -u "${{ github.actor }}" --password-stdin
 
       - name: Log in to GitHub Container Registry (Docker/Cosign)
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
@@ -122,7 +125,8 @@ jobs:
           VERSION=${{ steps.version.outputs.version }}
 
           # Check if the version already exists in GHCR
-          if helm pull oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${CHART_NAME} --version ${VERSION} 2>/dev/null; then
+          chart_url="oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${CHART_NAME}"
+          if helm pull "${chart_url}" --version "${VERSION}" 2>/dev/null; then
             echo "❌ ERROR: Version ${VERSION} already exists in registry!"
             echo "🚫 Chart versions are immutable and cannot be overwritten."
             exit 1
@@ -136,7 +140,8 @@ jobs:
           CHART_NAME="${{ steps.package.outputs.chart_name }}"
           VERSION=${{ steps.version.outputs.version }}
 
-          PUSH_OUTPUT=$(helm push ${CHART_NAME}-${VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
+          chart_url="oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}"
+          PUSH_OUTPUT=$(helm push "${CHART_NAME}-${VERSION}.tgz" "${chart_url}" 2>&1)
           echo "$PUSH_OUTPUT"
 
           DIGEST=$(echo "$PUSH_OUTPUT" | grep Digest | awk '{print $2}')
@@ -146,7 +151,8 @@ jobs:
 
       - name: Sign chart with semver tag
         run: |
-          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_semver.outputs.digest }}
+          chart_ref="${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_semver.outputs.digest }}"
+          cosign sign --yes "${chart_ref}"
 
       - name: Tag as latest-stable
         id: push_stable
@@ -155,7 +161,8 @@ jobs:
           VERSION=${{ steps.version.outputs.version }}
 
           # Pull the chart we just pushed
-          helm pull oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${CHART_NAME} --version ${VERSION}
+          chart_url="oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${CHART_NAME}"
+          helm pull "${chart_url}" --version "${VERSION}"
 
           # Re-package with latest-stable tag (semver-compatible)
           tar -xzf ${CHART_NAME}-${VERSION}.tgz
@@ -163,7 +170,8 @@ jobs:
           helm package ${CHART_NAME}
 
           # Push with latest-stable tag
-          PUSH_OUTPUT=$(helm push ${CHART_NAME}-0.0.0-latest-stable.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }} 2>&1)
+          chart_url="oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}"
+          PUSH_OUTPUT=$(helm push "${CHART_NAME}-0.0.0-latest-stable.tgz" "${chart_url}" 2>&1)
           echo "$PUSH_OUTPUT"
 
           DIGEST=$(echo "$PUSH_OUTPUT" | grep Digest | awk '{print $2}')
@@ -172,7 +180,8 @@ jobs:
 
       - name: Sign latest-stable tag
         run: |
-          cosign sign --yes ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_stable.outputs.digest }}
+          chart_ref="${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.CHART_REGISTRY_PATH }}/${{ steps.package.outputs.chart_name }}@${{ steps.push_stable.outputs.digest }}"
+          cosign sign --yes "${chart_ref}"
 
       - name: Install git-cliff
         run: |
