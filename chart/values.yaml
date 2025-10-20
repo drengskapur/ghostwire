@@ -140,7 +140,7 @@ containerSecurityContext:
   allowPrivilegeEscalation: false
   capabilities:
     drop:
-      - ALL
+    - ALL
   ## Note: readOnlyRootFilesystem is NOT enabled for KasmVNC as it requires write access
   ## to /tmp, /home/kasm-user, and other runtime directories
   readOnlyRootFilesystem: false
