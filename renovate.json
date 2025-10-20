@@ -78,6 +78,7 @@
   "enabledManagers": [
     "dockerfile",
     "docker-compose",
+    "github-actions",
     "helmv3",
     "helm-values",
     "custom.regex"
