@@ -247,7 +247,7 @@ jobs:
 
       - name: Generate provenance attestations
         if: steps.version.outputs.bump == 'true'
-        uses: actions/attest-build-provenance@7f7e3ccbb1f01b70308145ef4f60daf6ae03c6d9 # v2.4.1
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3.0.0
         with:
           subject-path: |
             ${{ steps.package.outputs.chart_name }}-${{ steps.version.outputs.version }}.tgz
