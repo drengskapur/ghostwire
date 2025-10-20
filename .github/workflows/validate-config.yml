@@ -29,12 +29,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
 
-      - name: Validate renovate.json
-        run: |
-          # Install renovate for config validation
-          npm install -g renovate@41.152.2 --integrity sha512-Cs8vxaIGTqWc2qWVoBIMBwn+vCmT95Wksxj3AwjcrL/ZdUOFJZJlzHWly/ufr3KmxydPF6FLLNesSuxRV0qAcg==
-
-          # Validate the config file
-          renovate-config-validator
-
-          echo "✅ Renovate configuration is valid"
+      - name: Validate Renovate config
+        uses: renovatebot/github-action@aec779d4f7845f8431ddf403cf9659d4702ddde0 # v43.0.18
+        with:
+          configurationFile: .github/renovate.json5
+          renovate-version: 41.152.2
+        env:
+          LOG_LEVEL: debug
+          RENOVATE_CONFIG_MIGRATION: true
+          RENOVATE_VALIDATE_CONFIG_ONLY: true
