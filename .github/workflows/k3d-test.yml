@@ -1,6 +1,8 @@
 name: K3D Integration Test
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
