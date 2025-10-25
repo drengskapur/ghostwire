@@ -1,4 +1,4 @@
-ARG VARIANT=1.23-bookworm
+ARG VARIANT=1.25-bookworm
 FROM mcr.microsoft.com/devcontainers/go:${VARIANT}
 
 # Install Node.js (needed for Playwright) with pinned version
