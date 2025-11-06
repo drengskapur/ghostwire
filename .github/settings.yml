@@ -219,6 +219,14 @@ labels:
     color: "0366d6"
     description: "Dependency updates"
 
+  - name: "github-actions"
+    color: "2088ff"
+    description: "GitHub Actions workflow updates"
+
+  - name: "docker"
+    color: "0db7ed"
+    description: "Docker image or Dockerfile updates"
+
   - name: "breaking-change"
     color: "b60205"
     description: "Breaking change - requires major version bump"
