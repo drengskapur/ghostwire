@@ -27,7 +27,7 @@ RUN curl -sSL https://github.com/k3d-io/k3d/releases/download/${K3D_VERSION}/k3d
 # Install additional tools with pinned versions
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
-    jq=1.6-2.1 \
+    jq=1.6-2.1+deb12u1 \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/* \
     && curl -sSL https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -o /usr/local/bin/yq \
     && chmod +x /usr/local/bin/yq
