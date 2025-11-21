@@ -9,7 +9,7 @@ metadata:
     Packaged with Zarf for air-gapped and disconnected environments.
   version: 0.0.0-dev
   url: https://github.com/drengskapur/ghostwire
-  authors: [drengskapur]
+  authors: drengskapur
   documentation: https://github.com/drengskapur/ghostwire/blob/main/README.md
   source: https://github.com/drengskapur/ghostwire
   vendor: Drengskapur
