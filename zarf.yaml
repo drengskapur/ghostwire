@@ -79,14 +79,15 @@ components:
         target: docs/
 
   # Optional: Tools component for debugging
-  - name: ghostwire-tools
-    description: Utility container for troubleshooting Ghostwire deployments
-    required: false
-    images: [ghcr.io/drengskapur/ghostwire-tools:latest]
-    manifests:
-      - name: tools-pod
-        namespace: ghostwire
-        files: [manifests/tools-pod.yaml]
+  # Commented out until ghostwire-tools image is published
+  # - name: ghostwire-tools
+  #   description: Utility container for troubleshooting Ghostwire deployments
+  #   required: false
+  #   images: [ghcr.io/drengskapur/ghostwire-tools:latest]
+  #   manifests:
+  #     - name: tools-pod
+  #       namespace: ghostwire
+  #       files: [manifests/tools-pod.yaml]
 
 # Optional: Constants for the package
 constants:
