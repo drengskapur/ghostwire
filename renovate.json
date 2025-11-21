@@ -34,14 +34,20 @@
   ],
   "timezone": "America/New_York",
   "helm-values": {
-    "fileMatch": [
-      "^chart/values\\.yaml$"
+    "managerFilePatterns": [
+      "/^chart/values\\.yaml$/"
     ]
   },
   "packageRules": [
     {
       "description": "Automerge non-major updates with high confidence",
-      "matchUpdateTypes": ["patch", "minor", "digest", "pin", "pinDigest"],
+      "matchUpdateTypes": [
+        "patch",
+        "minor",
+        "digest",
+        "pin",
+        "pinDigest"
+      ],
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true,
@@ -49,22 +55,37 @@
     },
     {
       "description": "Automerge GitHub Actions updates immediately",
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["patch", "minor", "digest"],
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "patch",
+        "minor",
+        "digest"
+      ],
       "automerge": true,
       "minimumReleaseAge": null,
-      "schedule": ["at any time"]
+      "schedule": [
+        "at any time"
+      ]
     },
     {
       "description": "Automerge Docker digests immediately",
-      "matchDatasources": ["docker"],
-      "matchUpdateTypes": ["digest", "pinDigest"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "digest",
+        "pinDigest"
+      ],
       "automerge": true,
       "minimumReleaseAge": null
     },
     {
       "description": "Major updates require manual approval",
-      "matchUpdateTypes": ["major"],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "automerge": false,
       "dependencyDashboardApproval": true
     },
@@ -106,15 +127,23 @@
   "dependencyDashboardAutoclose": true,
   "vulnerabilityAlerts": {
     "enabled": true,
-    "labels": ["type: security"],
-    "assignees": ["drengskapur"],
+    "labels": [
+      "type: security"
+    ],
+    "assignees": [
+      "drengskapur"
+    ],
     "automerge": true,
-    "schedule": ["at any time"]
+    "schedule": [
+      "at any time"
+    ]
   },
   "lockFileMaintenance": {
     "enabled": true,
     "automerge": true,
-    "schedule": ["before 5am on monday"]
+    "schedule": [
+      "before 5am on monday"
+    ]
   },
   "ignoreDeps": [],
   "enabledManagers": [
