@@ -32,7 +32,7 @@ concurrency:
 permissions: {}
 
 env:
-  ZARF_VERSION: v0.43.0  # Pin version for reproducibility
+  ZARF_VERSION: v0.66.0  # Pin version for reproducibility
   REGISTRY: ghcr.io
   PACKAGE_NAME: ghostwire
 
