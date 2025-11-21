@@ -1,0 +1,6 @@
+# Trivy Ignore File
+# https://aquasecurity.github.io/trivy/latest/docs/configuration/filtering/
+
+# AVD-DS-0026: HEALTHCHECK not required for development/utility containers
+# DevContainer and tools images are interactive/short-lived, not production services
+AVD-DS-0026

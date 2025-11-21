@@ -60,7 +60,7 @@ jobs:
           format: 'table'
           # Configuration loaded from trivy.yaml and .trivyignore.yaml
           trivy-config: 'trivy.yaml'
-          ignorefile: '.trivyignore.yaml'
+          ignorefile: '.trivyignore'
 
   dependency-review:
     name: Dependency Review
