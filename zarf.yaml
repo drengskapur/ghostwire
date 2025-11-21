@@ -24,9 +24,9 @@ components:
     required: true
     charts:
       - name: ghostwire
-        version: 0.0.0-latest
+        version: 0.0.0-dev
         namespace: ghostwire
-        url: oci://ghcr.io/drengskapur/charts/ghostwire
+        localPath: chart
         valuesFiles: [chart/values.yaml]
         variables:
           - name: REPLICAS
