@@ -166,7 +166,10 @@
       }
     },
     "replicaCount": {
-      "type": "integer"
+      "oneOf": [
+        {"type": "integer"},
+        {"type": "string", "pattern": "^[0-9]+$"}
+      ]
     },
     "resources": {
       "type": "object",
