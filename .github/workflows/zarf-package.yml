@@ -83,7 +83,8 @@ jobs:
       - name: Create Zarf package
         run: |
           echo "🏗️  Creating Zarf package..."
-          zarf package create . --confirm --output-dir ./zarf-packages
+          mkdir -p zarf-packages
+          zarf package create . --confirm -o zarf-packages
           echo "✅ Package created successfully"
           ls -lh zarf-packages/
 
