@@ -58,8 +58,9 @@ jobs:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'table'
-          # Configuration loaded from trivy.yaml
+          # Configuration loaded from trivy.yaml and .trivyignore.yaml
           trivy-config: 'trivy.yaml'
+          ignorefile: '.trivyignore.yaml'
 
   dependency-review:
     name: Dependency Review

@@ -13,7 +13,7 @@ LABEL org.opencontainers.image.title="Ghostwire Tools" \
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.base.name="cgr.dev/chainguard/wolfi-base:latest@sha256:9608820b6ea4da8bcf16989dac37a280f8f1fa0022efc45b5ed4b1ac1f634a79"
 
-RUN apk update && apk add \
+RUN apk update && apk add --no-cache \
     bash \
     vim \
     jq \
@@ -31,7 +31,15 @@ RUN apk update && apk add \
     htop \
     openssl \
     git \
-    python-3.12
+    python-3.12 \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user for security
+RUN addgroup -g 1000 tooluser \
+    && adduser -D -u 1000 -G tooluser tooluser \
+    && mkdir -p /workspace \
+    && chown -R tooluser:tooluser /workspace
 
 WORKDIR /workspace
+USER tooluser
 ENTRYPOINT ["/bin/bash"]

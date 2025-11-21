@@ -4,7 +4,8 @@ FROM mcr.microsoft.com/devcontainers/go:${VARIANT}
 # Install Node.js (needed for Playwright) with pinned version
 ARG NODE_VERSION=22.12.0
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y nodejs
+    && apt-get install -y --no-install-recommends nodejs \
+    && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # Install kubectl with pinned version
 ARG KUBECTL_VERSION=v1.31.3

@@ -1,0 +1,15 @@
+# Trivy Ignore File (YAML format)
+# https://aquasecurity.github.io/trivy/latest/docs/configuration/filtering/
+
+# Ignore specific misconfiguration findings
+misconfigurations:
+  # AVD-DS-0026: HEALTHCHECK not needed for development/utility containers
+  - id: AVD-DS-0026
+    paths:
+      - ".devcontainer/Dockerfile"
+      - "images/tools/Dockerfile"
+    statement: >
+      HEALTHCHECK not required for development/utility containers.
+      DevContainer and tools images are interactive/short-lived, not production
+      services requiring health monitoring. These are used for development and
+      ad-hoc operations where HEALTHCHECK would add unnecessary complexity.
