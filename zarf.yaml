@@ -28,17 +28,6 @@ components:
         namespace: ghostwire
         url: oci://ghcr.io/drengskapur/charts/ghostwire
         valuesFiles: [chart/values.yaml]
-        # Optional: Override values with Zarf variables
-        variables:
-          - name: REPLICAS
-            description: Number of Signal Desktop replicas
-            path: replicaCount
-          - name: VNC_PASSWORD
-            description: VNC password for accessing Signal Desktop
-            path: vnc.password
-          - name: STORAGE_SIZE
-            description: Persistent volume size
-            path: persistence.size
         # Git alternative (if needed for development):
         # gitPath: https://github.com/drengskapur/ghostwire.git//chart
         # @main
