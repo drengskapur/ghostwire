@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ghostwire-tools
+  namespace: ghostwire
+  labels:
+    app: ghostwire-tools
+    app.kubernetes.io/name: ghostwire-tools
+    app.kubernetes.io/component: debug
+spec:
+  containers:
+    - name: tools
+      image: ghcr.io/drengskapur/ghostwire-tools:latest
+      command: ["/bin/bash"]
+      args: ["-c", "while true; do sleep 30; done"]
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+  restartPolicy: Always

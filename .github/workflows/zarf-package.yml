@@ -1,0 +1,251 @@
+name: Zarf Package and Publish
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/zarf-*'
+    paths:
+      - 'zarf.yaml'
+      - 'chart/**'
+      - 'manifests/**'
+      - '.github/workflows/zarf-package.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'zarf.yaml'
+      - 'chart/**'
+      - 'manifests/**'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish to OCI registry'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions: {}
+
+env:
+  ZARF_VERSION: v0.43.0
+  REGISTRY: ghcr.io
+  PACKAGE_NAME: ghostwire
+
+jobs:
+  zarf-package:
+    name: Build Zarf Package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write  # For pushing to GHCR
+      id-token: write  # For cosign signing
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2  # v2.13.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5.0.1
+
+      - name: Setup Zarf
+        uses: defenseunicorns/setup-zarf@f95763914e20e493bb5d45d63e30e17138f981d6  # v1.0.1
+        with:
+          version: ${{ env.ZARF_VERSION }}
+          download-init-package: false
+
+      - name: Verify Zarf installation
+        run: |
+          zarf version
+          which zarf
+
+      - name: Set package version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            VERSION="0.0.0-$(git rev-parse --short HEAD)"
+          else
+            VERSION="0.0.0-dev"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "📦 Package version: ${VERSION}"
+
+      - name: Update zarf.yaml version
+        run: |
+          sed -i "s/version: 0.0.0-dev/version: ${{ steps.version.outputs.version }}/" zarf.yaml
+          cat zarf.yaml | grep "version:"
+
+      - name: Create Zarf package
+        run: |
+          echo "🏗️  Creating Zarf package..."
+          zarf package create . --confirm --output-dir ./zarf-packages
+          echo "✅ Package created successfully"
+          ls -lh zarf-packages/
+
+      - name: Upload Zarf package artifact
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
+        with:
+          name: zarf-package-${{ steps.version.outputs.version }}
+          path: zarf-packages/*.tar.zst
+          retention-days: 30
+
+      - name: Generate package checksum
+        run: |
+          cd zarf-packages
+          sha256sum *.tar.zst > checksums.txt
+          cat checksums.txt
+
+      - name: Upload checksums
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
+        with:
+          name: zarf-checksums-${{ steps.version.outputs.version }}
+          path: zarf-packages/checksums.txt
+          retention-days: 30
+
+  publish-package:
+    name: Publish to OCI Registry
+    runs-on: ubuntu-latest
+    needs: zarf-package
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && inputs.publish == true)
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2  # v2.13.2
+        with:
+          egress-policy: audit
+
+      - name: Setup Zarf
+        uses: defenseunicorns/setup-zarf@f95763914e20e493bb5d45d63e30e17138f981d6  # v1.0.1
+        with:
+          version: ${{ env.ZARF_VERSION }}
+          download-init-package: false
+
+      - name: Set package version
+        id: version
+        run: |
+          VERSION="0.0.0-$(echo ${{ github.sha }} | cut -c1-7)"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Download Zarf package artifact
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v5.0.0
+        with:
+          name: zarf-package-${{ steps.version.outputs.version }}
+          path: zarf-packages/
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+            zarf tools registry login ${{ env.REGISTRY }} \
+            -u "${{ github.actor }}" --password-stdin
+
+      - name: Publish Zarf package to OCI registry
+        run: |
+          PACKAGE_FILE=$(ls zarf-packages/*.tar.zst)
+          PACKAGE_REF="oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/packages/${{ env.PACKAGE_NAME }}"
+
+          echo "📦 Publishing package to: ${PACKAGE_REF}"
+          zarf package publish ${PACKAGE_FILE} ${PACKAGE_REF} --confirm
+
+          echo "✅ Package published successfully!"
+          echo "📍 Pull with: zarf package pull ${PACKAGE_REF}:${{ steps.version.outputs.version }}"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad  # v4.0.0
+
+      - name: Sign Zarf package (experimental)
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          PACKAGE_FILE=$(ls zarf-packages/*.tar.zst)
+          cosign sign-blob --yes ${PACKAGE_FILE} --output-signature ${PACKAGE_FILE}.sig
+          echo "✅ Package signed"
+
+      - name: Upload signature
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
+        with:
+          name: zarf-signature-${{ steps.version.outputs.version }}
+          path: zarf-packages/*.sig
+          retention-days: 90
+
+  test-package:
+    name: Test Zarf Package Deployment
+    runs-on: ubuntu-latest
+    needs: zarf-package
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@95d9a5deda9de15063e7595e9719c11c38c90ae2  # v2.13.2
+        with:
+          egress-policy: audit
+
+      - name: Setup Zarf
+        uses: defenseunicorns/setup-zarf@f95763914e20e493bb5d45d63e30e17138f981d6  # v1.0.1
+        with:
+          version: ${{ env.ZARF_VERSION }}
+          download-init-package: true
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede  # v4.0.1
+        with:
+          version: 'v1.31.3'
+
+      - name: Setup k3d
+        run: |
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+          k3d --version
+
+      - name: Create k3d cluster for testing
+        run: |
+          k3d cluster create zarf-test \
+            --agents 1 \
+            --k3s-arg "--disable=traefik@server:0" \
+            --wait
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Set package version
+        id: version
+        run: |
+          VERSION="0.0.0-$(echo ${{ github.sha }} | cut -c1-7)"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Download Zarf package artifact
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v5.0.0
+        with:
+          name: zarf-package-${{ steps.version.outputs.version }}
+          path: zarf-packages/
+
+      - name: Initialize Zarf in cluster
+        run: |
+          zarf init --confirm --components git-server
+
+      - name: Deploy Zarf package
+        run: |
+          PACKAGE_FILE=$(ls zarf-packages/*.tar.zst)
+          echo "🚀 Deploying Zarf package: ${PACKAGE_FILE}"
+          zarf package deploy ${PACKAGE_FILE} --confirm
+          echo "✅ Package deployed"
+
+      - name: Verify deployment
+        run: |
+          echo "🔍 Checking Ghostwire deployment..."
+          kubectl -n ghostwire get pods
+          kubectl -n ghostwire get svc
+          kubectl -n ghostwire wait --for=condition=ready pod -l app.kubernetes.io/name=ghostwire --timeout=300s || true
+          kubectl -n ghostwire describe pods
+
+      - name: Cleanup
+        if: always()
+        run: |
+          k3d cluster delete zarf-test || true
