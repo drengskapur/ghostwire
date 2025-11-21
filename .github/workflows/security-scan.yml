@@ -58,9 +58,8 @@ jobs:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'table'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '1'
-          skip-files: '.trufflehog.yaml'
+          # Configuration loaded from trivy.yaml
+          trivy-config: 'trivy.yaml'
 
   dependency-review:
     name: Dependency Review

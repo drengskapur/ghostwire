@@ -1,0 +1,112 @@
+# Trivy Security Scanner Configuration
+# https://aquasecurity.github.io/trivy/latest/docs/configuration/
+
+# Scanner and scan settings
+scan:
+  # Scanner types (replaces deprecated vulnerability.type)
+  scanners:
+    - vuln          # Vulnerability scanning
+    - misconfig     # Misconfiguration scanning
+    # - secret      # Secret scanning (disabled - using TruffleHog)
+    # - license     # License scanning (using dependency-review-action)
+
+  # Skip files/directories from scanning
+  skip-files:
+    - ".trufflehog.yaml"
+    - "**/.git/**"
+    - "**/node_modules/**"
+    - "**/.task/**"
+    - "**/dist/**"
+    - "**/build/**"
+    - "**/.terraform/**"
+
+  # Skip directories from scanning
+  skip-dirs:
+    - ".git"
+    - "node_modules"
+    - ".task"
+    - "dist"
+    - "build"
+    - ".terraform"
+
+# Vulnerability settings
+vulnerability:
+  # Severity levels to report (exit-code will be set based on these)
+  severity:
+    - CRITICAL
+    - HIGH
+    - MEDIUM
+    # - LOW
+    # - UNKNOWN
+
+  # Ignore unfixed vulnerabilities (optional)
+  # ignore-unfixed: false
+
+  # Vulnerability severity source
+  severity-source:
+    - auto
+
+# Secret scanning settings
+secret:
+  # Skip secret scanning (using TruffleHog for this)
+  config: ""
+
+# Misconfiguration scanning settings
+misconfig:
+  # Include misconfig scanning
+  enabled: true
+
+  # Scanner types for misconfiguration
+  scanners:
+    - dockerfile
+    - kubernetes
+    - helm
+    - terraform
+    - cloudformation
+    - yaml
+
+  # Severity for misconfigurations
+  severity:
+    - CRITICAL
+    - HIGH
+    - MEDIUM
+
+  # Helm-specific settings
+  helm:
+    # Helm values files to use
+    values:
+      - "chart/values.yaml"
+
+    # Helm API versions
+    api-versions:
+      - "v1"
+
+# License scanning settings
+license:
+  # Skip license scanning (using dependency-review-action for this)
+  enabled: false
+
+# Output settings
+format: table  # Options: table, json, sarif, cyclonedx, spdx, github
+
+# Exit code settings
+exit-code: 1  # Non-zero exit code on vulnerabilities
+
+# Offline mode
+# offline-scan: false
+
+# Cache settings
+cache:
+  # Cache backend
+  backend: "fs"
+
+# Database settings
+db:
+  # Skip database update
+  skip-update: false
+
+# Ignore unfixed vulnerabilities
+# ignore-unfixed: true
+
+# Suppress specific vulnerabilities (use .trivyignore file instead for better tracking)
+# ignorefile: .trivyignore
