@@ -142,6 +142,26 @@ jobs:
           name: zarf-package-${{ steps.version.outputs.version }}
           path: zarf-packages/
 
+      - name: Install cosign
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad  # v4.0.0
+
+      - name: Sign Zarf package (before publishing)
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          PACKAGE_FILE=$(ls zarf-packages/*.tar.zst)
+          echo "🔐 Signing package: ${PACKAGE_FILE}"
+          cosign sign-blob --yes ${PACKAGE_FILE} --output-signature ${PACKAGE_FILE}.sig
+          echo "✅ Package signed"
+          ls -lh zarf-packages/
+
+      - name: Upload signature
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
+        with:
+          name: zarf-signature-${{ steps.version.outputs.version }}
+          path: zarf-packages/*.sig
+          retention-days: 90
+
       - name: Log in to GitHub Container Registry
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | \
@@ -153,29 +173,12 @@ jobs:
           PACKAGE_FILE=$(ls zarf-packages/*.tar.zst)
           PACKAGE_REF="oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/packages/${{ env.PACKAGE_NAME }}"
 
-          echo "📦 Publishing package to: ${PACKAGE_REF}"
+          echo "📦 Publishing signed package to: ${PACKAGE_REF}"
           zarf package publish ${PACKAGE_FILE} ${PACKAGE_REF} --confirm
 
           echo "✅ Package published successfully!"
           echo "📍 Pull with: zarf package pull ${PACKAGE_REF}:${{ steps.version.outputs.version }}"
-
-      - name: Install cosign
-        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad  # v4.0.0
-
-      - name: Sign Zarf package (experimental)
-        env:
-          COSIGN_EXPERIMENTAL: 1
-        run: |
-          PACKAGE_FILE=$(ls zarf-packages/*.tar.zst)
-          cosign sign-blob --yes ${PACKAGE_FILE} --output-signature ${PACKAGE_FILE}.sig
-          echo "✅ Package signed"
-
-      - name: Upload signature
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5.0.0
-        with:
-          name: zarf-signature-${{ steps.version.outputs.version }}
-          path: zarf-packages/*.sig
-          retention-days: 90
+          echo "🔐 Signature available as artifact: zarf-signature-${{ steps.version.outputs.version }}"
 
   test-package:
     name: Test Zarf Package Deployment
