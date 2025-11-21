@@ -1,0 +1,112 @@
+# Zarf Package Configuration for Ghostwire
+# https://docs.zarf.dev/ref/components/
+
+kind: ZarfPackageConfig
+metadata:
+  name: ghostwire
+  description: |
+    Cloud-native Signal Desktop for Kubernetes with persistent storage and browser access.
+    Packaged with Zarf for air-gapped and disconnected environments.
+  version: 0.0.0-dev
+  url: https://github.com/drengskapur/ghostwire
+  authors: drengskapur
+  documentation: https://github.com/drengskapur/ghostwire/blob/main/README.md
+  source: https://github.com/drengskapur/ghostwire
+  vendor: Drengskapur
+  architecture: amd64
+  # Optional: Add YOLO mode for testing (skips SBOM and signature checks)
+  # yolo: false
+
+components:
+  # Main Ghostwire Helm Chart Component
+  - name: ghostwire-chart
+    description: Deploys the Ghostwire Helm chart with Signal Desktop
+    required: true
+    charts:
+      - name: ghostwire
+        version: 0.0.0-dev
+        namespace: ghostwire
+        localPath: chart
+        valuesFiles: [chart/values.yaml]
+        variables:
+          - name: REPLICAS
+            description: Number of Signal Desktop replicas
+            path: replicaCount
+          - name: VNC_PASSWORD
+            description: VNC password for accessing Signal Desktop
+            path: vnc.password
+          - name: STORAGE_SIZE
+            description: Persistent volume size
+            path: persistence.size
+        # Git alternative (if needed for development):
+        # gitPath: https://github.com/drengskapur/ghostwire.git//chart
+        # @main
+
+    # Images to include in the Zarf package
+    images: [kasmweb/signal:1.18.0-rolling-daily]
+
+    # Optional: Actions to run during lifecycle
+    actions:
+      onCreate:
+        before: [{cmd: echo "Creating Ghostwire Zarf package..."}]
+        after: [{cmd: echo "Ghostwire package created successfully"}]
+
+      onDeploy:
+        before:
+          - {cmd: echo "Deploying Ghostwire to Kubernetes cluster..."}
+          - {cmd: kubectl get nodes}
+        after:
+          - {cmd: echo "Ghostwire deployed successfully"}
+          - {cmd: kubectl -n ghostwire get pods}
+        onSuccess:
+          - {cmd: echo "✓ Ghostwire is ready!"}
+          - {cmd: kubectl -n ghostwire get svc ghostwire}
+        onFailure:
+          - {cmd: echo "✗ Deployment failed. Check logs:"}
+          - {cmd: kubectl -n ghostwire describe pods}
+
+  # Optional: Documentation component
+  - name: ghostwire-docs
+    description: Include documentation and examples
+    required: false
+    files:
+      - source: README.md
+        target: docs/README.md
+      - source: chart/README.md
+        target: docs/chart-README.md
+      - source: docs/
+        target: docs/
+
+  # Optional: Tools component for debugging
+  # Commented out until ghostwire-tools image is published
+  # - name: ghostwire-tools
+  #   description: Utility container for troubleshooting Ghostwire deployments
+  #   required: false
+  #   images: [ghcr.io/drengskapur/ghostwire-tools:latest]
+  #   manifests:
+  #     - name: tools-pod
+  #       namespace: ghostwire
+  #       files: [manifests/tools-pod.yaml]
+
+# Optional: Constants for the package
+constants:
+  - name: CHART_VERSION
+    value: "0.0.0-latest"
+  - name: SIGNAL_VERSION
+    value: "1.18.0"
+
+# Optional: Package-level variables for deployment customization
+# Use --set REPLICAS=2 during 'zarf package deploy' to override defaults
+variables:
+  - name: REPLICAS
+    description: Number of Signal Desktop replicas
+    default: "1"
+
+  - name: STORAGE_SIZE
+    description: Persistent volume size (e.g., 10Gi, 20Gi)
+    default: "10Gi"
+
+  - name: VNC_PASSWORD
+    description: VNC password for accessing Signal Desktop
+    default: "kasm_user"
+    sensitive: true

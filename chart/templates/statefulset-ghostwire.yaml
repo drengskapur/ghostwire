@@ -6,7 +6,7 @@ metadata:
     {{- include "ghostwire.labels" . | nindent 4 }}
 spec:
   serviceName: {{ include "ghostwire.fullname" . }}
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ int .Values.replicaCount }}
   selector:
     matchLabels:
       {{- include "ghostwire.selectorLabels" . | nindent 6 }}
