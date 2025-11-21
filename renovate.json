@@ -20,10 +20,10 @@
   "rangeStrategy": "pin",
   "assignAutomerge": false,
   "assignees": [
-    "@drengskapur"
+    "drengskapur"
   ],
   "reviewers": [
-    "@drengskapur"
+    "drengskapur"
   ],
   "prCreation": "immediate",
   "rebaseWhen": "behind-base-branch",
@@ -108,7 +108,7 @@
   "vulnerabilityAlerts": {
     "enabled": true,
     "labels": ["type: security"],
-    "assignees": ["@drengskapur"],
+    "assignees": ["drengskapur"],
     "automerge": true,
     "schedule": ["at any time"]
   },
