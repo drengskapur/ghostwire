@@ -51,7 +51,9 @@ jobs:
         run: helm template test ${{ env.CHART_PATH }} > /dev/null
 
       - name: Install helm-unittest plugin
-        run: helm plugin install https://github.com/helm-unittest/helm-unittest
+        run: |
+          helm plugin install https://github.com/helm-unittest/helm-unittest --version 1.0.3 || \
+          helm plugin install https://github.com/helm-unittest/helm-unittest
 
       - name: Run helm unit tests
         run: helm unittest ${{ env.CHART_PATH }} --strict

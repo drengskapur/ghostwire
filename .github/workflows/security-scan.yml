@@ -83,9 +83,9 @@ jobs:
         uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4.8.2
         with:
           fail-on-severity: high
-          # Allow licenses: Apache-2.0, MIT, BSD-3-Clause
+          # Allow licenses: Apache-2.0, MIT, BSD-3-Clause, AGPL-3.0 (for TruffleHog action)
           allow-licenses: >
-            Apache-2.0, MIT, BSD-2-Clause, BSD-3-Clause, ISC
+            Apache-2.0, MIT, BSD-2-Clause, BSD-3-Clause, ISC, AGPL-3.0
 
   security-summary:
     name: Security Scan Summary
