@@ -28,9 +28,16 @@ components:
         namespace: ghostwire
         url: oci://ghcr.io/drengskapur/charts/ghostwire
         valuesFiles: [chart/values.yaml]
-        # Note: Chart variables removed to avoid type coercion issues
-        # Users can override values by modifying chart/values.yaml before package creation
-        # or by using helm --set flags during manual deployment
+        variables:
+          - name: REPLICAS
+            description: Number of Signal Desktop replicas
+            path: replicaCount
+          - name: VNC_PASSWORD
+            description: VNC password for accessing Signal Desktop
+            path: vnc.password
+          - name: STORAGE_SIZE
+            description: Persistent volume size
+            path: persistence.size
         # Git alternative (if needed for development):
         # gitPath: https://github.com/drengskapur/ghostwire.git//chart
         # @main
@@ -89,16 +96,17 @@ constants:
     value: "1.18.0"
 
 # Optional: Package-level variables for deployment customization
-# Note: Not currently mapped to chart variables due to Helm type validation
-# To customize deployment values, edit chart/values.yaml before package creation
-# variables:
-#   - name: REPLICAS
-#     description: Number of Signal Desktop replicas
-#     default: "1"
-#   - name: STORAGE_SIZE
-#     description: Persistent volume size (e.g., 10Gi, 20Gi)
-#     default: "10Gi"
-#   - name: VNC_PASSWORD
-#     description: VNC password for accessing Signal Desktop
-#     default: "kasm_user"
-#     sensitive: true
+# Use --set REPLICAS=2 during 'zarf package deploy' to override defaults
+variables:
+  - name: REPLICAS
+    description: Number of Signal Desktop replicas
+    default: "1"
+
+  - name: STORAGE_SIZE
+    description: Persistent volume size (e.g., 10Gi, 20Gi)
+    default: "10Gi"
+
+  - name: VNC_PASSWORD
+    description: VNC password for accessing Signal Desktop
+    default: "kasm_user"
+    sensitive: true
