@@ -34,13 +34,31 @@ Deploys Signal Desktop in Kubernetes with:
 
 ## Quick Start
 
+Install K3d:
+
+```bash
+curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+```
+
+Create a cluster:
+
+```bash
+k3d cluster create
+```
+
 Install the chart:
 
 ```bash
 helm install ghostwire oci://ghcr.io/drengskapur/charts/ghostwire --version 0.0.0-latest --create-namespace -n ghostwire
 ```
 
-Access via port-forward:
+Wait for the pod to be ready:
+
+```bash
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=ghostwire -n ghostwire --timeout=300s
+```
+
+Port-forward the service:
 
 ```bash
 kubectl port-forward -n ghostwire svc/ghostwire 6901:6901
