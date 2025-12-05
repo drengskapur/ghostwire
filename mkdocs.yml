@@ -6,7 +6,6 @@ repo_name: drengskapur/ghostwire
 
 theme:
   name: material
-  custom_dir: docs/overrides
   icon:
     repo: fontawesome/brands/github
   logo: images/logo.png
