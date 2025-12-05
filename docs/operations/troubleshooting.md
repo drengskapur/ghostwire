@@ -1,3 +1,8 @@
+---
+title: Troubleshooting - Debug Signal Desktop on Kubernetes
+description: Fix common Ghostwire issues including pod startup failures, VNC connection problems, Signal linking errors, and performance optimization.
+---
+
 # Troubleshooting
 
 Common issues and how to resolve them.

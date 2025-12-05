@@ -1,3 +1,8 @@
+---
+title: Helm Values Reference - Ghostwire Configuration
+description: Complete Helm values reference for Ghostwire. All configuration options for image, persistence, resources, authentication, TLS, probes, and security contexts.
+---
+
 # Helm Values Reference
 
 Complete reference for Ghostwire Helm chart values.

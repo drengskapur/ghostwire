@@ -1,3 +1,8 @@
+---
+title: Persistence - Signal Desktop Data Storage in Kubernetes
+description: Configure persistent storage for Signal Desktop messages and encryption keys. PVC sizing, backup strategies with Velero, and data recovery.
+---
+
 # Persistence
 
 Signal Desktop stores messages, encryption keys, and media on disk. Ghostwire uses a PersistentVolumeClaim to ensure this data survives pod restarts.

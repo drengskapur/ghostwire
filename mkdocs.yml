@@ -1,6 +1,7 @@
 site_name: Ghostwire
-site_description: Cloud-Native Signal Desktop for Kubernetes
+site_description: Cloud-Native Signal Desktop for Kubernetes - Deploy Signal messenger in your cluster with browser-based VNC access, persistent storage, and infrastructure-level security integration
 site_url: https://ghostwire.readthedocs.io
+site_author: Drengskapur
 repo_url: https://github.com/drengskapur/ghostwire
 repo_name: drengskapur/ghostwire
 
@@ -48,7 +49,9 @@ theme:
     - announce.dismiss
 
 plugins:
-  - search
+  - search:
+      lang: en
+      separator: '[\s\-\.]+'
   - minify:
       minify_html: true
 
@@ -60,6 +63,7 @@ markdown_extensions:
   - footnotes
   - md_in_html
   - tables
+  - meta
   - toc:
       permalink: true
       toc_depth: 3
@@ -99,6 +103,27 @@ extra:
   status:
     new: Recently added
     deprecated: Deprecated
+  # SEO and Analytics
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: Thanks for your feedback!
+  consent:
+    title: Cookie consent
+    description: >-
+      We use cookies to recognize your repeated visits and preferences, as well
+      as to measure the effectiveness of our documentation. With your consent,
+      you're helping us to make our documentation better.
 
 extra_css:
   - stylesheets/extra.css
@@ -106,7 +131,9 @@ extra_css:
 extra_javascript:
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js
 
-copyright: Copyright &copy; 2024-2025 Drengskapur
+copyright: >-
+  Copyright &copy; 2024-2025 Drengskapur –
+  <a href="#__consent">Change cookie settings</a>
 
 nav:
   - Home: index.md

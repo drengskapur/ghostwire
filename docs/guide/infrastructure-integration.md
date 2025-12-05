@@ -1,3 +1,8 @@
+---
+title: Infrastructure Integration - OAuth2, Ingress, TLS Patterns
+description: Integrate Ghostwire with OAuth2-proxy, nginx ingress, cert-manager, and Kubernetes network policies. Production deployment patterns for Signal Desktop.
+---
+
 # Infrastructure Integration
 
 Ghostwire delegates infrastructure concerns to your existing Kubernetes platform. This guide shows how to integrate with common infrastructure components.

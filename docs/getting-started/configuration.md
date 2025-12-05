@@ -1,3 +1,8 @@
+---
+title: Configuration - Ghostwire Helm Values
+description: Configure Ghostwire Signal Desktop deployment with Helm values. Customize resources, storage, authentication, TLS, and display settings.
+---
+
 # Configuration
 
 Ghostwire exposes Helm values for customizing the deployment. This guide covers the most commonly adjusted settings.

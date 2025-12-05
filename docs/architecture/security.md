@@ -1,3 +1,8 @@
+---
+title: Security Model - Ghostwire Container Security
+description: Ghostwire security architecture with container isolation, RBAC, network policies, and OAuth2 integration. Non-root containers, seccomp profiles, and encryption.
+---
+
 # Security Model
 
 Ghostwire's security relies on defense in depth: container isolation, Kubernetes RBAC, network policies, and infrastructure-level authentication.

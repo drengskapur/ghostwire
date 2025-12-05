@@ -1,3 +1,8 @@
+---
+title: Installation Guide - Ghostwire Helm Chart
+description: Install Ghostwire Signal Desktop on Kubernetes using Helm. Step-by-step guide for deploying Signal messenger in your cluster with persistent storage.
+---
+
 # Installation
 
 Ghostwire installs via Helm and runs on any Kubernetes cluster with persistent volume support.

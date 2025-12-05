@@ -1,3 +1,8 @@
+---
+title: Quick Start - Deploy Signal Desktop on Kubernetes
+description: Get Signal Desktop running in Kubernetes in 5 minutes. Access via browser VNC and link to your phone for secure cloud-native messaging.
+---
+
 # Quick Start
 
 This guide walks through your first Ghostwire deployment and linking Signal Desktop to your phone.

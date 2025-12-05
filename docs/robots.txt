@@ -1,0 +1,15 @@
+# Ghostwire Documentation - robots.txt
+# https://ghostwire.readthedocs.io
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://ghostwire.readthedocs.io/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
+
+# Disallow search result pages
+Disallow: /search.html
+Disallow: /search/

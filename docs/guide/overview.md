@@ -1,3 +1,8 @@
+---
+title: Architecture Overview - Signal Desktop in Kubernetes
+description: Understand Ghostwire's cloud-native architecture. Learn how Signal Desktop integrates with Kubernetes StatefulSets, persistent storage, and infrastructure components.
+---
+
 # Overview
 
 Ghostwire packages Signal Desktop for Kubernetes deployment. Understanding the design decisions helps you integrate it effectively with your infrastructure.

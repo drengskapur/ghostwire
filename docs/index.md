@@ -1,3 +1,10 @@
+---
+title: Ghostwire - Cloud-Native Signal Desktop for Kubernetes
+description: Deploy Signal Desktop in Kubernetes with browser-based VNC access, persistent storage, and infrastructure-level security. Helm chart for secure messaging in your cluster.
+keywords: signal desktop, kubernetes, helm chart, vnc, kasmvnc, cloud-native, secure messaging, statefulset, persistent storage, oauth2, ingress
+image: images/social-card.png
+---
+
 # Ghostwire
 
 Ghostwire runs Signal Desktop in Kubernetes with browser-based VNC access and persistent storage. It's designed to integrate with your existing infrastructure rather than duplicate it.

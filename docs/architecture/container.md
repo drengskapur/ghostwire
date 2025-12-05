@@ -1,3 +1,8 @@
+---
+title: Container Runtime - KasmVNC Signal Desktop Architecture
+description: Deep dive into Ghostwire's container architecture. Xvnc, XFCE4, KasmVNC, and Signal Desktop process tree, ports, and resource usage.
+---
+
 # Container Runtime
 
 Ghostwire uses Kasm Technologies' Signal Desktop container image. Understanding the runtime architecture helps with troubleshooting and resource planning.
