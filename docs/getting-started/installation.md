@@ -65,7 +65,7 @@ For testing, use k3d to create a local cluster:
 
 ```bash
 # Install k3d
-curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+curl -s https://k3d.io/install.sh | bash
 
 # Create cluster
 k3d cluster create ghostwire

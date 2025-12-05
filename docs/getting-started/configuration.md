@@ -141,6 +141,6 @@ helm upgrade ghostwire oci://ghcr.io/drengskapur/charts/ghostwire \
 
 ## Complete Values Reference
 
-See [values.yaml](https://github.com/drengskapur/ghostwire/blob/main/chart/values.yaml) for all available options with documentation.
+See the [Helm Values Reference](../reference/values.md) for all available options, or view the source [values.yaml](https://github.com/drengskapur/ghostwire/blob/main/chart/values.yaml) with inline documentation.
 
 The chart includes a JSON schema for validation. IDEs with YAML schema support will provide autocomplete and validation.

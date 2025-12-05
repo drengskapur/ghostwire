@@ -10,16 +10,18 @@ The Helm chart configures liveness and readiness probes:
 livenessProbe:
   tcpSocket:
     port: 6901
-  initialDelaySeconds: 60
-  periodSeconds: 30
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  timeoutSeconds: 3
   failureThreshold: 3
 
 readinessProbe:
   tcpSocket:
     port: 6901
-  initialDelaySeconds: 30
-  periodSeconds: 10
-  failureThreshold: 5
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 2
+  failureThreshold: 3
 ```
 
 These check TCP connectivity to the VNC port. The pod is considered unhealthy if:

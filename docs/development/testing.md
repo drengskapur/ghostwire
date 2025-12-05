@@ -128,7 +128,7 @@ jobs:
       - uses: azure/setup-helm@v3
       - name: Create k3d cluster
         run: |
-          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+          curl -s https://k3d.io/install.sh | bash
           k3d cluster create test
       - name: Install and test
         run: |
