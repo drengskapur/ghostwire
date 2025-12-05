@@ -2,10 +2,14 @@ ARG VARIANT=2.0-bookworm
 FROM mcr.microsoft.com/devcontainers/go:${VARIANT}
 
 # Install Node.js (needed for Playwright) with pinned version
+# Using direct binary download instead of curl|bash for security (OpenSSF Scorecard)
 ARG NODE_VERSION=22.12.0
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
-    && apt-get install -y --no-install-recommends nodejs \
-    && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+RUN ARCH=$(dpkg --print-architecture) \
+    && if [ "$ARCH" = "amd64" ]; then ARCH="x64"; elif [ "$ARCH" = "arm64" ]; then ARCH="arm64"; fi \
+    && curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${ARCH}.tar.xz" -o /tmp/node.tar.xz \
+    && tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 \
+    && rm /tmp/node.tar.xz \
+    && node --version && npm --version
 
 # Install kubectl with pinned version
 ARG KUBECTL_VERSION=v1.31.3
