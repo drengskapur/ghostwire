@@ -4,6 +4,42 @@ Signal Desktop stores messages, encryption keys, and media on disk. Ghostwire us
 
 ## What Gets Stored
 
+```mermaid
+block-beta
+    columns 3
+
+    block:pvc:3
+        columns 3
+        pvc_label["PVC: /home/kasm-user"]
+    end
+
+    block:config:1
+        columns 1
+        config_dir[".config/Signal/"]
+        keys["Encryption Keys"]
+        config_json["config.json"]
+    end
+
+    block:data:1
+        columns 1
+        data_dir[".local/share/Signal/"]
+        db["SQLite Database"]
+        attachments["Attachments"]
+    end
+
+    block:other:1
+        columns 1
+        other_dir["Other Data"]
+        vnc[".vnc/"]
+        desktop["Desktop/"]
+    end
+
+    style pvc_label fill:#4caf50,color:#fff
+    style config_dir fill:#f44336,color:#fff
+    style data_dir fill:#ff9800,color:#000
+    style other_dir fill:#7986cb,color:#fff
+```
+
 The container user home directory (`/home/kasm-user`) contains:
 
 - `~/.config/Signal/` — Application configuration and encryption keys

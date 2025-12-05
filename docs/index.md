@@ -2,6 +2,34 @@
 
 Ghostwire runs Signal Desktop in Kubernetes with browser-based VNC access and persistent storage. It's designed to integrate with your existing infrastructure rather than duplicate it.
 
+```mermaid
+flowchart LR
+    subgraph browser["Your Browser"]
+        vnc["VNC Client"]
+    end
+
+    subgraph k8s["Kubernetes"]
+        ing["Ingress"]
+        svc["Service"]
+        pod["StatefulSet"]
+        pvc[("PVC")]
+    end
+
+    subgraph container["Container"]
+        signal["Signal Desktop"]
+    end
+
+    vnc -->|HTTPS| ing
+    ing --> svc
+    svc --> pod
+    pod --> pvc
+    pod --> signal
+
+    style vnc fill:#4dd0e1,color:#000
+    style signal fill:#4caf50,color:#fff
+    style pvc fill:#ff9800,color:#000
+```
+
 ## What It Does
 
 Deploy a StatefulSet that runs Signal Desktop in a container. Access it through your browser via VNC. Your conversations persist across pod restarts through a PVC.

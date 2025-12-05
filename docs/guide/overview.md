@@ -26,24 +26,37 @@ This separation means less configuration overlap and fewer conflicts between cha
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Kubernetes Cluster                       │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │                    Ingress Namespace                       │  │
-│  │   ┌─────────────┐     ┌─────────────┐                     │  │
-│  │   │   Ingress   │────▶│ OAuth2-Proxy│                     │  │
-│  │   └─────────────┘     └──────┬──────┘                     │  │
-│  └──────────────────────────────┼────────────────────────────┘  │
-│                                 │                               │
-│  ┌──────────────────────────────┼────────────────────────────┐  │
-│  │                    Ghostwire Namespace                     │  │
-│  │                              ▼                             │  │
-│  │   ┌─────────────┐     ┌─────────────┐     ┌───────────┐   │  │
-│  │   │   Service   │────▶│ StatefulSet │────▶│    PVC    │   │  │
-│  │   └─────────────┘     └─────────────┘     └───────────┘   │  │
-│  └───────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph internet["Internet"]
+        user["User Browser"]
+    end
+
+    subgraph cluster["Kubernetes Cluster"]
+        subgraph ingress_ns["Ingress Namespace"]
+            ing["Ingress Controller"]
+            oauth["OAuth2-Proxy"]
+        end
+
+        subgraph gw_ns["Ghostwire Namespace"]
+            svc["Service\n:6901"]
+            sts["StatefulSet\nghostwire-0"]
+            pvc[("PVC\nSignal Data")]
+        end
+    end
+
+    user -->|HTTPS| ing
+    ing -->|Auth Check| oauth
+    oauth -->|Authenticated| svc
+    svc --> sts
+    sts --> pvc
+
+    style user fill:#4dd0e1,color:#000
+    style ing fill:#7986cb,color:#fff
+    style oauth fill:#7986cb,color:#fff
+    style svc fill:#4caf50,color:#fff
+    style sts fill:#4caf50,color:#fff
+    style pvc fill:#ff9800,color:#000
 ```
 
 ## StatefulSet vs Deployment

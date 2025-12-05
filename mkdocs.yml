@@ -1,6 +1,6 @@
 site_name: Ghostwire
 site_description: Cloud-Native Signal Desktop for Kubernetes
-site_url: https://drengskapur.github.io/ghostwire
+site_url: https://ghostwire.readthedocs.io
 repo_url: https://github.com/drengskapur/ghostwire
 repo_name: drengskapur/ghostwire
 
@@ -11,30 +11,41 @@ theme:
     logo: material/ghost
   favicon: images/favicon.png
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: deep purple
-      accent: purple
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
+    # Dark mode first (default)
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: deep purple
-      accent: purple
+      primary: indigo
+      accent: cyan
       toggle:
-        icon: material/brightness-4
+        icon: material/weather-night
         name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+  font:
+    text: Inter
+    code: JetBrains Mono
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
+    - navigation.expand
+    - navigation.path
     - navigation.top
     - navigation.footer
+    - navigation.indexes
     - search.suggest
     - search.highlight
+    - search.share
     - content.code.copy
+    - content.code.annotate
     - content.tabs.link
     - toc.follow
+    - announce.dismiss
 
 plugins:
   - search
@@ -55,6 +66,7 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
+      line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.superfences:
@@ -64,17 +76,35 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
   - pymdownx.tasklist:
       custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.critic
 
 extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/drengskapur/ghostwire
+      name: Ghostwire on GitHub
   generator: false
+  status:
+    new: Recently added
+    deprecated: Deprecated
 
 extra_css:
   - stylesheets/extra.css
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
 
 copyright: Copyright &copy; 2024-2025 Drengskapur
 

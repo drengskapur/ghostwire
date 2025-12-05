@@ -20,35 +20,54 @@ The container runs several components that work together to provide a browser-ac
 
 When the container starts:
 
-1. `vnc_startup.sh` (PID 1) initializes the environment
-2. D-Bus session bus starts for inter-process communication
-3. Xvnc launches on display `:1`, listening on port 6901
-4. XFCE4 session starts with window manager and desktop
-5. PulseAudio and FFmpeg initialize for audio streaming
-6. Auxiliary Kasm services start (file upload, audio input, gamepad support)
-7. `custom_startup.sh` launches Signal Desktop
+```mermaid
+sequenceDiagram
+    participant Init as vnc_startup.sh
+    participant Xvnc as Xvnc Server
+    participant XFCE as XFCE4 Desktop
+    participant Audio as Audio Stack
+    participant Signal as Signal Desktop
+
+    Init->>Xvnc: Launch on :1 (port 6901)
+    Xvnc-->>Init: VNC ready
+    Init->>XFCE: Start session
+    XFCE->>XFCE: Load xfwm4, xfdesktop
+    Init->>Audio: Start PulseAudio + FFmpeg
+    Init->>Signal: Execute custom_startup.sh
+    Signal->>Signal: Launch with --no-sandbox
+    Note over Signal: Container ready
+```
 
 The container is ready when Signal Desktop's window appears in the VNC session.
 
 ## Process Tree
 
-```
-vnc_startup.sh (PID 1)
-├── dbus-daemon
-├── Xvnc :1 (port 6901)
-├── xfce4-session
-│   ├── xfwm4 (window manager)
-│   ├── xfdesktop
-│   └── Thunar (file manager)
-├── pulseaudio
-├── ffmpeg (audio encoder)
-├── kasm_audio_out (port 4901)
-├── kasm_upload_server (port 4902)
-├── kasm_audio_input (port 4903)
-├── kasm_gamepad (port 4904)
-└── signal-desktop
-    ├── zygote
-    └── renderer processes
+```mermaid
+graph TD
+    PID1["vnc_startup.sh<br/>(PID 1)"]
+
+    PID1 --> dbus["dbus-daemon"]
+    PID1 --> xvnc["Xvnc :1<br/>port 6901"]
+    PID1 --> xfce["xfce4-session"]
+    PID1 --> pulse["pulseaudio"]
+    PID1 --> ffmpeg["ffmpeg"]
+    PID1 --> audio_out["kasm_audio_out<br/>:4901"]
+    PID1 --> upload["kasm_upload_server<br/>:4902"]
+    PID1 --> audio_in["kasm_audio_input<br/>:4903"]
+    PID1 --> gamepad["kasm_gamepad<br/>:4904"]
+    PID1 --> signal["signal-desktop"]
+
+    xfce --> xfwm["xfwm4"]
+    xfce --> xfdesk["xfdesktop"]
+    xfce --> thunar["Thunar"]
+
+    signal --> zygote["zygote"]
+    signal --> renderer["renderer"]
+
+    style PID1 fill:#ff9800,color:#000
+    style xvnc fill:#4caf50,color:#fff
+    style signal fill:#4dd0e1,color:#000
+    style xfce fill:#7986cb,color:#fff
 ```
 
 ## Resource Usage
