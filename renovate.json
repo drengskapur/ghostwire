@@ -1,7 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    ":automergeMinor",
+    ":automergePatch",
+    ":automergeDigest",
+    "schedule:nonOfficeHours"
   ],
   "labels": [
     "dependencies"
@@ -9,29 +13,18 @@
   "semanticCommits": "enabled",
   "commitMessagePrefix": "chore(deps):",
   "separateMajorMinor": true,
-  "separateMinorPatch": true,
-  "prHourlyLimit": 0,
-  "prConcurrentLimit": 0,
-  "branchConcurrentLimit": 0,
+  "separateMinorPatch": false,
+  "prHourlyLimit": 5,
+  "prConcurrentLimit": 15,
+  "branchConcurrentLimit": 15,
   "automerge": true,
   "platformAutomerge": true,
   "automergeType": "pr",
   "automergeStrategy": "squash",
   "rangeStrategy": "pin",
   "assignAutomerge": false,
-  "assignees": [
-    "drengskapur"
-  ],
-  "reviewers": [
-    "drengskapur"
-  ],
   "prCreation": "immediate",
-  "rebaseWhen": "behind-base-branch",
-  "schedule": [
-    "after 10pm every weekday",
-    "before 5am every weekday",
-    "every weekend"
-  ],
+  "rebaseWhen": "conflicted",
   "timezone": "America/New_York",
   "helm-values": {
     "managerFilePatterns": [
@@ -40,7 +33,7 @@
   },
   "packageRules": [
     {
-      "description": "Automerge non-major updates with high confidence",
+      "description": "Automerge all non-major updates immediately if CI passes",
       "matchUpdateTypes": [
         "patch",
         "minor",
@@ -51,17 +44,12 @@
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true,
-      "minimumReleaseAge": "3 days"
+      "minimumReleaseAge": "1 day"
     },
     {
-      "description": "Automerge GitHub Actions updates immediately",
+      "description": "Automerge GitHub Actions immediately - low risk with CI gates",
       "matchManagers": [
         "github-actions"
-      ],
-      "matchUpdateTypes": [
-        "patch",
-        "minor",
-        "digest"
       ],
       "automerge": true,
       "minimumReleaseAge": null,
@@ -82,12 +70,26 @@
       "minimumReleaseAge": null
     },
     {
-      "description": "Major updates require manual approval",
+      "description": "Automerge Helm patch/minor updates",
+      "matchManagers": [
+        "helmv3",
+        "helm-values"
+      ],
+      "matchUpdateTypes": [
+        "patch",
+        "minor"
+      ],
+      "automerge": true,
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Group all major updates for single review",
       "matchUpdateTypes": [
         "major"
       ],
       "automerge": false,
-      "dependencyDashboardApproval": true
+      "dependencyDashboardApproval": true,
+      "groupName": "major updates"
     },
     {
       "description": "Kasmweb Signal Desktop rolling-daily image",
@@ -102,9 +104,7 @@
         "dependencies",
         "component: container"
       ],
-      "semanticCommitType": "chore",
-      "semanticCommitScope": "deps",
-      "commitMessageTopic": "kasmweb/signal"
+      "automerge": true
     },
     {
       "description": "Helm chart dependencies in Chart.yaml",
@@ -117,9 +117,7 @@
       "labels": [
         "dependencies",
         "component: helm-chart"
-      ],
-      "semanticCommitType": "chore",
-      "semanticCommitScope": "chart"
+      ]
     }
   ],
   "osvVulnerabilityAlerts": true,
@@ -130,13 +128,12 @@
     "labels": [
       "type: security"
     ],
-    "assignees": [
-      "drengskapur"
-    ],
     "automerge": true,
+    "prPriority": 20,
     "schedule": [
       "at any time"
-    ]
+    ],
+    "minimumReleaseAge": null
   },
   "lockFileMaintenance": {
     "enabled": true,
