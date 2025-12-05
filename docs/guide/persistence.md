@@ -5,6 +5,7 @@ Signal Desktop stores messages, encryption keys, and media on disk. Ghostwire us
 ## What Gets Stored
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#0A0E27', 'primaryTextColor': '#00FFE5', 'primaryBorderColor': '#00D9FF'}}}%%
 block-beta
     columns 3
 
@@ -34,10 +35,10 @@ block-beta
         desktop["Desktop/"]
     end
 
-    style pvc_label fill:#4caf50,color:#fff
-    style config_dir fill:#f44336,color:#fff
-    style data_dir fill:#ff9800,color:#000
-    style other_dir fill:#7986cb,color:#fff
+    style pvc_label fill:#00D9FF,color:#000
+    style config_dir fill:#3A76F0,color:#fff
+    style data_dir fill:#00FFE5,color:#000
+    style other_dir fill:#0A0E27,color:#00FFE5
 ```
 
 The container user home directory (`/home/kasm-user`) contains:

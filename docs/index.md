@@ -3,6 +3,7 @@
 Ghostwire runs Signal Desktop in Kubernetes with browser-based VNC access and persistent storage. It's designed to integrate with your existing infrastructure rather than duplicate it.
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#0A0E27', 'primaryTextColor': '#00FFE5', 'primaryBorderColor': '#00D9FF', 'lineColor': '#00D9FF', 'secondaryColor': '#0A0E27', 'tertiaryColor': '#0A0E27'}}}%%
 flowchart LR
     subgraph browser["Your Browser"]
         vnc["VNC Client"]
@@ -25,9 +26,12 @@ flowchart LR
     pod --> pvc
     pod --> signal
 
-    style vnc fill:#4dd0e1,color:#000
-    style signal fill:#4caf50,color:#fff
-    style pvc fill:#ff9800,color:#000
+    style vnc fill:#00D9FF,color:#000,stroke:#00FFE5
+    style signal fill:#3A76F0,color:#fff,stroke:#00D9FF
+    style pvc fill:#0A0E27,color:#00FFE5,stroke:#00D9FF
+    style ing fill:#0A0E27,color:#00FFE5,stroke:#00D9FF
+    style svc fill:#0A0E27,color:#00FFE5,stroke:#00D9FF
+    style pod fill:#0A0E27,color:#00FFE5,stroke:#00D9FF
 ```
 
 ## What It Does

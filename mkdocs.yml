@@ -6,22 +6,23 @@ repo_name: drengskapur/ghostwire
 
 theme:
   name: material
+  custom_dir: docs/overrides
   icon:
     repo: fontawesome/brands/github
-    logo: material/ghost
+  logo: images/logo.png
   favicon: images/favicon.png
   palette:
-    # Dark mode first (default)
+    # Dark mode first (default) - brand aligned
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
+      primary: cyan
       accent: cyan
       toggle:
         icon: material/weather-night
         name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
+      primary: cyan
       accent: cyan
       toggle:
         icon: material/weather-sunny

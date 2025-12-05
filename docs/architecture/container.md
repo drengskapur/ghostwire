@@ -21,6 +21,7 @@ The container runs several components that work together to provide a browser-ac
 When the container starts:
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': { 'actorBkg': '#0A0E27', 'actorTextColor': '#00FFE5', 'actorBorder': '#00D9FF', 'signalColor': '#00D9FF', 'signalTextColor': '#00FFE5', 'labelBoxBkgColor': '#0A0E27', 'labelTextColor': '#00FFE5', 'noteBkgColor': '#3A76F0', 'noteTextColor': '#fff'}}}%%
 sequenceDiagram
     participant Init as vnc_startup.sh
     participant Xvnc as Xvnc Server
@@ -43,6 +44,7 @@ The container is ready when Signal Desktop's window appears in the VNC session.
 ## Process Tree
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#0A0E27', 'primaryTextColor': '#00FFE5', 'primaryBorderColor': '#00D9FF', 'lineColor': '#00D9FF'}}}%%
 graph TD
     PID1["vnc_startup.sh<br/>(PID 1)"]
 
@@ -64,10 +66,10 @@ graph TD
     signal --> zygote["zygote"]
     signal --> renderer["renderer"]
 
-    style PID1 fill:#ff9800,color:#000
-    style xvnc fill:#4caf50,color:#fff
-    style signal fill:#4dd0e1,color:#000
-    style xfce fill:#7986cb,color:#fff
+    style PID1 fill:#00D9FF,color:#000,stroke:#00FFE5
+    style xvnc fill:#3A76F0,color:#fff,stroke:#00D9FF
+    style signal fill:#00FFE5,color:#000,stroke:#00D9FF
+    style xfce fill:#0A0E27,color:#00FFE5,stroke:#00D9FF
 ```
 
 ## Resource Usage

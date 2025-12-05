@@ -27,6 +27,7 @@ This separation means less configuration overlap and fewer conflicts between cha
 ## Architecture
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#0A0E27', 'primaryTextColor': '#00FFE5', 'primaryBorderColor': '#00D9FF', 'lineColor': '#00D9FF'}}}%%
 flowchart TB
     subgraph internet["Internet"]
         user["User Browser"]
@@ -51,12 +52,12 @@ flowchart TB
     svc --> sts
     sts --> pvc
 
-    style user fill:#4dd0e1,color:#000
-    style ing fill:#7986cb,color:#fff
-    style oauth fill:#7986cb,color:#fff
-    style svc fill:#4caf50,color:#fff
-    style sts fill:#4caf50,color:#fff
-    style pvc fill:#ff9800,color:#000
+    style user fill:#00D9FF,color:#000,stroke:#00FFE5
+    style ing fill:#3A76F0,color:#fff,stroke:#00D9FF
+    style oauth fill:#3A76F0,color:#fff,stroke:#00D9FF
+    style svc fill:#0A0E27,color:#00FFE5,stroke:#00D9FF
+    style sts fill:#0A0E27,color:#00FFE5,stroke:#00D9FF
+    style pvc fill:#0A0E27,color:#00FFE5,stroke:#00D9FF
 ```
 
 ## StatefulSet vs Deployment
