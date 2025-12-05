@@ -1,0 +1,106 @@
+site_name: Ghostwire
+site_description: Cloud-Native Signal Desktop for Kubernetes
+site_url: https://drengskapur.github.io/ghostwire
+repo_url: https://github.com/drengskapur/ghostwire
+repo_name: drengskapur/ghostwire
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/ghost
+  favicon: images/favicon.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/drengskapur/ghostwire
+  generator: false
+
+extra_css:
+  - stylesheets/extra.css
+
+copyright: Copyright &copy; 2024-2025 Drengskapur
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+    - Configuration: getting-started/configuration.md
+  - User Guide:
+    - Overview: guide/overview.md
+    - Deployment Strategies: guide/deployment-strategies.md
+    - Infrastructure Integration: guide/infrastructure-integration.md
+    - Persistence: guide/persistence.md
+  - Architecture:
+    - Container Runtime: architecture/container.md
+    - Security Model: architecture/security.md
+  - Operations:
+    - Monitoring: operations/monitoring.md
+    - Troubleshooting: operations/troubleshooting.md
+    - Upgrades: operations/upgrades.md
+  - Development:
+    - Contributing: development/contributing.md
+    - Testing: development/testing.md
+  - Reference:
+    - Helm Values: reference/values.md
+    - Changelog: reference/changelog.md
+    - Brand Guidelines: brand.md
+    - OpenSSF Best Practices: openssf-best-practices.md
