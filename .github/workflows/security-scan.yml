@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0  # Full history for comprehensive scanning
 
       - name: TruffleHog OSS
-        uses: trufflesecurity/trufflehog@7cdc7ef878439f74842c00422c65ab864ed83125 # v3.93.5
+        uses: trufflesecurity/trufflehog@041f07e9df901a1038a528e5525b0226d04dd5ea # v3.93.6
         with:
           path: ./  # Scan the entire repository
           extra_args: --debug --only-verified
