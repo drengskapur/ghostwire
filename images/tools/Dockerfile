@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM cgr.dev/chainguard/wolfi-base:latest@sha256:237a457dc67857705d15573e4bd3528338ac38e2fb0f591ec50ede03448f8258
+FROM cgr.dev/chainguard/wolfi-base:latest@sha256:36afa78d34330ad78b7adfefc9301ea4127585a797a2371eab6624a8a51e2461
 
 # OCI Labels and Annotations (OpenContainer Initiative)
 # https://github.com/opencontainers/image-spec/blob/main/annotations.md
