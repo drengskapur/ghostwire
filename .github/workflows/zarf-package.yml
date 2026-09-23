@@ -210,7 +210,7 @@ jobs:
       - name: Setup kubectl
         uses: azure/setup-kubectl@776406bce94f63e41d621b960d78ee25c8b76ede  # v4.0.1
         with:
-          version: 'v1.37.0'
+          version: 'v1.37.1'
 
       - name: Setup k3d
         run: |
