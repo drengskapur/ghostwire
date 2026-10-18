@@ -35,13 +35,7 @@ Answer questions across all categories. The badge requires:
 
 ### 4. Badge Display
 
-Once earned, add the badge to README.md:
-
-```markdown
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/XXXX/badge)](https://www.bestpractices.dev/projects/XXXX)
-```
-
-Replace `XXXX` with your project ID from the badge URL.
+The project already has an entry. Project id **11320**: <https://www.bestpractices.dev/projects/11320>. The badge on the README stays at the in-progress level until the form is saved at passing. Answers for every passing-level criterion are in [openssf-badge-answers.md](openssf-badge-answers.md).
 
 ---
 
@@ -101,9 +95,10 @@ Replace `XXXX` with your project ID from the badge URL.
 
 - [x] Reproducible builds (Helm chart packaging)
 - [x] Generated artifacts signed:
-  - OCI images signed with Cosign keyless signing
-  - GitHub Releases signed with SLSA provenance attestations
-- [x] Build provenance generated (SLSA attestations via actions/attest-build-provenance)
+  - OCI charts signed with Cosign keyless signing
+  - GitHub release archives signed with `cosign sign-blob` (`.tgz.sigstore.json`)
+  - SLSA provenance from `slsa-framework/slsa-github-generator` attached as `ghostwire.intoto.jsonl`
+- [x] Build provenance generated (`.github/workflows/release.yml`)
 - [x] Build process documented
 - [x] Artifact verification instructions (SECURITY.md)
 
@@ -160,29 +155,21 @@ Replace `XXXX` with your project ID from the badge URL.
 
 #### Fuzzing
 
-- [x] Fuzzing implemented - Property-based testing for Helm templates
-  - Custom fuzzing script (`scripts/helm-fuzz.sh`)
-  - Weekly automated fuzzing runs (`.github/workflows/fuzzing.yml`)
-  - Generates random valid configurations and tests template rendering
-  - See [Fuzzing Strategy](./fuzzing-strategy.md) for details
-- [ ] OSS-Fuzz integration - Not applicable for Helm chart projects
-  - OSS-Fuzz targets compiled runtime code (C, C++, Go, Rust)
-  - Helm charts are declarative templates with no runtime execution
-  - Property-based testing provides equivalent risk reduction
+- [x] Fuzzing implemented
+  - Go fuzz target `FuzzRender` in `fuzz/render_test.go` (runs `helm template` on the chart)
+  - CI job `fuzz` on every pull request and push to `main`
+  - ClusterFuzzLite build in `.clusterfuzzlite/`
+  - Property-based script `scripts/helm-fuzz.sh` still runs from the same workflow
+  - See [Fuzzing Strategy](./fuzzing-strategy.md)
+- [ ] OSS-Fuzz project registration is not set up. ClusterFuzzLite builds the same target.
 
 ---
 
 ## Recommended Enhancements
 
-### 1. Add Code of Conduct
+### 1. Code of Conduct
 
-File: `CODE_OF_CONDUCT.md`
-
-Use the [Contributor Covenant](https://www.contributor-covenant.org/):
-
-```bash
-curl -o CODE_OF_CONDUCT.md https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md
-```
+`CODE_OF_CONDUCT.md` is already the Contributor Covenant. Link it from the form where a project site or contribution URL is requested.
 
 ### 2. Enhance Test Coverage Documentation
 
@@ -262,10 +249,8 @@ After earning the badge:
 
 ## Next Steps
 
-1. Sign in to <https://www.bestpractices.dev/> with GitHub account
-2. Add the Ghostwire project
-3. Start completing the questionnaire using this checklist
-4. Flag any gaps that need to be addressed
-5. Work through enhancements before submitting
+1. Sign in to <https://www.bestpractices.dev/> with the GitHub account that owns project 11320
+2. Enter the answers in [openssf-badge-answers.md](openssf-badge-answers.md)
+3. Save the form at the passing level
 
-The project is well-positioned to earn the passing badge - most criteria are already met through existing security practices and documentation.
+Scorecard's CII-Best-Practices check stays at 2 until that form is saved as passing. Passing is recorded by the badge site as 5. This repository cannot submit the form.

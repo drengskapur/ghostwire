@@ -11,6 +11,7 @@ Run Signal Desktop in your cluster with browser access and persistent storage
 [![Lint and Test](https://github.com/drengskapur/ghostwire/actions/workflows/helm-release.yml/badge.svg?branch=main)](https://github.com/drengskapur/ghostwire/actions/workflows/helm-release.yml)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/ghostwire)](https://artifacthub.io/packages/search?repo=ghostwire)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/drengskapur/ghostwire/badge)](https://scorecard.dev/viewer/?uri=github.com/drengskapur/ghostwire)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11320/badge)](https://www.bestpractices.dev/projects/11320)
 
 </div>
 
@@ -153,6 +154,10 @@ See [values.yaml](chart/values.yaml) for complete options and [values.schema.jso
 - **[Testing Strategy](docs/testing-strategy.md)** - Testing approach and quality assurance
 - **[Fuzzing Strategy](docs/fuzzing-strategy.md)** - Property-based testing and fuzzing approach
 - **[OpenSSF Best Practices Guide](docs/openssf-best-practices.md)** - Security badge application guide
+- **[Best Practices answers](docs/openssf-badge-answers.md)** - Passing-level answers for project 11320
+- **[Branch protection](docs/branch-protection.md)** - Ruleset for one approving review and an admin bypass
+- **[Changelog](CHANGELOG.md)** - Release notes
+- **[Security policy](SECURITY.md)** - How to report a vulnerability
 - **[Code Review Strategy](docs/code-review-strategy.md)** - Single-maintainer approach and co-maintainer call
 
 ---
@@ -195,4 +200,6 @@ See [NOTICE](NOTICE) for third-party software attributions.
 
 - **Documentation:** [chart/README.md](chart/README.md)
 - **Bug Reports:** [GitHub Issues](https://github.com/drengskapur/ghostwire/issues)
+- **Security reports:** [SECURITY.md](SECURITY.md) (do not use public issues)
 - **Questions:** [GitHub Discussions](https://github.com/drengskapur/ghostwire/discussions)
+- **Releases:** [Changelog](CHANGELOG.md) and [GitHub Releases](https://github.com/drengskapur/ghostwire/releases)

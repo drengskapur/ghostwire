@@ -31,9 +31,20 @@ Alternatively, email security reports to: **<security@drengskapur.com>**
 
 - **Initial response:** Within 48 hours
 - **Status update:** Within 7 days
-- **Fix timeline:** Varies by severity (critical issues prioritized)
+- **Critical vulnerabilities:** a fix or mitigation within 48 hours of a confirmed report
+- **Other publicly known vulnerabilities:** fixed within 60 days of the report, or of publication if the issue was already public
 
-We follow coordinated disclosure and will credit reporters in security advisories unless anonymity is requested.
+We follow coordinated disclosure and will credit reporters in the security advisory and the release notes unless anonymity is requested. There is no bug bounty.
+
+Advisories, including resolved ones, stay in the [public advisory archive](https://github.com/drengskapur/ghostwire/security/advisories?state=all).
+
+### Known vulnerabilities in dependencies
+
+Dependency alerts come from OSV-Scanner, Trivy, Dependabot, and Renovate. A dependency vulnerability that affects this repository is fixed by upgrading the dependency, or, when no fixed release exists, by removing it. An `osv-scanner.toml` ignore entry is used only when the finding does not affect the chart or its release artifacts, and the entry has to say why.
+
+The documentation site pinned `mkdocs-material` below 9.7.7, which was vulnerable to [PYSEC-2026-3864](https://osv.dev/vulnerability/PYSEC-2026-3864) (CVE-2026-73295, DOM XSS in the optional `search.suggest` feature). That dependency is pinned to 9.7.7, the fixed release.
+
+The same requirements file pulled in `idna` 3.9.0, which was vulnerable to [PYSEC-2026-215](https://osv.dev/vulnerability/PYSEC-2026-215) (CVE-2026-45409, a denial of service in `idna.encode`). `idna` is pinned to 3.20.
 
 ## Security Considerations
 
@@ -84,18 +95,20 @@ All Helm charts are cryptographically signed and attested:
     --certificate-oidc-issuer=https://token.actions.githubusercontent.com
   ```
 
-- **GitHub Releases**: Signed with SLSA provenance attestations
+- **GitHub Releases**: Cosign keyless signature (`.tgz.sigstore.json`) and SLSA provenance (`ghostwire.intoto.jsonl`)
   ```bash
-  gh attestation verify ghostwire-1.0.0.tgz --owner drengskapur
-  ```
+  # Signature over the release archive
+  cosign verify-blob \
+    --bundle ghostwire-1.3.2.tgz.sigstore.json \
+    --certificate-identity-regexp '^https://github.com/drengskapur/ghostwire/\.github/workflows/release\.yml@' \
+    --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+    ghostwire-1.3.2.tgz
 
-- **Manual verification**: Download and verify attestations
-  ```bash
-  # Download release artifact
-  wget https://github.com/drengskapur/ghostwire/releases/download/v1.0.0/ghostwire-1.0.0.tgz
-
-  # Verify provenance attestation
-  gh attestation verify ghostwire-1.0.0.tgz -o drengskapur
+  # SLSA provenance from slsa-github-generator
+  slsa-verifier verify-artifact ghostwire-1.3.2.tgz \
+    --provenance-path ghostwire.intoto.jsonl \
+    --source-uri github.com/drengskapur/ghostwire \
+    --source-tag v1.3.2
   ```
 
 ### Data Persistence

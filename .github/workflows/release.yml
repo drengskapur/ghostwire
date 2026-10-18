@@ -1,0 +1,270 @@
+name: Release
+
+# Signs the Helm chart and publishes a GitHub release.
+# Cosign keyless signatures are attached as *.sigstore.json.
+# SLSA provenance is produced by slsa-framework/slsa-github-generator and
+# uploaded to the same release as ghostwire.intoto.jsonl.
+# A tag push is the path that records the tag in the provenance.
+# workflow_dispatch builds the same artifacts for the version input.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, without a leading v (for example 1.3.2)"
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
+      tag: ${{ steps.meta.outputs.tag }}
+      chart: ${{ steps.meta.outputs.chart }}
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4.3.1
+        with:
+          version: "3.22.0"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Resolve the release tag
+        id: meta
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            tag="v${INPUT_VERSION}"
+          else
+            tag="${GITHUB_REF_NAME}"
+          fi
+          if ! printf '%s' "$tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "refusing tag ${tag}; expected vMAJOR.MINOR.PATCH" >&2
+            exit 1
+          fi
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "chart=ghostwire-${tag#v}.tgz" >> "$GITHUB_OUTPUT"
+
+      - name: Package the chart
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          mkdir -p dist
+          sed -i "s/^version:.*/version: ${version}/" chart/Chart.yaml
+          helm package chart --destination dist
+          test -f "dist/ghostwire-${version}.tgz"
+          (cd dist && sha256sum "ghostwire-${version}.tgz" > SHA256SUMS)
+
+      - name: Sign the chart archive
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          set -euo pipefail
+          archive="dist/ghostwire-${TAG#v}.tgz"
+          cosign sign-blob --yes --bundle "${archive}.sigstore.json" "$archive"
+
+      - name: Write release notes
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          set -euo pipefail
+          {
+            echo "Release ${TAG} of the Ghostwire Helm chart."
+            echo
+            echo "The chart archive is signed with Sigstore keyless signing (\`cosign sign-blob\`). The signature bundle is the \`.tgz.sigstore.json\` asset. SLSA provenance for the archive is attached as \`ghostwire.intoto.jsonl\`."
+            echo
+            echo "Security fixes recorded in CHANGELOG.md:"
+            echo
+            awk '
+              /^## \[unreleased\]/ {capture=1; next}
+              /^## / {if (capture) exit}
+              capture && /^### Security/ {security=1; next}
+              capture && /^### / {security=0}
+              capture && security {print}
+            ' CHANGELOG.md
+            echo
+            echo "Changes since the previous tag:"
+            echo
+            if prev=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null); then
+              git log --pretty=format:'- %s' "${prev}..HEAD"
+            else
+              git log -20 --pretty=format:'- %s'
+            fi
+            echo
+          } > dist/NOTES.md
+
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$TAG" \
+            --notes-file dist/NOTES.md \
+            "dist/ghostwire-${version}.tgz" \
+            "dist/ghostwire-${version}.tgz.sigstore.json" \
+            dist/SHA256SUMS
+
+      - name: Push and sign the OCI chart
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          echo "$GITHUB_TOKEN" | helm registry login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          chart_url="oci://ghcr.io/${GITHUB_REPOSITORY_OWNER}/charts"
+          push_output=$(helm push "dist/ghostwire-${version}.tgz" "$chart_url" 2>&1)
+          echo "$push_output"
+          digest=$(printf '%s\n' "$push_output" | awk '/Digest:/ {print $2}')
+          case "$digest" in
+            sha256:*) ;;
+            *) echo "could not read the chart digest" >&2; exit 1 ;;
+          esac
+          cosign sign --yes "ghcr.io/${GITHUB_REPOSITORY_OWNER}/charts/ghostwire@${digest}"
+
+      - name: Hash the release archive for SLSA
+        id: hash
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          set -euo pipefail
+          hashes=$(cd dist && sha256sum "ghostwire-${TAG#v}.tgz" | base64 -w0)
+          echo "hashes=${hashes}" >> "$GITHUB_OUTPUT"
+
+      - name: Sign earlier release archives that have no signature
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          set -euo pipefail
+          # Scorecard looks at the five newest releases. Sign chart archives
+          # that were published before this workflow existed. The signature is
+          # over the bytes already attached to that release.
+          gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=5" --jq '.[].tag_name' | while read -r old; do
+            [ "$old" = "$TAG" ] && continue
+            work=$(mktemp -d)
+            gh release download "$old" --repo "$GITHUB_REPOSITORY" --dir "$work" --pattern '*.tgz' --skip-existing || true
+            found=0
+            for archive in "$work"/*.tgz; do
+              [ -f "$archive" ] || continue
+              found=1
+              base=$(basename "$archive")
+              if gh release view "$old" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -Fxq "${base}.sigstore.json"; then
+                echo "${old} ${base} already signed"
+                continue
+              fi
+              cosign sign-blob --yes --bundle "${archive}.sigstore.json" "$archive"
+              gh release upload "$old" "${archive}.sigstore.json" --repo "$GITHUB_REPOSITORY" --clobber
+              echo "signed ${old} ${base}"
+            done
+            if [ "$found" -eq 0 ]; then
+              echo "no chart archive on ${old}" >&2
+              exit 1
+            fi
+          done
+
+  provenance:
+    name: provenance
+    needs: release
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a # v2.1.0
+    with:
+      base64-subjects: ${{ needs.release.outputs.hashes }}
+      upload-assets: true
+      upload-tag-name: ${{ needs.release.outputs.tag }}
+      provenance-name: ghostwire.intoto.jsonl
+
+  verify:
+    name: verify
+    needs: [release, provenance]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Install slsa-verifier
+        run: |
+          set -euo pipefail
+          curl -fsSL -o slsa-verifier "https://github.com/slsa-framework/slsa-verifier/releases/download/v2.7.1/slsa-verifier-linux-amd64"
+          echo "946dbec729094195e88ef78e1734324a27869f03e2c6bd2f61cbc06bd5350339  slsa-verifier" | sha256sum -c
+          chmod +x slsa-verifier
+          sudo mv slsa-verifier /usr/local/bin/slsa-verifier
+
+      - name: Verify the signature and SLSA provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag }}
+          CHART: ${{ needs.release.outputs.chart }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          dest=$(mktemp -d)
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir "$dest" \
+            --pattern "$CHART" \
+            --pattern "${CHART}.sigstore.json" \
+            --pattern "ghostwire.intoto.jsonl"
+          cosign verify-blob \
+            --bundle "${dest}/${CHART}.sigstore.json" \
+            --certificate-identity-regexp '^https://github.com/drengskapur/ghostwire/\.github/workflows/release\.yml@' \
+            --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+            "${dest}/${CHART}"
+          prov="${dest}/ghostwire.intoto.jsonl"
+          archive="${dest}/${CHART}"
+          if ! slsa-verifier verify-artifact "$archive" \
+            --provenance-path "$prov" \
+            --source-uri "github.com/drengskapur/ghostwire" \
+            --source-version "$SOURCE_SHA"; then
+            slsa-verifier verify-artifact "$archive" \
+              --provenance-path "$prov" \
+              --source-uri "github.com/drengskapur/ghostwire" \
+              --source-tag "$TAG"
+          fi
+          echo "verified ${TAG} ${CHART}"
