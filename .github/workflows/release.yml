@@ -4,6 +4,10 @@ name: Release
 # Cosign keyless signatures are attached as *.sigstore.json.
 # SLSA provenance is produced by slsa-framework/slsa-github-generator and
 # uploaded to the same release as ghostwire.intoto.jsonl.
+# The release stays a draft until that provenance file is attached, then it
+# is published. Published releases in this repository are immutable, so a
+# file cannot be added afterwards. v1.3.2 was published before provenance
+# existed and cannot be amended; later tags carry the provenance asset.
 # A tag push is the path that records the tag in the provenance.
 # workflow_dispatch builds the same artifacts for the version input.
 
@@ -14,7 +18,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to release, without a leading v (for example 1.3.2)"
+        description: "Version to release, without a leading v (for example 1.3.3)"
         required: true
         type: string
 
@@ -138,14 +142,24 @@ jobs:
             "dist/ghostwire-${version}.tgz.sigstore.json"
             dist/SHA256SUMS
           )
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "${assets[@]}"
-          else
+          # The release-by-tag endpoint hides drafts, so look through the list.
+          existing=$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=30" \
+            --jq ".[] | select(.tag_name==\"${TAG}\") | [.draft, .immutable] | @tsv")
+          if [ -z "$existing" ]; then
             gh release create "$TAG" \
               --repo "$GITHUB_REPOSITORY" \
               --title "$TAG" \
               --notes-file dist/NOTES.md \
+              --draft \
               "${assets[@]}"
+          else
+            draft=$(printf '%s' "$existing" | cut -f1)
+            immutable=$(printf '%s' "$existing" | cut -f2)
+            if [ "$immutable" = "true" ] || [ "$draft" != "true" ]; then
+              echo "release ${TAG} is already published; choose a new version" >&2
+              exit 1
+            fi
+            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "${assets[@]}"
           fi
 
       - name: Push and sign the OCI chart
@@ -194,11 +208,17 @@ jobs:
           set -euo pipefail
           # Scorecard looks at the five newest releases. Sign chart archives
           # that were published before this workflow existed. The signature is
-          # over the bytes already attached to that release.
-          gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=5" --jq '.[].tag_name' | while read -r old; do
+          # over the bytes already attached to that release. Immutable releases
+          # reject new assets, so those tags are left as they are.
+          while IFS=$'\t' read -r old immutable; do
+            [ -n "$old" ] || continue
             [ "$old" = "$TAG" ] && continue
+            if [ "$immutable" = "true" ]; then
+              echo "skip ${old}: release is immutable"
+              continue
+            fi
             work=$(mktemp -d)
-            gh release download "$old" --repo "$GITHUB_REPOSITORY" --dir "$work" --pattern '*.tgz' --skip-existing || true
+            gh release download "$old" --repo "$GITHUB_REPOSITORY" --dir "$work" --pattern '*.tgz' --skip-existing
             found=0
             for archive in "$work"/*.tgz; do
               [ -f "$archive" ] || continue
@@ -216,7 +236,8 @@ jobs:
               echo "no chart archive on ${old}" >&2
               exit 1
             fi
-          done
+          done < <(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=10" \
+            --jq "[limit(6; .[] | select(.draft==false))] | .[] | [.tag_name, (.immutable|tostring)] | @tsv")
 
   provenance:
     name: provenance
@@ -231,10 +252,47 @@ jobs:
       upload-assets: true
       upload-tag-name: ${{ needs.release.outputs.tag }}
       provenance-name: ghostwire.intoto.jsonl
+      # Find the draft created above and upload provenance without publishing it.
+      draft-release: "true"
+
+  publish:
+    name: publish
+    needs: [release, provenance]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Publish the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag }}
+          CHART: ${{ needs.release.outputs.chart }}
+        run: |
+          set -euo pipefail
+          row=$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=30" \
+            --jq ".[] | select(.tag_name==\"${TAG}\") | [.id, (.draft|tostring), (.assets|map(.name)|join(\" \"))] | @tsv")
+          id=$(printf '%s' "$row" | cut -f1)
+          draft=$(printf '%s' "$row" | cut -f2)
+          names=$(printf '%s' "$row" | cut -f3)
+          if [ -z "$id" ] || [ "$draft" != "true" ]; then
+            echo "expected a draft release for ${TAG}" >&2
+            exit 1
+          fi
+          for asset in "$CHART" "${CHART}.sigstore.json" SHA256SUMS ghostwire.intoto.jsonl; do
+            case " ${names} " in
+              *" ${asset} "*) ;;
+              *) echo "missing ${asset} on draft ${TAG}" >&2; exit 1 ;;
+            esac
+          done
+          gh api --method PATCH "repos/${GITHUB_REPOSITORY}/releases/${id}" \
+            -F draft=false \
+            -f make_latest=true >/dev/null
+          echo "published ${TAG}"
 
   verify:
     name: verify
-    needs: [release, provenance]
+    needs: [release, provenance, publish]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

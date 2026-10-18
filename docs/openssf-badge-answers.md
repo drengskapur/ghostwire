@@ -6,7 +6,7 @@ Form: <https://www.bestpractices.dev/en/projects/11320>
 
 Badge level on that page is still **in progress**. Scorecard's CII-Best-Practices check stays at 2 until this form is saved at passing. Passing is what moves that check to 5. This file is the fill-in sheet for the passing level only. It does not claim silver or gold.
 
-URLs below are the evidence to paste into the form. A criterion marked Met is true from the repository as of the change that added this sheet, except where the note says the release URL exists only after `v1.3.2` is published. Fill the form after that release.
+URLs below are the evidence to paste into the form. A criterion marked Met is true from the repository as of the change that added this sheet, except where the note says the release URL exists only after `v1.3.3` is published. Fill the form after that release. `v1.3.2` has a Cosign bundle and no `ghostwire.intoto.jsonl`, because that release was published before provenance was attached and is immutable.
 
 The form's old `release_notes` answer is Unmet, with the justification "No release notes file found". That is stale. [CHANGELOG.md](https://github.com/drengskapur/ghostwire/blob/main/CHANGELOG.md) is the release-notes file. Change that answer to Met.
 
@@ -102,7 +102,7 @@ Release notes name each vulnerability fixed in that release. The release workflo
 
 <https://github.com/drengskapur/ghostwire/blob/main/CHANGELOG.md>
 
-After the tag exists, also cite <https://github.com/drengskapur/ghostwire/releases/tag/v1.3.2>.
+After the tag exists, also cite <https://github.com/drengskapur/ghostwire/releases/tag/v1.3.3>.
 
 ### report_process — Met
 
@@ -224,7 +224,7 @@ Releases intended for use are signed with Sigstore keyless signing (`cosign sign
 
 <https://github.com/drengskapur/ghostwire/blob/main/.github/workflows/release.yml>
 
-Cite the assets on `v1.3.2` once that release exists: the `.tgz`, the `.tgz.sigstore.json` bundle, and `ghostwire.intoto.jsonl`.
+Cite the assets on `v1.3.3` once that release exists: the `.tgz`, the `.tgz.sigstore.json` bundle, and `ghostwire.intoto.jsonl`. `v1.3.2` has the `.tgz` and the `.tgz.sigstore.json` bundle only.
 
 ### vulnerabilities_fixed_60_days — Met
 
@@ -339,7 +339,7 @@ Tags and chart versions are `MAJOR.MINOR.PATCH`.
 
 ### version_tags — Met
 
-Releases are git tags (`v1.3.1`, and `v1.3.2` for the signed release).
+Releases are git tags (`v1.3.2` for the Cosign signature, and `v1.3.3` for the signature plus SLSA provenance).
 
 ### build_common_tools — Met
 

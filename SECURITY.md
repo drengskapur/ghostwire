@@ -95,20 +95,20 @@ All Helm charts are cryptographically signed and attested:
     --certificate-oidc-issuer=https://token.actions.githubusercontent.com
   ```
 
-- **GitHub Releases**: Cosign keyless signature (`.tgz.sigstore.json`) and SLSA provenance (`ghostwire.intoto.jsonl`)
+- **GitHub Releases**: Cosign keyless signature (`.tgz.sigstore.json`) and, from `v1.3.3` on, SLSA provenance (`ghostwire.intoto.jsonl`). `v1.3.2` has the signature bundle only. That release was published before provenance was attached, and published releases are immutable.
   ```bash
   # Signature over the release archive
   cosign verify-blob \
-    --bundle ghostwire-1.3.2.tgz.sigstore.json \
+    --bundle ghostwire-1.3.3.tgz.sigstore.json \
     --certificate-identity-regexp '^https://github.com/drengskapur/ghostwire/\.github/workflows/release\.yml@' \
     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-    ghostwire-1.3.2.tgz
+    ghostwire-1.3.3.tgz
 
   # SLSA provenance from slsa-github-generator
-  slsa-verifier verify-artifact ghostwire-1.3.2.tgz \
+  slsa-verifier verify-artifact ghostwire-1.3.3.tgz \
     --provenance-path ghostwire.intoto.jsonl \
     --source-uri github.com/drengskapur/ghostwire \
-    --source-tag v1.3.2
+    --source-tag v1.3.3
   ```
 
 ### Data Persistence
