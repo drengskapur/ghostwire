@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 - Pin mkdocs-material to 9.7.7, fixing PYSEC-2026-3864 (CVE-2026-73295), a DOM XSS in the documentation theme's `search.suggest` feature
 - Pin idna to 3.20, fixing PYSEC-2026-215 (CVE-2026-45409), a denial of service in `idna.encode` pulled in by the documentation requirements
 - Pin the devcontainer base image, Playwright installs, and the k3d browser-test image by digest or lockfile
-- Sign GitHub release archives with Sigstore keyless signing and attach SLSA provenance (`ghostwire.intoto.jsonl`)
+- Sign GitHub release archives with Sigstore keyless signing and attach SLSA provenance (`ghostwire.intoto.jsonl`). The release stays a draft until that provenance file is uploaded, because published releases are immutable. `v1.3.2` was published before provenance existed, so it keeps its `.tgz.sigstore.json` bundle and cannot gain `ghostwire.intoto.jsonl`
 
 ### Bug Fixes
 
