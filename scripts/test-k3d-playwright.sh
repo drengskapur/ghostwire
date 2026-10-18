@@ -78,7 +78,7 @@ main() {
             log "Ghostwire is accessible"
             break
         fi
-        if [ $i -eq 30 ]; then
+        if [ "$i" -eq 30 ]; then
             error "Ghostwire not accessible after 30 seconds"
             kubectl logs -n "${NAMESPACE}" -l app.kubernetes.io/name=ghostwire --tail=50
             kill "$PORT_FORWARD_PID" 2>/dev/null || true
@@ -91,14 +91,16 @@ main() {
     mkdir -p "${SCREENSHOT_DIR}"
 
     log "Running Playwright test..."
+    playwright_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/playwright"
     docker run --rm \
         --init \
         --ipc=host \
         --network host \
         -v "${SCREENSHOT_DIR}:/screenshots" \
+        -v "${playwright_dir}:/deps:ro" \
         -e GHOSTWIRE_URL="${GHOSTWIRE_URL}" \
         -w /app \
-        mcr.microsoft.com/playwright:v1.56.1-noble \
+        mcr.microsoft.com/playwright:v1.56.1-noble@sha256:f1e7e01021efd65dd1a2c56064be399f3e4de00fd021ac561325f2bfbb2b837a \
         bash -c '
 cat > test.js << "EOF"
 const { chromium } = require("playwright");
@@ -140,7 +142,9 @@ const { chromium } = require("playwright");
     process.exit(1);
 });
 EOF
-npm install --no-save playwright@1.56.1 && node test.js
+cp /deps/package.json /deps/package-lock.json /app/
+npm ci --prefix /app --ignore-scripts
+node test.js
 '
 
     log "✅ Test completed successfully"

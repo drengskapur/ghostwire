@@ -1,0 +1,9 @@
+{
+  "name": "ghostwire-k3d-playwright",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Hash-pinned Playwright install for the k3d browser test.",
+  "dependencies": {
+    "playwright": "1.56.1"
+  }
+}

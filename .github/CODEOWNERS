@@ -2,30 +2,30 @@
 # Each line is a file pattern followed by one or more owners
 
 # Default owners for everything in the repo
-* @drengskapur
+* @drengskapur @davidagustin
 
 # Helm chart ownership
-/chart/ @drengskapur
-/chart/templates/ @drengskapur
-/chart/values.yaml @drengskapur
-/chart/Chart.yaml @drengskapur
+/chart/ @drengskapur @davidagustin
+/chart/templates/ @drengskapur @davidagustin
+/chart/values.yaml @drengskapur @davidagustin
+/chart/Chart.yaml @drengskapur @davidagustin
 
 # Documentation ownership
-/docs/ @drengskapur
-*.md @drengskapur
+/docs/ @drengskapur @davidagustin
+*.md @drengskapur @davidagustin
 
 # CI/CD workflows
-/.github/workflows/ @drengskapur
-/.github/settings.yml @drengskapur
+/.github/workflows/ @drengskapur @davidagustin
+/.github/settings.yml @drengskapur @davidagustin
 
 # Container images
-/images/ @drengskapur
-Dockerfile @drengskapur
+/images/ @drengskapur @davidagustin
+Dockerfile @drengskapur @davidagustin
 
 # Build and automation
-/Taskfile.yml @drengskapur
-/.gitleaks.toml @drengskapur
+/Taskfile.yml @drengskapur @davidagustin
+/.gitleaks.toml @drengskapur @davidagustin
 
 # License and legal
-/LICENSE @drengskapur
-/NOTICE @drengskapur
+/LICENSE @drengskapur @davidagustin
+/NOTICE @drengskapur @davidagustin

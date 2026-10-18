@@ -6,11 +6,12 @@ Ghostwire is currently maintained by a single maintainer. While the project has 
 
 ## Infrastructure in Place
 
-✅ **Branch Protection Enabled**
-- Requires 1 approving review before merge
-- Requires passing status checks
-- Dismisses stale reviews on new commits
-- Prevents direct pushes to main
+✅ **Branch ruleset**
+- The ruleset in [branch-protection-ruleset.json](branch-protection-ruleset.json) requires 1 approving review, a code-owner review, passing status checks, and a pull request
+- `CODEOWNERS` lists `@drengskapur` and `@davidagustin` together, so either of them can satisfy the code-owner review
+- It dismisses stale reviews and blocks force-pushes and deletion
+- Repository admins can bypass it, so the owner can merge when the second reviewer is away
+- A bypass actor keeps the Scorecard Branch-Protection check at 8. Requiring two reviews would also leave it short of 9, and one real approval is what a second reviewer can give
 
 ✅ **PR Workflow Required**
 - All changes must go through pull requests
@@ -26,13 +27,14 @@ Ghostwire is currently maintained by a single maintainer. While the project has 
 ## Single-Maintainer Limitation
 
 **Current Configuration:**
-- `enforce_admins: false` - Allows repository admins to bypass review requirements
-- This is necessary for single-maintainer projects where self-review is not possible
+- Repository admins can bypass the ruleset (`RepositoryRole` admin, bypass mode `always`)
+- That bypass is how the owner merges when the second reviewer is not available
+- An approving review is still required for everyone else
 
 **Impact on Scorecard:**
-- Code-Review score: 0/10
-- Reason: All recent commits were admin-merged without external review
-- This is expected for projects with one active maintainer
+- Code-Review stays 0 until a reviewer other than the author approves changes that land on `main`
+- Admin bypass does not count as that review
+- Do not invent approvals to move the score
 
 ## How Code Review Works
 

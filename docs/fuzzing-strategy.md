@@ -16,7 +16,21 @@ For this project type, we implement **adapted fuzzing strategies** appropriate t
 
 ## Our Fuzzing Approach
 
-### 1. Helm Template Property-Based Testing
+### 1. Native Go fuzzing of chart rendering
+
+The chart's external input is the values overlay passed to Helm. `fuzz/render_test.go` defines `FuzzRender`, a Go 1.18+ fuzz target. Each iteration writes the fuzz bytes to a values file and runs `helm template`. Values Helm rejects are discarded. Values Helm accepts must render as YAML, and a renderer panic fails the test.
+
+Run it locally:
+
+```bash
+go test -C fuzz -fuzz=FuzzRender -fuzztime=30s
+```
+
+CI runs the same target for 30 seconds on every pull request and push to `main` (job `fuzz` in `.github/workflows/fuzzing.yml`).
+
+ClusterFuzzLite can build the same target. `.clusterfuzzlite/Dockerfile` pins the OSS-Fuzz Go builder by digest, installs a hash-pinned Helm, and `.clusterfuzzlite/build.sh` compiles `FuzzRender`. OpenSSF Scorecard treats `.clusterfuzzlite/Dockerfile` as a fuzzing integration.
+
+### 2. Helm Template Property-Based Testing
 
 **What it does:**
 - Generates random valid `values.yaml` configurations
@@ -48,7 +62,7 @@ FUZZ_ITERATIONS=1000 ./scripts/helm-fuzz.sh
 - Manual trigger available via workflow_dispatch
 - See `.github/workflows/fuzzing.yml`
 
-### 2. Static Analysis (Shell Scripts)
+### 3. Static Analysis (Shell Scripts)
 
 **What it does:**
 - Deep static analysis of all shell scripts
@@ -62,7 +76,7 @@ FUZZ_ITERATIONS=1000 ./scripts/helm-fuzz.sh
 - `scripts/helm-fuzz.sh`
 - Helm template helpers (limited bash-like syntax)
 
-### 3. Schema Validation Fuzzing
+### 4. Schema Validation Fuzzing
 
 **What it does:**
 - Helm JSON Schema validation in `values.schema.json`
@@ -74,22 +88,15 @@ FUZZ_ITERATIONS=1000 ./scripts/helm-fuzz.sh
 - Catches type mismatches, missing required fields, invalid enums
 - Acts as a "fuzz test gatekeeper" during production use
 
-## Why Not OSS-Fuzz?
+## Why the fuzzer calls Helm
 
-OSS-Fuzz is excellent for finding memory corruption bugs, crashes, and undefined behavior in **compiled runtime code**. However:
+OSS-Fuzz looks for memory corruption in compiled programs. This repository's input is a Helm values overlay. `FuzzRender` treats `helm template` as that parser: bad values are discarded, accepted values must render as YAML, and a panic fails the test. ClusterFuzzLite builds that target. The project is not registered with OSS-Fuzz.
 
-1. **No runtime code:** Helm charts are declarative templates, not executable programs
-2. **Validation happens at render-time:** Helm validates during `helm template` or `helm install`
-3. **Different threat model:** IaC vulnerabilities are typically:
-   - Misconfigurations (wrong permissions, exposed secrets)
-   - Template injection (user-controlled values rendered unsafely)
-   - Invalid YAML generation
+The same input is also exercised by:
 
-These are better caught by:
-- Property-based testing (our `helm-fuzz.sh`)
+- Property-based testing (`scripts/helm-fuzz.sh`)
 - Static analysis (ShellCheck, Trivy, yamllint)
 - Schema validation (`values.schema.json`)
-- Security policy enforcement (OPA, Kyverno)
 
 ## Future Enhancements
 
@@ -115,9 +122,8 @@ These are better caught by:
 
 ### Considered but Deferred
 
-- **OSS-Fuzz integration:** Not applicable for IaC/Helm projects
-- **AFL/libFuzzer:** Require compiled binaries, not suitable for templates
-- **Go fuzzing:** Would require rewriting templates as Go code (impractical)
+- **OSS-Fuzz project registration:** Not set up. ClusterFuzzLite in this repository builds the same Go fuzz target.
+- **AFL:** The chart is not a C/C++ binary. The Go fuzz target calls Helm, which is the program that parses values.
 
 ## Measuring Effectiveness
 
@@ -131,10 +137,10 @@ These are better caught by:
 
 | Metric | Value |
 |--------|-------|
-| Fuzzing iterations | 100 per run |
-| Template coverage | ~80% (estimated) |
-| Execution frequency | Weekly + on-demand |
-| Shell script analysis | 100% of scripts |
+| Go fuzz target | `FuzzRender`, 30 seconds on every pull request and push |
+| Property-test iterations | 100 per run of `scripts/helm-fuzz.sh` |
+| Execution frequency | Pull requests, pushes to `main`, weekly, and on demand |
+| Shell script analysis | Scripts under `scripts/` |
 
 ## Contributing
 
@@ -147,11 +153,12 @@ To improve fuzzing coverage:
 
 ## References
 
-- [OSS-Fuzz](https://github.com/google/oss-fuzz) - Not applicable for Helm
+- [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) - Builds `FuzzRender` from `.clusterfuzzlite/`
+- [OSS-Fuzz](https://github.com/google/oss-fuzz) - Not registered; the in-repo target is the one CI runs
 - [Helm Unit Testing](https://github.com/helm-unittest/helm-unittest) - Complements fuzzing
 - [Property-Based Testing](https://en.wikipedia.org/wiki/Property-based_testing) - Our approach
 - [ShellCheck](https://www.shellcheck.net/) - Static analysis for scripts
 
 ---
 
-**Bottom Line:** While traditional fuzzing isn't applicable to Helm charts, we implement adapted strategies (property-based testing, static analysis, schema validation) that provide equivalent risk reduction for this project type.
+**Bottom Line:** `FuzzRender` fuzzes Helm's rendering of this chart, in CI and via ClusterFuzzLite. Property tests, static analysis, and schema validation cover the same input from the other side.
