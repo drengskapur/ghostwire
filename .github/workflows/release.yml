@@ -322,7 +322,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.release.outputs.tag }}
           CHART: ${{ needs.release.outputs.chart }}
-          SOURCE_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           dest=$(mktemp -d)
@@ -335,15 +334,9 @@ jobs:
             --certificate-identity-regexp '^https://github.com/drengskapur/ghostwire/\.github/workflows/release\.yml@' \
             --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
             "${dest}/${CHART}"
-          prov="${dest}/ghostwire.intoto.jsonl"
-          archive="${dest}/${CHART}"
-          if ! slsa-verifier verify-artifact "$archive" \
-            --provenance-path "$prov" \
+          # slsa-verifier 2.7.1 has --source-tag, not --source-version.
+          slsa-verifier verify-artifact "${dest}/${CHART}" \
+            --provenance-path "${dest}/ghostwire.intoto.jsonl" \
             --source-uri "github.com/drengskapur/ghostwire" \
-            --source-version "$SOURCE_SHA"; then
-            slsa-verifier verify-artifact "$archive" \
-              --provenance-path "$prov" \
-              --source-uri "github.com/drengskapur/ghostwire" \
-              --source-tag "$TAG"
-          fi
+            --source-tag "$TAG"
           echo "verified ${TAG} ${CHART}"
