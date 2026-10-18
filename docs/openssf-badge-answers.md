@@ -6,7 +6,7 @@ Form: <https://www.bestpractices.dev/en/projects/11320>
 
 Badge level on that page is still **in progress**. Scorecard's CII-Best-Practices check stays at 2 until this form is saved at passing. Passing is what moves that check to 5. This file is the fill-in sheet for the passing level only. It does not claim silver or gold.
 
-URLs below are the evidence to paste into the form. A criterion marked Met is true from the repository as of the change that added this sheet, except where the note says the release URL exists only after `v1.3.3` is published. Fill the form after that release. `v1.3.2` has a Cosign bundle and no `ghostwire.intoto.jsonl`, because that release was published before provenance was attached and is immutable.
+URLs below are the evidence to paste into the form. A criterion marked Met is true from the repository as of the change that last updated this sheet. `v1.3.4` is the first release with a Cosign bundle, SLSA provenance, and `SHA256SUMS`. Earlier releases have none of these.
 
 The form's old `release_notes` answer is Unmet, with the justification "No release notes file found". That is stale. [CHANGELOG.md](https://github.com/drengskapur/ghostwire/blob/main/CHANGELOG.md) is the release-notes file. Change that answer to Met.
 
@@ -102,7 +102,7 @@ Release notes name each vulnerability fixed in that release. The release workflo
 
 <https://github.com/drengskapur/ghostwire/blob/main/CHANGELOG.md>
 
-After the tag exists, also cite <https://github.com/drengskapur/ghostwire/releases/tag/v1.3.3>.
+The `v1.3.4` release notes carry the same entries: <https://github.com/drengskapur/ghostwire/releases/tag/v1.3.4>
 
 ### report_process — Met
 
@@ -164,13 +164,17 @@ Chart tests live in `chart/tests/`. The values-rendering fuzz target lives in `f
 
 <https://github.com/drengskapur/ghostwire/blob/main/fuzz/render_test.go>
 
-### warnings — N/A
+### warnings — Met
 
-This repository does not compile a language that has compiler warning flags. The chart is YAML templates. Shell scripts are checked with ShellCheck, which is recorded under `static_analysis`.
+The repository has no compiler, so its warning gate is linters. ShellCheck runs on `scripts/` and fails the job on any finding at warning severity or above. yamllint runs on the workflows and `chart/values.yaml` and fails on errors. `helm lint` runs on the chart and fails on errors. All three run in CI on every pull request.
 
-### warnings_fixed — N/A
+<https://github.com/drengskapur/ghostwire/blob/main/.github/workflows/codeql.yml>
 
-Follows from `warnings`. There is no compiler warning set to keep clean.
+<https://github.com/drengskapur/ghostwire/blob/main/.github/workflows/helm-release.yml>
+
+### warnings_fixed — Met
+
+Those jobs pass on `main`, so there is no outstanding warning.
 
 ### know_secure_design — Met
 
@@ -224,7 +228,9 @@ Releases intended for use are signed with Sigstore keyless signing (`cosign sign
 
 <https://github.com/drengskapur/ghostwire/blob/main/.github/workflows/release.yml>
 
-Cite the assets on `v1.3.3` once that release exists: the `.tgz`, the `.tgz.sigstore.json` bundle, and `ghostwire.intoto.jsonl`. `v1.3.2` has the `.tgz` and the `.tgz.sigstore.json` bundle only.
+The `v1.3.4` release has the `.tgz`, the `.tgz.sigstore.json` bundle, `ghostwire.intoto.jsonl`, and `SHA256SUMS`. The `cosign verify-blob` and `slsa-verifier` commands in `SECURITY.md` pass against those assets.
+
+<https://github.com/drengskapur/ghostwire/releases/tag/v1.3.4>
 
 ### vulnerabilities_fixed_60_days — Met
 
@@ -339,7 +345,7 @@ Tags and chart versions are `MAJOR.MINOR.PATCH`.
 
 ### version_tags — Met
 
-Releases are git tags (`v1.3.2` for the Cosign signature, and `v1.3.3` for the signature plus SLSA provenance).
+Releases are git tags, for example `v1.3.4`.
 
 ### build_common_tools — Met
 
@@ -361,9 +367,9 @@ GitHub Actions runs the test jobs on every pull request to `main`.
 
 The requirement to add tests is written in `CONTRIBUTING.md` and `docs/development/testing.md`, linked from the test-policy criterion above.
 
-### warnings_strict — N/A
+### warnings_strict — Met
 
-Follows from `warnings`. ShellCheck in `.github/workflows/fuzzing.yml` is configured at style severity; that is static analysis, not a compiler `-Werror` flag.
+ShellCheck in `.github/workflows/fuzzing.yml` runs at style severity, the strictest level it has.
 
 ### static_analysis_common_vulnerabilities — Met
 
