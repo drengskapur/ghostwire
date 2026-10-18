@@ -2,6 +2,12 @@
 
 Ghostwire uses multiple testing approaches to ensure chart quality and reliability.
 
+## Policy
+
+New functionality and bug fixes ship with tests. Chart changes add or update a Helm unittest under `chart/tests/`. Changes to how user values are rendered also update `fuzz/render_test.go`. Documentation-only changes do not need a new test.
+
+`helm lint`, `helm template`, and `helm unittest --strict` run on every pull request (`.github/workflows/helm-release.yml`, job `Lint and Test`). The chart-rendering fuzzer runs in the `fuzz` job (`.github/workflows/fuzzing.yml`). A pull request is not merged while those checks fail. The requirement is also written in [CONTRIBUTING.md](../../CONTRIBUTING.md#test-policy).
+
 ## Chart Linting
 
 Basic syntax and best practice validation:

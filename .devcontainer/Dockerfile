@@ -1,5 +1,5 @@
-ARG VARIANT=2.0-bookworm
-FROM mcr.microsoft.com/devcontainers/go:${VARIANT}
+# 2.0-bookworm, pinned by manifest-list digest.
+FROM mcr.microsoft.com/devcontainers/go:2.0-bookworm@sha256:65af278fcedeef06eb6b672ad4a95c95cf0849cb82d4852ff014719fe6cdf262
 
 # Install Node.js (needed for Playwright) with pinned version
 # Using direct binary download instead of curl|bash for security (OpenSSF Scorecard)
@@ -37,10 +37,16 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && curl -sSL https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64 -o /usr/local/bin/yq \
     && chmod +x /usr/local/bin/yq
 
-# Install Playwright with pinned version and browsers
-ARG PLAYWRIGHT_VERSION=1.49.1
-RUN npm install -g playwright@${PLAYWRIGHT_VERSION} \
-    && npx playwright@${PLAYWRIGHT_VERSION} install --with-deps chromium
+# Install Playwright from the lockfile (npm ci checks every integrity hash).
+# 1.56.1 replaces 1.49.1, which npm audit reports as a high-severity install-time issue.
+ARG PLAYWRIGHT_VERSION=1.56.1
+COPY playwright/package.json playwright/package-lock.json /tmp/playwright/
+# The image test runs `npx playwright` with the image workdir.
+# That directory holds the lockfile install, so npx does not fetch another copy.
+WORKDIR /tmp/playwright
+RUN npm ci \
+    && npx playwright install --with-deps chromium \
+    && chmod -R a+rX /tmp/playwright
 
 # Pre-pull commonly used images (best effort, don't fail build)
 RUN docker pull rancher/k3s:v1.28.5-k3s1 2>/dev/null || true \
