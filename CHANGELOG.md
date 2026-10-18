@@ -327,8 +327,8 @@ This entry covers changes since 1.2.3, including those first shipped in 1.3.0 an
 
 ### Miscellaneous Tasks
 
-- Add MCP server config and attribution removal script
-- Remove attribution cleanup script
+- Add developer tooling config and a commit-cleanup script
+- Remove the commit-cleanup script
 - Add GitHub repository settings
 - Add direnv configuration
 - Remove git-chglog configuration files
@@ -350,7 +350,7 @@ This entry covers changes since 1.2.3, including those first shipped in 1.3.0 an
 - **chart:** Remove cloudflared subchart dependency
 - Bump chart version to 0.4.0
 - **gitops:** Update HelmRelease to use chart version 0.4.0
-- **task:** Add fallback for claude commands
+- **task:** Fall back to a fresh session when resuming fails
 - **chart:** Bump version to 0.5.2
 - Bump chart version to 0.7.0
 - Remove schema.sh script (now embedded in Taskfile)
