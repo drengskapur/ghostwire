@@ -133,13 +133,20 @@ jobs:
         run: |
           set -euo pipefail
           version="${TAG#v}"
-          gh release create "$TAG" \
-            --repo "$GITHUB_REPOSITORY" \
-            --title "$TAG" \
-            --notes-file dist/NOTES.md \
-            "dist/ghostwire-${version}.tgz" \
-            "dist/ghostwire-${version}.tgz.sigstore.json" \
+          assets=(
+            "dist/ghostwire-${version}.tgz"
+            "dist/ghostwire-${version}.tgz.sigstore.json"
             dist/SHA256SUMS
+          )
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" --clobber "${assets[@]}"
+          else
+            gh release create "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$TAG" \
+              --notes-file dist/NOTES.md \
+              "${assets[@]}"
+          fi
 
       - name: Push and sign the OCI chart
         env:
@@ -149,13 +156,24 @@ jobs:
           set -euo pipefail
           version="${TAG#v}"
           echo "$GITHUB_TOKEN" | helm registry login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
           chart_url="oci://ghcr.io/${GITHUB_REPOSITORY_OWNER}/charts"
+          set +e
           push_output=$(helm push "dist/ghostwire-${version}.tgz" "$chart_url" 2>&1)
+          push_status=$?
+          set -e
           echo "$push_output"
           digest=$(printf '%s\n' "$push_output" | awk '/Digest:/ {print $2}')
+          if ! printf '%s' "$digest" | grep -Eq '^sha256:'; then
+            digest=$(curl -fsSI \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+              "https://ghcr.io/v2/${GITHUB_REPOSITORY_OWNER}/charts/ghostwire/manifests/${version}" \
+              | awk 'tolower($1)=="docker-content-digest:" {print $2}' | tr -d '\r')
+          fi
           case "$digest" in
             sha256:*) ;;
-            *) echo "could not read the chart digest" >&2; exit 1 ;;
+            *) echo "could not read the chart digest (helm push status ${push_status})" >&2; exit 1 ;;
           esac
           cosign sign --yes "ghcr.io/${GITHUB_REPOSITORY_OWNER}/charts/ghostwire@${digest}"
 
