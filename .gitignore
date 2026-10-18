@@ -8,3 +8,5 @@ chart/*.tgz
 chart/charts/
 test-results/
 site/
+.claude/
+.mcp.json
