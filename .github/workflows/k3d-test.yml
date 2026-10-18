@@ -30,7 +30,7 @@ permissions:
 jobs:
   k3d-playwright-test:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -43,10 +43,15 @@ jobs:
 
 
       - name: Install k3d
+        env:
+          # Release binary and its SHA-256 from the release's checksums.txt.
+          K3D_VERSION: v5.9.0
+          K3D_SHA256: 06d8f25bc3a971c4eb29e0ff08429b180402db0f4dec838c9eac427e296800a0
         run: |
-          curl -sSL https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh -o /tmp/k3d-install.sh
-          echo "0f6bd9a3ab8ea8625843b21657a6538f117975bb2823b73200dc8b92ccc626de /tmp/k3d-install.sh" | sha256sum -c
-          bash /tmp/k3d-install.sh
+          set -euo pipefail
+          curl -fsSL -o /tmp/k3d "https://github.com/k3d-io/k3d/releases/download/${K3D_VERSION}/k3d-linux-amd64"
+          echo "${K3D_SHA256}  /tmp/k3d" | sha256sum -c
+          sudo install -m 0755 /tmp/k3d /usr/local/bin/k3d
           k3d version
 
       - name: Install kubectl
