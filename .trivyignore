@@ -4,3 +4,14 @@
 # AVD-DS-0026: HEALTHCHECK not required for development/utility containers
 # DevContainer and tools images are interactive/short-lived, not production services
 AVD-DS-0026
+
+# DS-0002 / AVD-DS-0002: .clusterfuzzlite/Dockerfile
+# Trivy emits this check with no file location, so a path filter never matches
+# and an inline comment cannot attach to a missing USER line.
+# The file is a ClusterFuzzLite build image. The OSS-Fuzz Go builder compiles
+# the fuzz target and writes it to /out as root. A non-root USER breaks that
+# build. The image is not deployed as a service.
+# .devcontainer/Dockerfile sets USER vscode. images/tools/Dockerfile sets a
+# non-root user of its own. This exception is for the builder image.
+DS-0002
+AVD-DS-0002

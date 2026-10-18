@@ -252,6 +252,22 @@ Required for merge:
 
 ## Testing
 
+### Test policy
+
+New functionality and bug fixes must include tests in the same pull request.
+
+- Chart template or values changes need a Helm unittest under `chart/tests/`, or an update to an existing one, that fails without the change.
+- Input-handling changes (values that are rendered into manifests) need a seed or assertion on the chart-rendering fuzz target in `fuzz/render_test.go`.
+- A pull request that only changes documentation does not need a new test.
+
+CI runs this policy on every pull request. `Lint and Test` runs `helm lint`, `helm template`, and `helm unittest --strict`. `fuzz` runs the Go rendering fuzzer. A pull request is not merged while those checks fail. Run the chart suite locally before opening a pull request:
+
+```bash
+helm lint chart/
+helm template test chart/ > /dev/null
+helm unittest chart/ --strict
+```
+
 ### Helm Chart Testing
 
 ```bash

@@ -13,3 +13,18 @@ misconfigurations:
       DevContainer and tools images are interactive/short-lived, not production
       services requiring health monitoring. These are used for development and
       ad-hoc operations where HEALTHCHECK would add unnecessary complexity.
+
+  # DS-0002: ClusterFuzzLite build image must stay root.
+  # Trivy does not attach a path to this check, so the ID is also listed in
+  # .trivyignore, which is the file the CI action passes as ignorefile.
+  - id: DS-0002
+    statement: >
+      .clusterfuzzlite/Dockerfile is a ClusterFuzzLite build image, based on
+      the OSS-Fuzz Go builder. The builder compiles the fuzz target and writes
+      it to /out as root. A non-root USER would break that build. The image is
+      not deployed as a service. The devcontainer and tools images set their
+      own non-root USER and do not rely on this exception.
+  - id: AVD-DS-0002
+    statement: >
+      Same finding as DS-0002. Listed under both identifiers because Trivy
+      versions report one or the other.
