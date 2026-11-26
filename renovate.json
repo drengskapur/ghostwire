@@ -15,9 +15,9 @@
   "separateMajorMinor": true,
   "separateMinorPatch": false,
   "prHourlyLimit": 5,
-  "prConcurrentLimit": 15,
+  "prConcurrentLimit": 3,
   "branchConcurrentLimit": 15,
-  "automerge": true,
+  "automerge": false,
   "platformAutomerge": true,
   "automergeType": "pr",
   "automergeStrategy": "squash",
@@ -118,6 +118,13 @@
         "dependencies",
         "component: helm-chart"
       ]
+    },
+    {
+      "description": "Automerge off for every update (cost control)",
+      "matchPackageNames": [
+        "*"
+      ],
+      "automerge": false
     }
   ],
   "osvVulnerabilityAlerts": true,
