@@ -2,7 +2,7 @@
 # https://google.github.io/clusterfuzzlite/build-integration/go-lang/
 # No USER instruction: the OSS-Fuzz builder compiles as root and writes to /out.
 # DS-0002 is ignored for that reason in .trivyignore.
-FROM gcr.io/oss-fuzz-base/base-builder-go@sha256:1dbadefbb28c6bfd796c64d9c2115977deb8f19494533cc5a3b724c3441df23d
+FROM gcr.io/oss-fuzz-base/base-builder-go@sha256:a83b0af8917a7df6d19c7437265f003a7418237ace38044e7209679a0b09f488
 
 # Helm renders the chart under test. The archive is pinned by sha256.
 ARG HELM_VERSION=v3.22.0
